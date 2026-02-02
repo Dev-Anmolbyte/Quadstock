@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuadStock - Register Shop</title>
+    <link rel="stylesheet" href="auth.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- Background Elements -->
+    <div class="market-pattern"></div>
+    <!-- Interactive Background Container managed by JS -->
+    <div id="interactive-bg" class="interactive-bg"></div>
+
+    <div class="auth-container" style="max-width: 500px;">
+        <div class="auth-header">
+            <h2>Create Account</h2>
+            <p>Join QuadStock to manage your inventory</p>
+        </div>
+
+        <form>
+            <!-- Owner Name & Shop Name -->
+            <div class="form-group">
+                <label for="owner-name">Owner's Name</label>
+                <div class="input-wrapper">
+                    <input type="text" id="owner-name" class="form-control" placeholder="Enter full name">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="shop-name">Shop Name</label>
+                <div class="input-wrapper">
+                    <input type="text" id="shop-name" class="form-control" placeholder="e.g. Gupta General Store">
+                </div>
+            </div>
+
+            <!-- Email & Phone -->
+            <div class="form-group">
+                <label for="email">Owner Email</label>
+                <div class="input-wrapper">
+                    <input type="email" id="email" class="form-control" placeholder="name@example.com">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <div class="phone-input-group">
+                    <span class="phone-prefix">+91</span>
+                    <input type="tel" id="phone" class="form-control" placeholder="9876543210" maxlength="10">
+                </div>
+            </div>
+
+            <!-- Password -->
+            <div class="form-group">
+                <label for="signup-password">Password</label>
+                <div class="input-wrapper">
+                    <input type="password" id="signup-password" class="form-control"
+                        placeholder="Create a strong password">
+                    <span class="input-icon">
+                        <i class="fa-regular fa-eye"></i>
+                    </span>
+                </div>
+                <!-- Strength Meter -->
+                <div class="strength-meter">
+                    <div id="strength-segment" class="strength-segment"></div>
+                </div>
+                <div id="strength-text" class="strength-text"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirm-password">Confirm Password</label>
+                <div class="input-wrapper">
+                    <input type="password" id="confirm-password" class="form-control" placeholder="Re-enter password">
+                    <span class="input-icon">
+                        <i class="fa-regular fa-eye"></i>
+                    </span>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">Sign Up</button>
+
+            <div class="auth-footer">
+                <p>Already have an account? <a href="login.html">Login here</a></p>
+            </div>
+        </form>
+    </div>
+
+    <script src="auth.js"></script>
+</body>
+
+</html>

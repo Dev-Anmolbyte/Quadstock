@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuadStock | Smart Kirana & Clothing Inventory</title>
+    <link rel="stylesheet" href="landing.css">
+    <!-- script src="../Authentication/script.js" removed to avoid conflicts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#fb923c',
+                        secondary: '#1e293b',
+                        accent: '#16a34a',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-orange-50/30 dark:bg-slate-950 transition-colors duration-300">
+    <!-- Top Indian Flag Accent -->
+    <div class="india-accent fixed top-0 left-0 z-[60]"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-1 w-full z-50 glass border-b border-orange-200/50 dark:border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-3">
+                    <div class="bg-primary p-1.5 rounded-lg shadow-lg">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
+                    </div>
+                    <span class="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">Quad<span
+                            class="text-primary">Stock</span></span>
+                </div>
+
+                <div class="hidden md:flex items-center gap-8">
+                    <a href="#features"
+                        class="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 hover:text-primary transition">Solution</a>
+                    <a href="#solutions"
+                        class="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 hover:text-primary transition">GST
+                        Billing</a>
+                    <div class="h-4 w-px bg-orange-200 dark:bg-gray-700"></div>
+                    <button id="theme-toggle"
+                        class="p-2 rounded-lg hover:bg-orange-100 dark:hover:bg-gray-800 transition">
+                        <svg id="sun-icon" class="w-5 h-5 text-yellow-500 hidden" fill="currentColor"
+                            viewBox="0 0 20 20">
+                            <path
+                                d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" />
+                        </svg>
+                        <svg id="moon-icon" class="w-5 h-5 text-slate-700 dark:text-slate-400" fill="currentColor"
+                            viewBox="0 0 20 20">
+                            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+                        </svg>
+                    </button>
+                    <a href="../Authentication/login.html"
+                        class="text-sm font-bold text-slate-700 dark:text-white hover:text-primary transition">Owner
+                        Login</a>
+                    <a href="../Authentication/signup.html"
+                        class="bg-primary hover:bg-primary-dark text-white px-6 py-2.5 rounded-xl text-sm font-bold transition shadow-lg shadow-primary/25">Register
+                        Store</a>
+                </div>
+
+                <!-- Hamburger Menu -->
+                <button id="open-sidebar-btn"
+                    class="md:hidden text-slate-900 dark:text-white p-2 hover:bg-orange-50 dark:hover:bg-gray-800 rounded-lg transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div id="mobile-sidebar-overlay"
+        class="fixed inset-0 bg-black/50 z-40 hidden backdrop-blur-sm transition-opacity duration-300 opacity-0"></div>
+
+    <!-- Mobile Sidebar -->
+    <div id="mobile-sidebar"
+        class="fixed top-0 right-0 h-full w-[280px] bg-white dark:bg-slate-900 z-50 transform translate-x-full transition-transform duration-300 shadow-2xl border-l border-gray-100 dark:border-gray-800">
+        <div class="p-6 flex flex-col h-full">
+            <div class="flex justify-between items-center mb-8">
+                <span class="text-xl font-extrabold text-slate-900 dark:text-white">Quad<span
+                        class="text-primary">Stock</span></span>
+                <button id="close-sidebar-btn"
+                    class="text-gray-500 hover:text-red-500 transition p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="flex flex-col gap-4">
+                <a href="#features"
+                    class="font-bold text-lg text-slate-600 dark:text-slate-300 hover:text-primary transition p-2 rounded-lg hover:bg-orange-50 dark:hover:bg-slate-800/50"
+                    onclick="toggleMobileSidebar()">Solution</a>
+                <a href="#solutions"
+                    class="font-bold text-lg text-slate-600 dark:text-slate-300 hover:text-primary transition p-2 rounded-lg hover:bg-orange-50 dark:hover:bg-slate-800/50"
+                    onclick="toggleMobileSidebar()">GST Billing</a>
+                <div class="h-px bg-gray-100 dark:bg-gray-800 my-2"></div>
+                <a href="../Authentication/login.html"
+                    class="font-bold text-lg text-slate-600 dark:text-slate-300 hover:text-primary transition p-2 rounded-lg hover:bg-orange-50 dark:hover:bg-slate-800/50">Owner
+                    Login</a>
+                <a href="../Authentication/signup.html"
+                    class="bg-primary hover:bg-primary-dark text-white px-4 py-3 rounded-xl text-center font-bold shadow-lg shadow-primary/30 mt-4 transition">Register
+                    Store</a>
+            </div>
+            <div class="mt-auto border-t border-gray-100 dark:border-gray-800 pt-6">
+                <p class="text-[10px] text-center text-slate-400 font-bold uppercase tracking-widest">Proudly Made in
+                    India 🇮🇳</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="relative pt-24 pb-16 md:pt-36 md:pb-24 overflow-hidden">
+        <div class="grid-bg absolute inset-0 z-0"></div>
+        <div class="hero-glow"></div>
+
+        <div class="max-w-7xl mx-auto px-4 text-center relative z-10">
+            <div
+                class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent/10 border border-accent/20 text-accent text-xs font-black mb-8">
+                🇮🇳 MAKE IN INDIA - DIGITAL DUKAN
+            </div>
+            <h1 class="text-4xl md:text-7xl font-black text-slate-900 dark:text-white leading-tight mb-6">
+                Ab Kirana aur Kapda Vyapar <br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">Hoga Digital aur
+                    Asaan.</span>
+            </h1>
+            <p class="text-base md:text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto mb-10">
+                Complete Inventory & Billing solution for your <b>Grocery Store</b> and <b>Clothing Showroom</b>.
+                Track expiry, manage sizes/colors, and generate <b>GST Invoices</b> in seconds.
+            </p>
+
+            <div class="flex flex-col sm:flex-row justify-center gap-4 mb-16 animate-float">
+                <a href="../Authentication/signup.html"
+                    class="bg-primary hover:bg-primary-dark text-white px-10 py-4 rounded-xl text-lg font-bold transition shadow-2xl shadow-primary/40 flex items-center justify-center gap-2">
+                    Create My Store Page
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                </a>
+                <a href="../Authentication/login.html">
+                <button
+                    class="bg-white dark:bg-slate-900 border border-orange-100 dark:border-gray-800 text-slate-900 dark:text-white px-10 py-4 rounded-xl text-lg font-bold transition hover:bg-orange-50 flex items-center justify-center gap-2">
+                    Start Billing Now
+                </button></a>
+            </div>
+
+            <!-- Dashboard Preview (Indian Retail Context) -->
+            <div class="relative max-w-5xl mx-auto dashboard-mockup bg-white dark:bg-slate-900 overflow-hidden">
+                <div class="h-8 bg-slate-100 dark:bg-slate-800 flex items-center px-4 gap-2 border-b border-gray-200">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Digital Register -
+                        QuadStock</span>
+                </div>
+                <div class="p-4 md:p-8 bg-white dark:bg-slate-950">
+                    <div class="grid grid-cols-12 gap-6">
+                        <!-- Sidebar-like elements -->
+                        <div class="col-span-3 space-y-3">
+                            <div class="p-3 bg-orange-50 rounded-lg border-l-4 border-primary">
+                                <p class="text-[10px] font-bold text-primary">KIRANA DASHBOARD</p>
+                                <p class="text-xs font-bold text-slate-700">Stock In Hand</p>
+                            </div>
+                            <div class="p-3 bg-slate-50 rounded-lg hover:bg-orange-50 transition cursor-pointer">
+                                <p class="text-xs font-bold text-slate-500">Clothing Variants</p>
+                            </div>
+                            <div class="p-3 bg-slate-50 rounded-lg hover:bg-orange-50 transition cursor-pointer">
+                                <p class="text-xs font-bold text-slate-500">Expiry Tracker</p>
+                            </div>
+                            <div class="p-3 bg-slate-50 rounded-lg hover:bg-orange-50 transition cursor-pointer">
+                                <p class="text-xs font-bold text-slate-500">GST Reports</p>
+                            </div>
+                        </div>
+
+                        <!-- Main Preview -->
+                        <div class="col-span-9 space-y-6 text-left">
+                            <div class="flex justify-between items-end">
+                                <div>
+                                    <h4 class="text-lg font-bold text-slate-800 dark:text-white">Store Overview - Patna
+                                        City Branch</h4>
+                                    <p class="text-xs text-slate-400">Inventory Status as of Today</p>
+                                </div>
+                                <span class="bg-accent/10 text-accent text-[10px] font-bold px-3 py-1 rounded-full">LIVE
+                                    STOCK</span>
+                            </div>
+
+                            <!-- Retail Item List Preview -->
+                            <div class="border border-slate-100 rounded-xl overflow-hidden shadow-sm">
+                                <table class="w-full text-left text-xs">
+                                    <thead class="bg-slate-50 text-slate-500 uppercase">
+                                        <tr>
+                                            <th class="p-3">Item Name</th>
+                                            <th class="p-3">Category</th>
+                                            <th class="p-3">Quantity</th>
+                                            <th class="p-3">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-50">
+                                        <tr>
+                                            <td class="p-3 font-bold">Fortune Mustard Oil 1L</td>
+                                            <td class="p-3">Grocery</td>
+                                            <td class="p-3">124 Pcs</td>
+                                            <td class="p-3"><span class="text-accent font-bold">Healthy</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="p-3 font-bold">Levi's 511 Denims (Blue)</td>
+                                            <td class="p-3">Clothing</td>
+                                            <td class="p-3">12 Pcs</td>
+                                            <td class="p-3"><span class="text-orange-500 font-bold">Low Stock</span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="p-3 font-bold">Maggi Masala 12-Pack</td>
+                                            <td class="p-3">Grocery</td>
+                                            <td class="p-3">5 Pcs</td>
+                                            <td class="p-3"><span class="text-red-500 font-bold">Expiry Warning</span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Retail Specific Solutions -->
+    <section id="features" class="py-24 bg-white dark:bg-slate-900 overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+                <div class="fade-up">
+                    <h2 class="text-primary font-bold tracking-widest text-sm uppercase mb-3">Vastra & Kirana Bhandar
+                        Special</h2>
+                    <h3 class="text-3xl md:text-5xl font-black text-slate-900 dark:text-white mb-6">Built for the Indian
+                        Retail Market</h3>
+                    <img src="../Assets/billing_counter.png" alt="App Interface"
+                        class="relative z-10 w-full rounded-xl">
+                    <ul class="space-y-6">
+                        <li class="flex gap-4">
+                            <div class="bg-accent/10 p-3 rounded-xl text-accent"><svg class="w-6 h-6" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg></div>
+                            <div>
+                                <h4 class="font-bold text-slate-900 dark:text-white">Smart Expiry Management</h4>
+                                <p class="text-sm text-slate-500">Auto-alert for products expiring soon. Save money on
+                                    grocery waste.</p>
+                            </div>
+                        </li>
+                        <li class="flex gap-4">
+                            <div class="bg-primary/10 p-3 rounded-xl text-primary"><svg class="w-6 h-6" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M3 10h18M7 15h1m4 0h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                </svg></div>
+                            <div>
+                                <h4 class="font-bold text-slate-900 dark:text-white">GST Ready Billing</h4>
+                                <p class="text-sm text-slate-500">One-click GST invoice generation. Tally-compatible
+                                    reports for your CA.</p>
+                            </div>
+                        </li>
+                        <li class="flex gap-4">
+                            <div class="bg-blue-500/10 p-3 rounded-xl text-blue-500"><svg class="w-6 h-6" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                </svg></div>
+                            <div>
+                                <h4 class="font-bold text-slate-900 dark:text-white">Clothing Variants (Size/Color)</h4>
+                                <p class="text-sm text-slate-500">Manage S, M, L, XL sizes and color varieties for every
+                                    garment effortlessly.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="relative fade-up" style="transition-delay: 200ms">
+                    <div class="market-pattern absolute inset-0 rounded-3xl -rotate-2"></div>
+                    <div class="relative bg-orange-100/50 p-6 rounded-3xl border border-orange-200">
+                        <div class="bg-white p-4 rounded-xl shadow-lg border border-orange-100 mb-4">
+                            <p class="text-[10px] text-slate-400 font-bold">CUSTOMER BILLING</p>
+                            <div class="flex justify-between items-center mt-2">
+                                <span class="text-sm font-bold">1kg Sugar + 5kg Rice</span>
+                                <span class="text-sm font-black text-primary">₹640.00</span>
+                            </div>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow-lg border border-orange-100">
+                            <p class="text-[10px] text-slate-400 font-bold">STOCK UPDATE</p>
+                            <div class="flex items-center gap-3 mt-2">
+                                <span class="w-8 h-8 rounded bg-slate-100 flex items-center justify-center">👕</span>
+                                <span class="text-sm font-bold">Added: 50 Cotton T-Shirts (L)</span>
+                            </div>
+                        </div>
+                        <!-- "Made for Bharat" Badge -->
+                        <div
+                            class="absolute -bottom-4 -right-4 bg-accent text-white p-4 rounded-full font-black text-center shadow-xl rotate-12">
+                            For<br>Bharat
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="py-24 bg-secondary relative overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 relative z-10">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-12 text-white">
+                <div class="text-center">
+                    <div class="text-5xl font-black mb-2 counter" data-target="100">0</div>
+                    <div class="text-xs font-bold opacity-60 uppercase tracking-widest text-primary">Indian Stores</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-5xl font-black mb-2 counter" data-target="45">0</div>
+                    <div class="text-xs font-bold opacity-60 uppercase tracking-widest text-primary">Time Saved %</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-5xl font-black mb-2 counter" data-target="1000">0</div>
+                    <div class="text-xs font-bold opacity-60 uppercase tracking-widest text-primary">Products Catalog
+                    </div>
+                </div>
+                <div class="text-center">
+                    <div class="text-5xl font-black mb-2 counter" data-target="1">0</div>
+                    <div class="text-xs font-bold opacity-60 uppercase tracking-widest text-primary">Click Billing</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-white pt-24 pb-8">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+                <div>
+                    <div class="flex items-center gap-2 mb-6">
+                        <span class="text-2xl font-black text-white">Quad<span class="text-primary">Stock</span></span>
+                    </div>
+                    <p class="text-slate-500 text-sm">Managing Kirana & Clothing business became easier than ever. Made
+                        with ❤️ in India.</p>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-6">Business Tools</h4>
+                    <ul class="text-slate-500 text-sm space-y-3">
+                        <li><a href="#" class="hover:text-primary transition">GST Billing Soft</a></li>
+                        <li><a href="#" class="hover:text-primary transition">Grocery Inventory</a></li>
+                        <li><a href="#" class="hover:text-primary transition">Garment Stock App</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-6">Quick Links</h4>
+                    <ul class="text-slate-500 text-sm space-y-3">
+                        <li><a href="../Components/contact.html" class="hover:text-primary transition">Contact
+                                Support</a></li>
+                        <li><a href="../Components/privacy-policy.html" class="hover:text-primary transition">Privacy
+                                Policy</a></li>
+                        <li><a href="../Components/portfolio.html" class="hover:text-primary transition">Portfolio</a>
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-6">Contact</h4>
+                    <p class="text-slate-500 text-sm">Patna, Bihar, India<br>support@quadstock.in</p>
+                </div>
+            </div>
+            <div
+                class="text-center text-slate-700 text-[10px] font-bold tracking-[0.2em] border-t border-slate-800 pt-8">
+                POWERING THE BACKBONE OF INDIAN RETAIL
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // --- Theme Toggle ---
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const sunIcon = document.getElementById('sun-icon');
+        const moonIcon = document.getElementById('moon-icon');
+        const html = document.documentElement;
+
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            html.classList.add('dark');
+            sunIcon?.classList.remove('hidden');
+            moonIcon?.classList.add('hidden');
+        } else {
+            html.classList.remove('dark');
+            sunIcon?.classList.add('hidden');
+            moonIcon?.classList.remove('hidden');
+        }
+
+        themeToggleBtn?.addEventListener('click', () => {
+            html.classList.toggle('dark');
+            const isDark = html.classList.contains('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            if (isDark) {
+                sunIcon?.classList.remove('hidden');
+                moonIcon?.classList.add('hidden');
+            } else {
+                sunIcon?.classList.add('hidden');
+                moonIcon?.classList.remove('hidden');
+            }
+        });
+
+        // --- Intersection Observer for Fade Up ---
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+        // --- Counter Animation ---
+        const counters = document.querySelectorAll('.counter');
+        const animateCounters = () => {
+            counters.forEach(counter => {
+                const target = +counter.getAttribute('data-target');
+                const updateCounter = () => {
+                    const count = +counter.innerText;
+                    const increment = target / 50;
+                    if (count < target) {
+                        counter.innerText = Math.ceil(count + increment);
+                        setTimeout(updateCounter, 20);
+                    } else {
+                        counter.innerText = target + (target > 50 ? '+' : '');
+                    }
+                };
+                updateCounter();
+            });
+        };
+
+        const statsSection = document.querySelector('.bg-secondary');
+        const statsObserver = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting) {
+                animateCounters();
+                statsObserver.disconnect();
+            }
+        }, { threshold: 0.5 });
+
+        statsObserver.observe(statsSection);
+
+        // --- Mobile Sidebar Logic ---
+        const sidebar = document.getElementById('mobile-sidebar');
+        const overlay = document.getElementById('mobile-sidebar-overlay');
+        const openBtn = document.getElementById('open-sidebar-btn');
+        const closeBtn = document.getElementById('close-sidebar-btn');
+
+        function toggleMobileSidebar() {
+            if (!sidebar) return;
+            const isOpen = !sidebar.classList.contains('translate-x-full');
+            if (isOpen) {
+                // Close
+                sidebar.classList.add('translate-x-full');
+                overlay.classList.remove('opacity-100');
+                setTimeout(() => overlay.classList.add('hidden'), 300);
+                document.body.style.overflow = '';
+            } else {
+                // Open
+                overlay.classList.remove('hidden');
+                // Force reflowa
+                void overlay.offsetWidth;
+                overlay.classList.add('opacity-100');
+                sidebar.classList.remove('translate-x-full');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        openBtn?.addEventListener('click', toggleMobileSidebar);
+        closeBtn?.addEventListener('click', toggleMobileSidebar);
+        overlay?.addEventListener('click', toggleMobileSidebar);
+    </script>
+</body>
+
+</html>

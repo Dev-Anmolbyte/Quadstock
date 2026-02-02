@@ -1,0 +1,485 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+    /* Light Mode Variables */
+    --primary: #fb923c;
+    --primary-dark: #ea580c;
+    --accent: #16a34a;
+    --accent-blue: #3b82f6;
+
+    --bg-light: #fffcf9;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+
+    --glass-bg: rgba(255, 255, 255, 0.65);
+    --glass-border: rgba(255, 255, 255, 0.6);
+    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+
+    --input-bg: rgba(255, 255, 255, 0.8);
+    --input-border: rgba(0, 0, 0, 0.08);
+
+    /* Background Gradients */
+    --bg-gradient-1: #fff7ed;
+    --bg-gradient-2: #f0fdf4;
+    --bg-gradient-3: #fffcf9;
+    --bg-gradient-4: #ecfccb;
+
+    /* Orb Colors - CLEARLY VISIBLE in both modes */
+    --orb-1: #fb923c;
+    /* Primary Orange */
+    --orb-2: #16a34a;
+    /* Green */
+    --orb-3: #facc15;
+    /* Yellow/Gold */
+    --orb-4: #3b82f6;
+    /* Blue */
+
+    --orb-opacity: 0.6;
+    --orb-blur: 80px;
+}
+
+html.dark {
+    /* Dark Mode Variables */
+    --bg-light: #0f172a;
+    /* Slate 900 */
+    --text-main: #f1f5f9;
+    --text-muted: #94a3b8;
+
+    --glass-bg: rgba(15, 23, 42, 0.65);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+
+    --input-bg: rgba(0, 0, 0, 0.3);
+    /* Darker inset look for better contrast */
+    --input-border: rgba(255, 255, 255, 0.15);
+
+    /* Darker, futuristic gradients */
+    --bg-gradient-1: #0f172a;
+    --bg-gradient-2: #1e1b4b;
+    /* Indigo 950 */
+    --bg-gradient-3: #022c22;
+    /* Teal 950 */
+    --bg-gradient-4: #2a1205;
+    /* Dark Orange tint */
+
+    /* Dark Mode Orbs - More neon/vibrant to pop against dark bg */
+    --orb-1: #f97316;
+    /* Bright Orange */
+    --orb-2: #22c55e;
+    /* Bright Green */
+    --orb-3: #8b5cf6;
+    /* Violet */
+    --orb-4: #0ea5e9;
+    /* Sky Blue */
+
+    --orb-opacity: 0.45;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+body {
+    background-color: var(--bg-light);
+    color: var(--text-main);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow-x: hidden;
+    padding: 1rem;
+    transition: background-color 0.5s ease;
+}
+
+/* --- ATTRACTIVE ANIMATED BACKGROUND --- */
+
+/* 1. Base Gradient Animation */
+body::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(-45deg, var(--bg-gradient-1), var(--bg-gradient-2), var(--bg-gradient-3), var(--bg-gradient-4));
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    z-index: -2;
+    transition: background 0.5s ease;
+}
+
+@keyframes gradientBG {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* 2. Interactive Background Container */
+.interactive-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: -1;
+    pointer-events: none;
+    /* Let clicks pass through */
+}
+
+/* 3. Dynamic Orbs */
+.bg-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(var(--orb-blur));
+    opacity: var(--orb-opacity);
+    transition: width 0.3s, height 0.3s, background-color 0.5s;
+    /* Transformation is handled by JS for high performance */
+    will-change: transform;
+    transform: translate(-50%, -50%);
+    /* Center the orb on its coordinate */
+}
+
+/* --- Grain Overlay for Texture (Premium Feel) --- */
+body::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: -1;
+    opacity: 0.6;
+}
+
+/* Glass Container */
+/* Enhanced Glassmorphism */
+.auth-container {
+    width: 100%;
+    max-width: 450px;
+    padding: 3rem 2.5rem;
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 24px;
+    box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.05),
+        0 10px 15px -3px rgba(0, 0, 0, 0.05),
+        0 20px 25px -5px rgba(0, 0, 0, 0.05),
+        inset 0 0 20px rgba(255, 255, 255, 0.5);
+    /* Inner glow */
+    animation: fadeUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+    position: relative;
+    z-index: 10;
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.auth-header h2 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+}
+
+.auth-header p {
+    color: var(--text-muted);
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+/* Form Styles */
+.form-group {
+    margin-bottom: 1.5rem;
+    position: relative;
+    width: 100%;
+    /* Ensure full width */
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-main);
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.9rem 1rem;
+    padding-right: 2.5rem;
+    font-size: 1rem;
+    color: var(--text-main);
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    /* More subtle border */
+    border-radius: 12px;
+    outline: none;
+    transition: all 0.25s ease;
+}
+
+.form-control:focus {
+    background: var(--input-bg);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(251, 146, 60, 0.15);
+    /* Slightly stronger focus ring */
+    transform: translateY(-1px);
+}
+
+.input-icon {
+    position: absolute;
+    right: 1rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.3s;
+    font-size: 1.1rem;
+}
+
+.input-icon:hover {
+    color: var(--primary);
+}
+
+/* Phone Input Specifics */
+.phone-input-group {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+}
+
+.phone-prefix {
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-right: none;
+    border-radius: 12px 0 0 12px;
+    padding: 0 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: var(--text-main);
+    font-size: 0.95rem;
+    min-width: 60px;
+}
+
+.phone-input-group .form-control {
+    border-radius: 0 12px 12px 0;
+    padding-left: 1rem;
+    flex: 1;
+    /* Allow it to fill remaining space */
+}
+
+/* Submit Button */
+.btn-submit {
+    width: 100%;
+    padding: 1rem;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 6px rgba(234, 88, 12, 0.2), 0 10px 15px -3px rgba(234, 88, 12, 0.1);
+    margin-top: 1rem;
+}
+
+.btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(234, 88, 12, 0.25), 0 4px 6px rgba(234, 88, 12, 0.1);
+}
+
+.btn-submit:active {
+    transform: translateY(1px);
+}
+
+/* Footer Links */
+.auth-footer {
+    margin-top: 1.5rem;
+    text-align: center;
+    font-size: 0.95rem;
+    color: var(--text-muted);
+}
+
+.auth-footer a {
+    color: var(--primary-dark);
+    text-decoration: none;
+    font-weight: 700;
+    transition: color 0.2s;
+    position: relative;
+}
+
+.auth-footer a::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    bottom: -2px;
+    left: 0;
+    background-color: var(--primary);
+    transform: scaleX(0);
+    transform-origin: bottom right;
+    transition: transform 0.25s ease-out;
+}
+
+.auth-footer a:hover::after {
+    transform: scaleX(1);
+    transform-origin: bottom left;
+}
+
+
+/* Strength Meter */
+.strength-meter {
+    height: 6px;
+    width: 100%;
+    background: #e2e8f0;
+    margin-top: 0.75rem;
+    border-radius: 3px;
+    overflow: hidden;
+    display: flex;
+}
+
+.strength-segment {
+    height: 100%;
+    width: 0%;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s;
+}
+
+.strength-text {
+    font-size: 0.8rem;
+    margin-top: 0.4rem;
+    text-align: right;
+    font-weight: 600;
+    min-height: 1.3em;
+}
+
+/* Strength Colors */
+.weak {
+    background-color: #ef4444;
+    width: 33%;
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+}
+
+.medium {
+    background-color: #eab308;
+    width: 66%;
+    box-shadow: 0 0 10px rgba(234, 179, 8, 0.5);
+}
+
+.strong {
+    background-color: #22c55e;
+    width: 100%;
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+
+/* --- RESPONSIVENESS (Media Queries) --- */
+
+@media screen and (max-width: 768px) {
+    body {
+        /* Allow scroll if content is tall on tablets/mobile */
+        overflow-y: auto;
+        padding: 2rem 1rem;
+        align-items: flex-start;
+        /* Start from top on smaller screens */
+    }
+
+    .auth-container {
+        padding: 2rem 1.5rem;
+        max-width: 100%;
+        margin-top: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .shape-1,
+    .shape-2 {
+        opacity: 0.5;
+        /* Reduce distraction */
+        width: 300px;
+        height: 300px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .auth-container {
+        padding: 1.5rem;
+        border-radius: 16px;
+    }
+
+    .auth-header h2 {
+        font-size: 1.75rem;
+    }
+
+    .form-control,
+    .btn-submit {
+        padding: 0.8rem;
+        font-size: 0.95rem;
+        /* Better text size for mobile */
+    }
+
+    .phone-prefix {
+        padding: 0 0.8rem;
+    }
+
+    .shape-1 {
+        top: -10%;
+        left: -20%;
+    }
+
+    .shape-2 {
+        bottom: -10%;
+        right: -20%;
+    }
+}
