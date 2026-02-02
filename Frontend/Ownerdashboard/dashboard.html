@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuadStock - Owner Dashboard</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- CSS -->
+    <link rel="stylesheet" href="dashboard.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <h2>QuadStock</h2>
+            </div>
+
+            <nav class="sidebar-menu">
+                <a href="dashboard.html" class="menu-item">
+                    <i class="fa-solid fa-house"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <i class="fa-solid fa-chart-simple"></i>
+                    <span>Analytics</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <i class="fa-solid fa-clipboard-question"></i>
+
+                    <span>Query</span>
+                </a>
+                <a href="#" class="menu-item active">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                    <span>Inventory</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <i class="fa-solid fa-hourglass-end"></i>
+                    <span>Smart Expiry</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <i class="fa-solid fa-users-gear"></i>
+                    <span>Employees</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span>Complain</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer-card">
+                <div class="support-illustration">
+                    <!-- Simple SVG person illustration -->
+                    <svg viewBox="0 0 100 100" class="illus-svg">
+                        <circle cx="50" cy="35" r="15" fill="#333" />
+                        <path d="M20,80 Q50,70 80,80 V100 H20 Z" fill="#333" />
+                        <rect x="15" y="45" width="25" height="15" rx="2" fill="#555" transform="rotate(-15 27 52)" />
+                    </svg>
+                </div>
+                <a href="../Footer/contact.html" class="btn-support"
+                    style="text-decoration: none; display: inline-block; text-align: center;">
+                    <i class="fa-regular fa-life-ring"></i> Support
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="top-header">
+                <div class="header-left">
+                    <h1>Dashboard</h1>
+                </div>
+
+                <!-- Digital Clock Container -->
+                <div class="digital-clock" id="digital-clock">
+                    00:00:00 AM
+                </div>
+
+                <div class="search-container">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" placeholder="Search...">
+                </div>
+
+                <div class="header-right">
+                    <button class="theme-toggle-btn" id="theme-toggle" title="Toggle Theme">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+                    <button class="notif-btn"><i class="fa-regular fa-bell"></i></button>
+                    <div class="user-profile">
+                        <img src="https://ui-avatars.com/api/?name=Floyd+Miles&background=random" alt="User">
+                        <span class="user-name">Owner Admin</span>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-scrollable">
+                <!-- Stats Row -->
+                <div class="stats-row">
+                    <!-- Card 1 -->
+                    <div class="stat-card">
+                        <div class="stat-icon blue-bg"><i class="fa-solid fa-sack-dollar"></i></div>
+                        <div class="stat-info">
+                            <p class="label">Total revenue</p>
+                            <h3>₹50,000</h3>
+                        </div>
+                        <button class="more-btn"><i class="fa-solid fa-ellipsis"></i></button>
+                    </div>
+                    <!-- Card 2 -->
+                    <div class="stat-card">
+                        <div class="stat-icon purple-bg"><i class="fa-solid fa-cart-shopping"></i></div>
+                        <div class="stat-info">
+                            <p class="label">Revenue</p>
+                            <h3>₹1,250</h3>
+                        </div>
+                        <button class="more-btn"><i class="fa-solid fa-ellipsis"></i></button>
+                    </div>
+                    <!-- Card 3 -->
+                    <div class="stat-card">
+                        <div class="stat-icon pink-bg"><i class="fa-solid fa-box-open"></i></div>
+                        <div class="stat-info">
+                            <p class="label">Products Sold</p>
+                            <h3>2453</h3>
+                        </div>
+                        <button class="more-btn"><i class="fa-solid fa-ellipsis"></i></button>
+                    </div>
+                    <!-- Card 4 -->
+                    <div class="stat-card">
+                        <div class="stat-icon green-bg"><i class="fa-solid fa-arrow-trend-up"></i></div>
+                        <div class="stat-info">
+                            <p class="label">Growth</p>
+                            <h3>+2.0%</h3>
+                        </div>
+                        <button class="more-btn"><i class="fa-solid fa-ellipsis"></i></button>
+                    </div>
+                </div>
+
+                <!-- Middle Section: Products Table & Quick Details -->
+                <div class="middle-section">
+                    <!-- Top Products Table -->
+                    <div class="card table-card">
+                        <div class="card-header">
+                            <h3>Top Products</h3>
+                            <a href="#" class="link-arrow"><i class="fa-solid fa-arrow-right"></i></a>
+                        </div>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>PRODUCT</th>
+                                        <th>AVAILABILITY</th>
+                                        <th>TOTAL</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <div class="prod-cell">
+                                                <div class="prod-img bg-red-100"><img
+                                                        src="../Assets/product_placeholder.png" alt="img"
+                                                        onerror="this.style.display='none'"></div>
+                                                <span>Women's Vintage Peacoat</span>
+                                            </div>
+                                        </td>
+                                        <td><span class="badge blue">220 In Stock</span></td>
+                                        <td class="price">₹29,192</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="prod-cell">
+                                                <div class="prod-img bg-yellow-100"><img
+                                                        src="../Assets/product_placeholder.png" alt="img"
+                                                        onerror="this.style.display='none'"></div>
+                                                <span>Women's Oatmeal Sweater</span>
+                                            </div>
+                                        </td>
+                                        <td><span class="badge red">Out of Stock</span></td>
+                                        <td class="price">₹23,654</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="prod-cell">
+                                                <div class="prod-img bg-gray-100"><img
+                                                        src="../Assets/product_placeholder.png" alt="img"
+                                                        onerror="this.style.display='none'"></div>
+                                                <span>Women's Denim Shirt</span>
+                                            </div>
+                                        </td>
+                                        <td><span class="badge orange">4 In Stock</span></td>
+                                        <td class="price">₹21,404</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="prod-cell">
+                                                <div class="prod-img bg-red-100"><img
+                                                        src="../Assets/product_placeholder.png" alt="img"
+                                                        onerror="this.style.display='none'"></div>
+                                                <span>Women's Vintage Peacoat</span>
+                                            </div>
+                                        </td>
+                                        <td><span class="badge orange">2 In Stock</span></td>
+                                        <td class="price">₹19,100</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Quick Details -->
+                    <div class="card quick-details-card">
+                        <div class="card-header">
+                            <h3>Quick Details</h3>
+                            <a href="#" class="link-arrow"><i class="fa-solid fa-arrow-right"></i></a>
+                        </div>
+                        <ul class="details-list">
+                            <li>
+                                <div class="detail-left">
+                                    <div class="icon-box blue-text"><i class="fa-regular fa-user"></i></div>
+                                    <span>419 new customers</span>
+                                </div>
+                                <span class="detail-right">Last 24 Hours</span>
+                            </li>
+                            <li>
+                                <div class="detail-left">
+                                    <div class="icon-box green-text"><i class="fa-solid fa-rotate"></i></div>
+                                    <span>Awaiting Process</span>
+                                </div>
+                                <span class="detail-right">345 orders</span>
+                            </li>
+                            <li>
+                                <div class="detail-left">
+                                    <div class="icon-box gray-text"><i class="fa-regular fa-clock"></i></div>
+                                    <span>On Hold</span>
+                                </div>
+                                <span class="detail-right">180 orders</span>
+                            </li>
+                            <li>
+                                <div class="detail-left">
+                                    <div class="icon-box orange-text"><i class="fa-solid fa-circle-exclamation"></i>
+                                    </div>
+                                    <span>Low in Stock</span>
+                                </div>
+                                <span class="detail-right">350 orders</span>
+                            </li>
+                            <li>
+                                <div class="detail-left">
+                                    <div class="icon-box red-text"><i class="fa-solid fa-circle-xmark"></i></div>
+                                    <span>Out of Stock</span>
+                                </div>
+                                <span class="detail-right">27 items</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Bottom Section: Charts -->
+                <div class="bottom-section">
+                    <!-- Net Income Chart -->
+                    <div class="card chart-main-card">
+                        <div class="card-header">
+                            <h3>Net Income</h3>
+                            <div class="chart-legend-custom">
+                                <span><i class="dot blue"></i> Rome</span>
+                                <span><i class="dot green"></i> Berlin</span>
+                                <span><i class="dot pink"></i> Paris</span>
+                                <span><i class="dot gray"></i> Zurich</span>
+                            </div>
+                            <button class="date-dropdown">
+                                <i class="fa-regular fa-calendar"></i> Jan - Aug <i
+                                    class="fa-solid fa-chevron-down"></i>
+                            </button>
+                        </div>
+                        <div class="bar-chart-container">
+                            <canvas id="netIncomeChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Money Stats Donut -->
+                    <div class="card chart-donut-card">
+                        <div class="card-header">
+                            <h3>Money Stats</h3>
+                        </div>
+                        <div class="donut-chart-container">
+                            <canvas id="moneyStatsChart"></canvas>
+                            <div class="donut-center-text">
+                                <h3>49%</h3>
+                                <p>Saved</p>
+                            </div>
+                        </div>
+                        <div class="donut-legend-right">
+                            <div class="legend-total">
+                                <p>Total Budget</p>
+                                <h3>₹60,000</h3>
+                            </div>
+                            <div class="legend-item">
+                                <span class="dot pink"></span>
+                                <div>
+                                    <p class="val">₹25,654</p>
+                                    <p class="lbl">Total spent</p>
+                                </div>
+                            </div>
+                            <div class="legend-item">
+                                <span class="dot blue"></span>
+                                <div>
+                                    <p class="val">₹34,346</p>
+                                    <p class="lbl">Money saved</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="dashboard.js"></script>
+</body>
+
+</html>
