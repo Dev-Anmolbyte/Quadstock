@@ -21,40 +21,47 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="brand">
-                <h2>QuadStock</h2>
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <h2 class="brand-text">QuadStock</h2>
             </div>
 
             <nav class="sidebar-menu">
-                <a href="dashboard.html" class="menu-item">
+                <a href="dashboard.html" class="menu-item" title="Dashboard">
                     <i class="fa-solid fa-house"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="#" class="menu-item">
+                <a href="../Analytics/analytics.html" class="menu-item" title="Analytics">
                     <i class="fa-solid fa-chart-simple"></i>
                     <span>Analytics</span>
                 </a>
-                <a href="#" class="menu-item">
+                <a href="#" class="menu-item" title="Query">
                     <i class="fa-solid fa-clipboard-question"></i>
 
                     <span>Query</span>
                 </a>
-                <a href="#" class="menu-item active">
+                <a href="#" class="menu-item active" title="Inventory">
                     <i class="fa-solid fa-boxes-stacked"></i>
                     <span>Inventory</span>
                 </a>
-                <a href="#" class="menu-item">
+                <a href="#" class="menu-item" title="Smart Expiry">
                     <i class="fa-solid fa-hourglass-end"></i>
                     <span>Smart Expiry</span>
                 </a>
-                <a href="#" class="menu-item">
+                <a href="#" class="menu-item" title="Employees">
                     <i class="fa-solid fa-users-gear"></i>
                     <span>Employees</span>
                 </a>
-                <a href="#" class="menu-item">
+                <a href="#" class="menu-item" title="Complain">
                     <i class="fa-solid fa-triangle-exclamation"></i>
                     <span>Complain</span>
                 </a>
-                <a href="#" class="menu-item">
+                <a href="#" class="menu-item" title="Pending Payments">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                    <span>Pending Payments</span>
+                </a>
+                <a href="#" class="menu-item" title="Settings">
                     <i class="fa-solid fa-gear"></i>
                     <span>Settings</span>
                 </a>
@@ -114,37 +121,83 @@
                     <div class="stat-card">
                         <div class="stat-icon blue-bg"><i class="fa-solid fa-sack-dollar"></i></div>
                         <div class="stat-info">
-                            <p class="label">Total revenue</p>
-                            <h3>₹50,000</h3>
+                            <p class="label">Total Annual Revenue</p>
+                            <h3>₹10000,000</h3>
                         </div>
-                        <button class="more-btn"><i class="fa-solid fa-ellipsis"></i></button>
+                        <select id="revenue-year-select" class="year-select"></select>
                     </div>
                     <!-- Card 2 -->
                     <div class="stat-card">
                         <div class="stat-icon purple-bg"><i class="fa-solid fa-cart-shopping"></i></div>
                         <div class="stat-info">
-                            <p class="label">Revenue</p>
-                            <h3>₹1,250</h3>
+                            <p class="label">Monthly Revenue</p>
+                            <h3>₹600,000</h3>
                         </div>
-                        <button class="more-btn"><i class="fa-solid fa-ellipsis"></i></button>
+                        <select id="revenue-month-select" class="month-select"></select>
                     </div>
                     <!-- Card 3 -->
                     <div class="stat-card">
                         <div class="stat-icon pink-bg"><i class="fa-solid fa-box-open"></i></div>
                         <div class="stat-info">
                             <p class="label">Products Sold</p>
-                            <h3>2453</h3>
+                            <h3>20000</h3>
                         </div>
-                        <button class="more-btn"><i class="fa-solid fa-ellipsis"></i></button>
+                        <select id="products-period-select" class="period-select">
+                            <option value="today">Today</option>
+                            <option value="yesterday">Yesterday</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                        </select>
                     </div>
                     <!-- Card 4 -->
                     <div class="stat-card">
-                        <div class="stat-icon green-bg"><i class="fa-solid fa-arrow-trend-up"></i></div>
+                        <div class="stat-icon blue-bg"><i class="fa-solid fa-boxes-stacked"></i></div>
                         <div class="stat-info">
-                            <p class="label">Growth</p>
-                            <h3>+2.0%</h3>
+                            <p class="label">Total Product in Inventory</p>
+                            <h3>1,250</h3>
+                        </div>
+                    </div>
+
+                    <!-- New Card 5 -->
+                    <div class="stat-card">
+                        <div class="stat-icon red-bg"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                        <div class="stat-info">
+                            <p class="label">Low Stocks in Inventory</p>
+                            <h3>15</h3>
+                        </div>
+                    </div>
+                    <!-- New Card 6 -->
+                    <div class="stat-card">
+                        <div class="stat-icon orange-bg"><i class="fa-solid fa-users"></i></div>
+                        <div class="stat-info">
+                            <p class="label">Total Employees</p>
+                            <h3>5</h3>
                         </div>
                         <button class="more-btn"><i class="fa-solid fa-ellipsis"></i></button>
+                    </div>
+
+
+                    <!-- New Card 7 -->
+                    <div class="stat-card">
+                        <div class="stat-icon pink-bg"><i class="fa-solid fa-rotate-left"></i></div>
+                        <div class="stat-info">
+                            <p class="label">Returns</p>
+                            <h3>12</h3>
+                        </div>
+                        <select id="returns-period-select" class="returns-select">
+                            <option value="today">Today</option>
+                            <option value="yesterday">Yesterday</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                        </select>
+                    </div>
+                    <!-- New Card 8 -->
+                    <div class="stat-card">
+                        <div class="stat-icon purple-bg"><i class="fa-solid fa-hourglass-half"></i></div>
+                        <div class="stat-info">
+                            <p class="label">Smart Expiry</p>
+                            <h3>8</h3>
+                        </div>
                     </div>
                 </div>
 
@@ -272,16 +325,18 @@
                     <div class="card chart-main-card">
                         <div class="card-header">
                             <h3>Net Income</h3>
-                            <div class="chart-legend-custom">
-                                <span><i class="dot blue"></i> Rome</span>
-                                <span><i class="dot green"></i> Berlin</span>
-                                <span><i class="dot pink"></i> Paris</span>
-                                <span><i class="dot gray"></i> Zurich</span>
+                            <div class="card-actions">
+                                <div class="chart-legend-custom">
+                                    <span><i class="dot blue"></i> Rome</span>
+                                    <span><i class="dot green"></i> Berlin</span>
+                                    <span><i class="dot pink"></i> Paris</span>
+                                    <span><i class="dot gray"></i> Zurich</span>
+                                </div>
+                                <button class="date-dropdown">
+                                    <i class="fa-regular fa-calendar"></i> Jan - Aug <i
+                                        class="fa-solid fa-chevron-down"></i>
+                                </button>
                             </div>
-                            <button class="date-dropdown">
-                                <i class="fa-regular fa-calendar"></i> Jan - Aug <i
-                                    class="fa-solid fa-chevron-down"></i>
-                            </button>
                         </div>
                         <div class="bar-chart-container">
                             <canvas id="netIncomeChart"></canvas>

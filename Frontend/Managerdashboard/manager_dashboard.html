@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuadStock - Manager Dashboard</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- CSS -->
+    <link rel="stylesheet" href="manager_dashboard.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-icon"></div>
+            <h2>QuadStock</h2>
+        </div>
+
+        <nav class="sidebar-menu">
+            <a href="#" class="menu-item active">
+                <i class="fa-solid fa-house"></i>
+                <span>Dashboard</span>
+            </a>
+            <!-- <a href="#" class="menu-item">
+                <i class="fa-solid fa-clipboard-list"></i>
+                <span>Orders</span>
+            </a> -->
+            <!-- <a href="#" class="menu-item">
+                <i class="fa-solid fa-truck"></i>
+                <span>Delivery</span> -->
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fa-solid fa-boxes-stacked"></i>
+                <span>Inventory</span>
+            </a>
+            <a href="../Analytics/analytics.html" class="menu-item">
+                <i class="fa-solid fa-chart-simple"></i>
+                <span>Analytics</span>
+            </a>
+
+            <a href="#" class="menu-item">
+                <i class="fa-solid fa-users-gear"></i>
+                <span>Employees</span>
+            </a>
+
+            <a href="#" class="menu-item">
+                <i class="fa-solid fa-clipboard-question"></i>
+                <span>Query</span>
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span>Complaint</span>
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fa-solid fa-hourglass-end"></i>
+                <span>Smart Expiry</span>
+            </a>
+
+            <a href="#" class="menu-item">
+                <i class="fa-solid fa-gear"></i>
+                <span>Settings</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Header -->
+        <header class="top-header">
+            <h1 class="page-title">Home</h1>
+
+            <div class="search-bar">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" class="search-input" placeholder="Search products and more...">
+                <span class="short-cut">⌘ K</span>
+            </div>
+
+            <div class="digital-clock" id="digital-clock">
+                <span class="time">00:00:00</span>
+                <span class="date">Mon, 01 Jan</span>
+            </div>
+
+            <div class="header-actions">
+
+                <button class="action-btn">
+                    <i class="fa-regular fa-bell"></i>
+                </button>
+                <button class="action-btn">
+                    <i class="fa-regular fa-envelope"></i>
+                    <span class="badge-dot"></span>
+                </button>
+                <div class="user-profile">
+                    <div class="avatar">M</div>
+                    <i class="fa-solid fa-caret-down" style="font-size: 0.8rem; color: #6b7280;"></i>
+                </div>
+            </div>
+        </header>
+
+        <div class="dashboard-scroll">
+            <div class="section-header">
+                <h2>Overview</h2>
+                <div class="date-filter">
+                    <i class="fa-regular fa-calendar"></i>
+                    <span>Last 30 days</span>
+                    <i class="fa-solid fa-chevron-down" style="font-size: 0.7rem;"></i>
+                </div>
+            </div>
+
+            <!-- Top Section: 4 Grid + 2 Stack -->
+            <div class="top-section-wrapper">
+                <!-- Left: 4 Cards Grid -->
+                <div class="four-grid">
+                    <!-- Chats -->
+                    <div class="card info-card">
+                        <div class="card-header-row">
+                            <span class="info-title"><span class="icon-wrapper blue"
+                                    style="width:24px;height:24px;display:inline-flex;margin-right:8px;font-size:0.7rem;"><i
+                                        class="fa-solid fa-comment-dots"></i></span> Chats <i
+                                    class="fa-regular fa-circle-question info-tooltip"></i></span>
+                        </div>
+                        <div class="card-body">
+                            <div class="big-number">8 <span
+                                    style="font-size:0.9rem; font-weight:500; color:#6b7280;">New chats</span></div>
+                            <a href="#" class="see-all-link">See All <i class="fa-solid fa-chevron-right"
+                                    style="font-size:0.7rem;"></i></a>
+                        </div>
+                    </div>
+
+                    <!-- Store Review -->
+                    <div class="card info-card">
+                        <div class="card-header-row">
+                            <span class="info-title"><span class="icon-wrapper yellow"
+                                    style="width:24px;height:24px;display:inline-flex;margin-right:8px;font-size:0.7rem;"><i
+                                        class="fa-solid fa-star"></i></span> Store Review <i
+                                    class="fa-regular fa-circle-question info-tooltip"></i></span>
+                        </div>
+                        <div class="card-body">
+                            <div class="big-number">4.5<span style="font-size:1.25rem;color:#9ca3af;">/5</span> <span
+                                    style="font-size:0.8rem; font-weight:500; color:#6b7280;">(1.200 Reviews)</span>
+                            </div>
+                            <a href="#" class="see-all-link">See All <i class="fa-solid fa-chevron-right"
+                                    style="font-size:0.7rem;"></i></a>
+                        </div>
+                    </div>
+
+                    <!-- Out of stock -->
+                    <div class="card info-card">
+                        <div class="card-header-row">
+                            <span class="info-title"><span class="icon-wrapper red"
+                                    style="width:24px;height:24px;display:inline-flex;margin-right:8px;font-size:0.7rem;"><i
+                                        class="fa-solid fa-bag-shopping"></i></span> Out of stock <i
+                                    class="fa-regular fa-circle-question info-tooltip"></i></span>
+                        </div>
+                        <div class="card-body">
+                            <div class="big-number" style="color:#ef4444;">4 <span
+                                    style="font-size:0.9rem; font-weight:500; color:#6b7280; color:inherit;">Products</span>
+                            </div>
+                            <a href="#" class="see-all-link">See All <i class="fa-solid fa-chevron-right"
+                                    style="font-size:0.7rem;"></i></a>
+                        </div>
+                    </div>
+
+                    <!-- Orders (Unfulfilled) -->
+                    <div class="card info-card">
+                        <div class="card-header-row">
+                            <span class="info-title"><span class="icon-wrapper green"
+                                    style="width:24px;height:24px;display:inline-flex;margin-right:8px;font-size:0.7rem;"><i
+                                        class="fa-solid fa-box"></i></span> Orders <i
+                                    class="fa-regular fa-circle-question info-tooltip"></i></span>
+                        </div>
+                        <div class="card-body">
+                            <div class="big-number">12 <span
+                                    style="font-size:0.9rem; font-weight:500; color:#6b7280;">Unfulfilled</span></div>
+                            <a href="#" class="see-all-link">See All <i class="fa-solid fa-chevron-right"
+                                    style="font-size:0.7rem;"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: 2 Large Metrics -->
+                <div class="two-stack">
+                    <div class="card metric-card">
+                        <div class="icon-wrapper black" style="width:48px;height:48px;font-size:1.2rem;"><i
+                                class="fa-solid fa-bag-shopping"></i></div>
+                        <div class="metric-content">
+                            <p class="metric-label">Average order value <i
+                                    class="fa-regular fa-circle-question info-tooltip"></i></p>
+                            <div class="metric-value">
+                                $450
+                                <span class="trend-badge up"><i class="fa-solid fa-caret-up"></i> 10%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card metric-card">
+                        <div class="icon-wrapper black" style="width:48px;height:48px;font-size:1.2rem;"><i
+                                class="fa-solid fa-chart-column"></i></div>
+                        <div class="metric-content">
+                            <p class="metric-label">Sales total <i
+                                    class="fa-regular fa-circle-question info-tooltip"></i></p>
+                            <div class="metric-value">
+                                $1,827
+                                <span class="trend-badge up"><i class="fa-solid fa-caret-up"></i> 10%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Section: Charts -->
+            <div class="charts-grid">
+                <!-- Total Orders Chart -->
+                <div class="card chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title">
+                            <h3>Total orders <i class="fa-regular fa-circle-question info-tooltip"></i></h3>
+                            <div class="chart-big-stat">320</div>
+                        </div>
+                    </div>
+                    <div style="height: 200px;">
+                        <canvas id="totalOrdersChart"></canvas>
+                    </div>
+                    <a href="#" class="see-all-link" style="margin-top:auto;">View detailed report <i
+                            class="fa-solid fa-arrow-right"></i></a>
+                </div>
+
+                <!-- Revenue Analytics Chart -->
+                <div class="card chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title">
+                            <h3>Revenue Analytics</h3>
+                        </div>
+                        <button class="dropdown-sm">Yearly <i class="fa-solid fa-chevron-down"></i></button>
+                    </div>
+                    <div style="height: 220px;">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Top Products List -->
+                <div class="card chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title">
+                            <h3>Top products by units sold</h3>
+                        </div>
+                    </div>
+                    <div class="product-list">
+                        <div class="product-item">
+                            <span class="prod-name">Meat</span>
+                            <span class="prod-val">2.827</span>
+                        </div>
+                        <div class="product-item">
+                            <span class="prod-name">coffee been</span>
+                            <span class="prod-val">1.827</span>
+                        </div>
+                        <div class="product-item">
+                            <span class="prod-name">Meat</span>
+                            <span class="prod-val">2.827</span>
+                        </div>
+                        <div class="product-item">
+                            <span class="prod-name">coffee been</span>
+                            <span class="prod-val">1.827</span>
+                        </div>
+                        <div class="product-item">
+                            <span class="prod-name">Meat</span>
+                            <span class="prod-val">2.827</span>
+                        </div>
+                        <div class="product-item">
+                            <span class="prod-name">coffee been</span>
+                            <span class="prod-val">1.827</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="manager_dashboard.js"></script>
+</body>
+
+</html>
