@@ -156,12 +156,12 @@ body {
     flex-direction: column;
     padding: 2rem 1.5rem;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
-    transition: width 0.3s ease, padding 0.3s ease, margin 0.3s ease, opacity 0.2s ease;
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+    /* Elastic ease-out */
     overflow-y: auto;
     overflow-x: hidden;
     flex-shrink: 0;
     scrollbar-width: none;
-    /* For Firefox */
 }
 
 .sidebar::-webkit-scrollbar {
@@ -276,20 +276,25 @@ body {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
 }
 
-/* Header */
+/* --- Header & Top Bar --- */
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    width: 100%;
+}
+
 .top-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 2rem;
-    flex-wrap: wrap;
-    /* Allow wrapping */
-    gap: 1rem;
 }
 
 .header-left h1 {
-    font-size: 1.5rem;
-    font-weight: 700;
+    font-size: 2rem;
+    font-weight: 800;
 }
 
 .search-container {
@@ -369,24 +374,29 @@ body {
     color: var(--text-secondary);
 }
 
-/* Digital Clock */
 .digital-clock {
-    font-family: 'Courier New', Courier, monospace;
     font-size: 1.1rem;
-    /* Consistent size */
     font-weight: 700;
-    color: #6366f1;
-    background: #eef2ff;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    letter-spacing: 1px;
+    color: var(--text-primary);
+    background: var(--bg-white);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--card-shadow);
+    padding: 0.6rem 1.25rem;
+    border-radius: 2rem;
+    letter-spacing: 0.5px;
     white-space: nowrap;
     text-align: center;
     max-width: fit-content;
-    flex-grow: 1;
     display: flex;
     justify-content: center;
     align-items: center;
+    transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .digital-clock {
+    background: #0f172a;
+    border-color: #334155;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 /* --- Content Layout --- */
@@ -1174,7 +1184,18 @@ tr:last-child td {
 .dashboard-container.sidebar-collapsed .brand-text,
 .dashboard-container.sidebar-collapsed .menu-item span,
 .dashboard-container.sidebar-collapsed .sidebar-footer-card {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(-10px);
     display: none;
+    /* Keep display none for grid layout if needed, but opacity for fade */
+}
+
+/* Specific smooth hiding for menu items */
+.menu-item span,
+.brand-text {
+    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+    white-space: nowrap;
 }
 
 .dashboard-container.sidebar-collapsed .sidebar-menu {
@@ -1192,8 +1213,9 @@ tr:last-child td {
 }
 
 .dashboard-container.sidebar-collapsed .menu-item {
-    padding: 1rem 0;
+    padding: 0.8rem 0;
     width: 100%;
+    transition: all 0.3s ease;
 }
 
 .dashboard-container.sidebar-collapsed .menu-item i {

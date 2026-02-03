@@ -17,271 +17,417 @@
 </head>
 
 <body>
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <div class="brand">
-            <div class="brand-icon"></div>
-            <h2>QuadStock</h2>
-        </div>
-
-        <nav class="sidebar-menu">
-            <a href="#" class="menu-item active">
-                <i class="fa-solid fa-house"></i>
-                <span>Dashboard</span>
-            </a>
-            <!-- <a href="#" class="menu-item">
-                <i class="fa-solid fa-clipboard-list"></i>
-                <span>Orders</span>
-            </a> -->
-            <!-- <a href="#" class="menu-item">
-                <i class="fa-solid fa-truck"></i>
-                <span>Delivery</span> -->
-            </a>
-            <a href="#" class="menu-item">
-                <i class="fa-solid fa-boxes-stacked"></i>
-                <span>Inventory</span>
-            </a>
-            <a href="../Analytics/analytics.html" class="menu-item">
-                <i class="fa-solid fa-chart-simple"></i>
-                <span>Analytics</span>
-            </a>
-
-            <a href="#" class="menu-item">
-                <i class="fa-solid fa-users-gear"></i>
-                <span>Employees</span>
-            </a>
-
-            <a href="#" class="menu-item">
-                <i class="fa-solid fa-clipboard-question"></i>
-                <span>Query</span>
-            </a>
-            <a href="#" class="menu-item">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-                <span>Complaint</span>
-            </a>
-            <a href="#" class="menu-item">
-                <i class="fa-solid fa-hourglass-end"></i>
-                <span>Smart Expiry</span>
-            </a>
-
-            <a href="#" class="menu-item">
-                <i class="fa-solid fa-gear"></i>
-                <span>Settings</span>
-            </a>
-        </nav>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="main-content">
-        <!-- Top Header -->
-        <header class="top-header">
-            <h1 class="page-title">Home</h1>
-
-            <div class="search-bar">
-                <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                <input type="text" class="search-input" placeholder="Search products and more...">
-                <span class="short-cut">⌘ K</span>
-            </div>
-
-            <div class="digital-clock" id="digital-clock">
-                <span class="time">00:00:00</span>
-                <span class="date">Mon, 01 Jan</span>
-            </div>
-
-            <div class="header-actions">
-
-                <button class="action-btn">
-                    <i class="fa-regular fa-bell"></i>
+    <div class="layout-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <button id="sidebar-toggle"
+                    style="width: 40px; height: 40px; background: var(--primary); border: none; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer;">
+                    <i class="fa-solid fa-bars"></i>
                 </button>
-                <button class="action-btn">
-                    <i class="fa-regular fa-envelope"></i>
-                    <span class="badge-dot"></span>
+                <h2 class="brand-name">QuadStock</h2>
+            </div>
+
+            <div class="nav-section">
+                <h3 class="section-title">Main Menu</h3>
+                <nav class="nav-menu">
+                    <a href="manager_dashboard.html" class="nav-item active">
+                        <i class="fa-solid fa-house-chimney"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="../Analytics/analytics.html" class="nav-item">
+                        <i class="fa-solid fa-chart-simple"></i>
+                        <span>Analytics</span>
+                    </a>
+                    <a href="#" class="nav-item">
+                        <i class="fa-solid fa-clipboard-question"></i>
+                        <span>Query</span>
+                    </a>
+                </nav>
+            </div>
+
+            <div class="nav-section">
+                <h3 class="section-title">Stock & Staff</h3>
+                <nav class="nav-menu">
+                    <a href="#" class="nav-item">
+                        <i class="fa-solid fa-boxes-stacked"></i>
+                        <span>Inventory</span>
+                    </a>
+                    <a href="#" class="nav-item">
+                        <i class="fa-solid fa-hourglass-end"></i>
+                        <span>Smart Expiry</span>
+                    </a>
+                    <a href="#" class="nav-item">
+                        <i class="fa-solid fa-users-gear"></i>
+                        <span>Employees</span>
+                    </a>
+                </nav>
+            </div>
+
+            <div class="nav-section">
+                <h3 class="section-title">Business</h3>
+                <nav class="nav-menu">
+                    <a href="#" class="nav-item">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span>Complain</span>
+                    </a>
+                    <a href="#" class="nav-item">
+                        <i class="fa-solid fa-file-invoice-dollar"></i>
+                        <span>Pending Payments</span>
+                    </a>
+                    <a href="#" class="nav-item">
+                        <i class="fa-solid fa-gear"></i>
+                        <span>Settings</span>
+                    </a>
+                </nav>
+            </div>
+
+
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <div class="top-bar">
+                <!-- Digital Clock stays on the left -->
+                <div id="digital-clock" class="digital-clock-container">
+                    00:00:00 AM
+                </div>
+
+                <div class="user-actions">
+                    <button class="theme-toggle-btn" id="theme-toggle"
+                        style="background: var(--bg-white); border: none; padding: 0.5rem; border-radius: 50%; cursor: pointer; color: var(--text-muted); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+                    <button class="notif-btn"
+                        style="background: var(--bg-white); border: none; font-size: 1.1rem; color: var(--text-muted); cursor: pointer; position: relative; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+                        <i class="fa-regular fa-bell"></i>
+                        <span
+                            style="position: absolute; top: 10px; right: 10px; width: 8px; height: 8px; background: #ef4444; border-radius: 50%; border: 2px solid var(--bg-white);"></span>
+                    </button>
+                    <div class="user-profile"
+                        style="background: var(--bg-white); padding: 0.5rem 1rem; border-radius: 3rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+                        <div class="user-info">
+                            <h5>Manager Admin</h5>
+                            <p>Shift Manager</p>
+                        </div>
+                        <img src="https://ui-avatars.com/api/?name=Manager+Admin&background=003f3f&color=fff"
+                            alt="Avatar" class="user-avatar" style="width: 40px; height: 40px;">
+                        <i class="fa-solid fa-chevron-up-down" style="font-size: 0.8rem; color: #9ca3af;"></i>
+                    </div>
+                </div>
+            </div>
+
+            <header class="welcome-header">
+                <div>
+                    <h2>Store Overview</h2>
+                </div>
+                <button class="btn-team">
+                    Quick Export <i class="fa-solid fa-chevron-down"></i>
                 </button>
-                <div class="user-profile">
-                    <div class="avatar">M</div>
-                    <i class="fa-solid fa-caret-down" style="font-size: 0.8rem; color: #6b7280;"></i>
+            </header>
+
+            <!-- Stats Grid - 8 Cards like Owner Dashboard -->
+            <div class="stat-grid" style="grid-template-columns: repeat(4, 1fr);">
+                <!-- Card 1: Annual Revenue -->
+                <div class="stat-card green">
+                    <div class="card-top">
+                        <!-- <div class="icon-box-small"><i class="fa-solid fa-sack-dollar"></i></div> -->
+                        <!-- <button class="btn-more-dots"><i class="fa-solid fa-ellipsis"></i></button> -->
+                    </div>
+                    <div class="stat-val-group">
+                        <span class="stat-title">Total Annual Revenue</span>
+                        <h3 class="stat-value">₹10,000,000</h3>
+                        <select id="revenue-year-select" class="card-select green"></select>
+                    </div>
+                    <div class="mini-chart">
+                        <div class="mini-bar" style="height: 40%;"></div>
+                        <div class="mini-bar" style="height: 60%;"></div>
+                        <div class="mini-bar" style="height: 100%;"></div>
+                    </div>
+                </div>
+
+                <!-- Card 2: Monthly Revenue -->
+                <div class="stat-card teal">
+                    <div class="card-top">
+                        <!-- <div class="icon-box-small"><i class="fa-solid fa-cart-shopping"></i></div>
+                        <button class="btn-more-dots"><i class="fa-solid fa-ellipsis"></i></button> -->
+                    </div>
+                    <div class="stat-val-group">
+                        <span class="stat-title">Monthly Revenue</span>
+                        <h3 class="stat-value">₹600,000</h3>
+                        <select id="revenue-month-select" class="card-select teal"></select>
+                    </div>
+                    <div class="mini-chart">
+                        <div class="mini-bar" style="height: 30%;"></div>
+                        <div class="mini-bar" style="height: 80%;"></div>
+                        <div class="mini-bar" style="height: 50%;"></div>
+                    </div>
+                </div>
+
+                <!-- Card 3: Products Sold -->
+                <div class="stat-card pink">
+                    <div class="card-top">
+                        <!-- <div class="icon-box-small"><i class="fa-solid fa-box-open"></i></div>
+                        <button class="btn-more-dots"><i class="fa-solid fa-ellipsis"></i></button> -->
+                    </div>
+                    <div class="stat-val-group">
+                        <span class="stat-title">Products Sold</span>
+                        <h3 class="stat-value">20,000</h3>
+                        <select id="products-period-select" class="card-select pink">
+                            <option value="today">Today</option>
+                            <option value="yesterday">Yesterday</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                        </select>
+                    </div>
+                    <div class="mini-chart">
+                        <div class="mini-bar" style="height: 20%;"></div>
+                        <div class="mini-bar" style="height: 40%;"></div>
+                        <div class="mini-bar" style="height: 90%;"></div>
+                    </div>
+                </div>
+
+                <!-- Card 4: Total Inventory -->
+                <div class="stat-card purple">
+                    <div class="card-top">
+                        <!-- <div class="icon-box-small"><i class="fa-solid fa-boxes-stacked"></i></div>
+                        <button class="btn-more-dots"><i class="fa-solid fa-ellipsis"></i></button> -->
+                    </div>
+                    <div class="stat-val-group">
+                        <span class="stat-title">Total Inventory</span>
+                        <h3 class="stat-value">1,250</h3>
+                        <span class="stat-trend">Full Capacity</span>
+                    </div>
+                    <div class="mini-chart">
+                        <div class="mini-bar" style="height: 60%;"></div>
+                        <div class="mini-bar" style="height: 40%;"></div>
+                        <div class="mini-bar" style="height: 100%;"></div>
+                    </div>
+                </div>
+
+                <!-- Card 5: Low Stocks -->
+                <div class="stat-card pink" style="background: #fff1f2; color: #e11d48;">
+                    <div class="card-top">
+                        <div class="icon-box-small" style="background: rgba(225, 29, 72, 0.1);"><i
+                                class="fa-solid fa-triangle-exclamation"></i></div>
+                    </div>
+                    <div class="stat-val-group">
+                        <span class="stat-title" style="color: #e11d48;">Low Stocks</span>
+                        <h3 class="stat-value">15</h3>
+                        <span class="stat-trend">Requires Attention</span>
+                    </div>
+                    <div class="mini-chart">
+                        <div class="mini-bar" style="height: 90%;"></div>
+                        <div class="mini-bar" style="height: 70%;"></div>
+                        <div class="mini-bar" style="height: 80%;"></div>
+                    </div>
+                </div>
+
+                <!-- Card 6: Employees -->
+                <div class="stat-card teal" style="background: #f0f9ff; color: #0369a1;">
+                    <div class="card-top">
+                        <div class="icon-box-small" style="background: rgba(3, 105, 161, 0.1);"><i
+                                class="fa-solid fa-users"></i></div>
+                    </div>
+                    <div class="stat-val-group">
+                        <span class="stat-title" style="color: #0369a1;">Total Employees</span>
+                        <h3 class="stat-value">5</h3>
+                        <span class="stat-trend">All Present</span>
+                    </div>
+                </div>
+
+                <!-- Card 7: Returns -->
+                <div class="stat-card purple" style="background: #fdf4ff; color: #a21caf;">
+                    <div class="card-top">
+                        <div class="icon-box-small" style="background: rgba(162, 28, 175, 0.1);"><i
+                                class="fa-solid fa-rotate-left"></i></div>
+                    </div>
+                    <div class="stat-val-group">
+                        <span class="stat-title" style="color: #a21caf;">Returns</span>
+                        <h3 class="stat-value">12</h3>
+                        <select id="returns-period-select" class="card-select purple">
+                            <option value="today">Today</option>
+                            <option value="yesterday">Yesterday</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Card 8: Smart Expiry -->
+                <div class="stat-card grey" style="background: #f8fafc; color: #475569;">
+                    <div class="card-top">
+                        <div class="icon-box-small" style="background: rgba(71, 85, 105, 0.1);"><i
+                                class="fa-solid fa-hourglass-half"></i></div>
+                    </div>
+                    <div class="stat-val-group">
+                        <span class="stat-title" style="color: #475569;">Smart Expiry</span>
+                        <h3 class="stat-value">8</h3>
+                        <span class="stat-trend">Upcoming 30 days</span>
+                    </div>
                 </div>
             </div>
-        </header>
 
-        <div class="dashboard-scroll">
-            <div class="section-header">
-                <h2>Overview</h2>
-                <div class="date-filter">
-                    <i class="fa-regular fa-calendar"></i>
-                    <span>Last 30 days</span>
-                    <i class="fa-solid fa-chevron-down" style="font-size: 0.7rem;"></i>
-                </div>
-            </div>
-
-            <!-- Top Section: 4 Grid + 2 Stack -->
-            <div class="top-section-wrapper">
-                <!-- Left: 4 Cards Grid -->
-                <div class="four-grid">
-                    <!-- Chats -->
-                    <div class="card info-card">
-                        <div class="card-header-row">
-                            <span class="info-title"><span class="icon-wrapper blue"
-                                    style="width:24px;height:24px;display:inline-flex;margin-right:8px;font-size:0.7rem;"><i
-                                        class="fa-solid fa-comment-dots"></i></span> Chats <i
-                                    class="fa-regular fa-circle-question info-tooltip"></i></span>
-                        </div>
-                        <div class="card-body">
-                            <div class="big-number">8 <span
-                                    style="font-size:0.9rem; font-weight:500; color:#6b7280;">New chats</span></div>
-                            <a href="#" class="see-all-link">See All <i class="fa-solid fa-chevron-right"
-                                    style="font-size:0.7rem;"></i></a>
-                        </div>
+            <!-- Content Row: Table & Quick Details mapped from Owner Dashboard -->
+            <div class="charts-row" style="grid-template-columns: 2fr 1fr;">
+                <!-- Top Products Table (Design: Card Table) -->
+                <div class="table-card">
+                    <div class="table-header">
+                        <h3>Top Products</h3>
+                        <a href="#" style="color: var(--primary); font-size: 1.2rem;"><i
+                                class="fa-solid fa-circle-arrow-right"></i></a>
                     </div>
-
-                    <!-- Store Review -->
-                    <div class="card info-card">
-                        <div class="card-header-row">
-                            <span class="info-title"><span class="icon-wrapper yellow"
-                                    style="width:24px;height:24px;display:inline-flex;margin-right:8px;font-size:0.7rem;"><i
-                                        class="fa-solid fa-star"></i></span> Store Review <i
-                                    class="fa-regular fa-circle-question info-tooltip"></i></span>
-                        </div>
-                        <div class="card-body">
-                            <div class="big-number">4.5<span style="font-size:1.25rem;color:#9ca3af;">/5</span> <span
-                                    style="font-size:0.8rem; font-weight:500; color:#6b7280;">(1.200 Reviews)</span>
-                            </div>
-                            <a href="#" class="see-all-link">See All <i class="fa-solid fa-chevron-right"
-                                    style="font-size:0.7rem;"></i></a>
-                        </div>
-                    </div>
-
-                    <!-- Out of stock -->
-                    <div class="card info-card">
-                        <div class="card-header-row">
-                            <span class="info-title"><span class="icon-wrapper red"
-                                    style="width:24px;height:24px;display:inline-flex;margin-right:8px;font-size:0.7rem;"><i
-                                        class="fa-solid fa-bag-shopping"></i></span> Out of stock <i
-                                    class="fa-regular fa-circle-question info-tooltip"></i></span>
-                        </div>
-                        <div class="card-body">
-                            <div class="big-number" style="color:#ef4444;">4 <span
-                                    style="font-size:0.9rem; font-weight:500; color:#6b7280; color:inherit;">Products</span>
-                            </div>
-                            <a href="#" class="see-all-link">See All <i class="fa-solid fa-chevron-right"
-                                    style="font-size:0.7rem;"></i></a>
-                        </div>
-                    </div>
-
-                    <!-- Orders (Unfulfilled) -->
-                    <div class="card info-card">
-                        <div class="card-header-row">
-                            <span class="info-title"><span class="icon-wrapper green"
-                                    style="width:24px;height:24px;display:inline-flex;margin-right:8px;font-size:0.7rem;"><i
-                                        class="fa-solid fa-box"></i></span> Orders <i
-                                    class="fa-regular fa-circle-question info-tooltip"></i></span>
-                        </div>
-                        <div class="card-body">
-                            <div class="big-number">12 <span
-                                    style="font-size:0.9rem; font-weight:500; color:#6b7280;">Unfulfilled</span></div>
-                            <a href="#" class="see-all-link">See All <i class="fa-solid fa-chevron-right"
-                                    style="font-size:0.7rem;"></i></a>
-                        </div>
+                    <div class="table-responsive">
+                        <table class="recent-sales-table">
+                            <thead>
+                                <tr>
+                                    <th>PRODUCT</th>
+                                    <th>AVAILABILITY</th>
+                                    <th>TOTAL REVENUE</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="prod-info-cell">
+                                            <div
+                                                style="width: 40px; height: 40px; border-radius: 8px; background: #fee2e2; display: flex; align-items: center; justify-content: center;">
+                                                <i class="fa-solid fa-capsules" style="color: #ef4444;"></i>
+                                            </div>
+                                            <span>Women's Vintage Peacoat</span>
+                                        </div>
+                                    </td>
+                                    <td><span class="badge"
+                                            style="background: #e0f2fe; color: #0ea5e9; padding: 0.4rem 0.8rem; border-radius: 2rem; font-size: 0.75rem; font-weight: 700;">220
+                                            In Stock</span></td>
+                                    <td>₹29,192</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="prod-info-cell">
+                                            <div
+                                                style="width: 40px; height: 40px; border-radius: 8px; background: #fef9c3; display: flex; align-items: center; justify-content: center;">
+                                                <i class="fa-solid fa-capsules" style="color: #eab308;"></i>
+                                            </div>
+                                            <span>Women's Oatmeal Sweater</span>
+                                        </div>
+                                    </td>
+                                    <td><span class="badge"
+                                            style="background: #fee2e2; color: #ef4444; padding: 0.4rem 0.8rem; border-radius: 2rem; font-size: 0.75rem; font-weight: 700;">Out
+                                            of Stock</span></td>
+                                    <td>₹23,654</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="prod-info-cell">
+                                            <div
+                                                style="width: 40px; height: 40px; border-radius: 8px; background: #f1f5f9; display: flex; align-items: center; justify-content: center;">
+                                                <i class="fa-solid fa-capsules" style="color: #64748b;"></i>
+                                            </div>
+                                            <span>Women's Denim Shirt</span>
+                                        </div>
+                                    </td>
+                                    <td><span class="badge"
+                                            style="background: #ffedd5; color: #f97316; padding: 0.4rem 0.8rem; border-radius: 2rem; font-size: 0.75rem; font-weight: 700;">4
+                                            In Stock</span></td>
+                                    <td>₹21,404</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
-                <!-- Right: 2 Large Metrics -->
-                <div class="two-stack">
-                    <div class="card metric-card">
-                        <div class="icon-wrapper black" style="width:48px;height:48px;font-size:1.2rem;"><i
-                                class="fa-solid fa-bag-shopping"></i></div>
-                        <div class="metric-content">
-                            <p class="metric-label">Average order value <i
-                                    class="fa-regular fa-circle-question info-tooltip"></i></p>
-                            <div class="metric-value">
-                                $450
-                                <span class="trend-badge up"><i class="fa-solid fa-caret-up"></i> 10%</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card metric-card">
-                        <div class="icon-wrapper black" style="width:48px;height:48px;font-size:1.2rem;"><i
-                                class="fa-solid fa-chart-column"></i></div>
-                        <div class="metric-content">
-                            <p class="metric-label">Sales total <i
-                                    class="fa-regular fa-circle-question info-tooltip"></i></p>
-                            <div class="metric-value">
-                                $1,827
-                                <span class="trend-badge up"><i class="fa-solid fa-caret-up"></i> 10%</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Bottom Section: Charts -->
-            <div class="charts-grid">
-                <!-- Total Orders Chart -->
-                <div class="card chart-card">
+                <!-- Quick Details (Mapped from Owner Dashboard) -->
+                <div class="chart-card" style="padding: 1.5rem;">
                     <div class="chart-header">
-                        <div class="chart-title">
-                            <h3>Total orders <i class="fa-regular fa-circle-question info-tooltip"></i></h3>
-                            <div class="chart-big-stat">320</div>
-                        </div>
+                        <h3>Quick Details</h3>
+                        <a href="#" style="color: var(--primary);"><i class="fa-solid fa-arrow-right"></i></a>
                     </div>
-                    <div style="height: 200px;">
-                        <canvas id="totalOrdersChart"></canvas>
-                    </div>
-                    <a href="#" class="see-all-link" style="margin-top:auto;">View detailed report <i
-                            class="fa-solid fa-arrow-right"></i></a>
-                </div>
-
-                <!-- Revenue Analytics Chart -->
-                <div class="card chart-card">
-                    <div class="chart-header">
-                        <div class="chart-title">
-                            <h3>Revenue Analytics</h3>
+                    <div class="nav-menu" style="gap: 1.25rem; margin-top: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <div class="icon-box-small" style="color: #3b82f6; background: #eff6ff;"><i
+                                        class="fa-regular fa-user"></i></div>
+                                <span style="font-size: 0.85rem; font-weight: 600;">419 new customers</span>
+                            </div>
+                            <span style="font-size: 0.7rem; color: var(--text-muted);">24h</span>
                         </div>
-                        <button class="dropdown-sm">Yearly <i class="fa-solid fa-chevron-down"></i></button>
-                    </div>
-                    <div style="height: 220px;">
-                        <canvas id="revenueChart"></canvas>
-                    </div>
-                </div>
-
-                <!-- Top Products List -->
-                <div class="card chart-card">
-                    <div class="chart-header">
-                        <div class="chart-title">
-                            <h3>Top products by units sold</h3>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <div class="icon-box-small" style="color: #22c55e; background: #f0fdf4;"><i
+                                        class="fa-solid fa-rotate"></i></div>
+                                <span style="font-size: 0.85rem; font-weight: 600;">Awaiting Process</span>
+                            </div>
+                            <span style="font-size: 0.7rem; color: var(--text-muted);">345 orders</span>
                         </div>
-                    </div>
-                    <div class="product-list">
-                        <div class="product-item">
-                            <span class="prod-name">Meat</span>
-                            <span class="prod-val">2.827</span>
-                        </div>
-                        <div class="product-item">
-                            <span class="prod-name">coffee been</span>
-                            <span class="prod-val">1.827</span>
-                        </div>
-                        <div class="product-item">
-                            <span class="prod-name">Meat</span>
-                            <span class="prod-val">2.827</span>
-                        </div>
-                        <div class="product-item">
-                            <span class="prod-name">coffee been</span>
-                            <span class="prod-val">1.827</span>
-                        </div>
-                        <div class="product-item">
-                            <span class="prod-name">Meat</span>
-                            <span class="prod-val">2.827</span>
-                        </div>
-                        <div class="product-item">
-                            <span class="prod-name">coffee been</span>
-                            <span class="prod-val">1.827</span>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <div class="icon-box-small" style="color: #f97316; background: #fff7ed;"><i
+                                        class="fa-solid fa-circle-exclamation"></i></div>
+                                <span style="font-size: 0.85rem; font-weight: 600;">Low in Stock</span>
+                            </div>
+                            <span style="font-size: 0.7rem; color: var(--text-muted);">350 orders</span>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </main>
+
+            <!-- Charts Row: Bar & Donut mapped from Owner Dashboard -->
+            <div class="charts-row">
+                <!-- Net Income Bar Chart -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Net Income</h3>
+                        <div style="display: flex; gap: 1rem; align-items: center;">
+                            <div style="display: flex; gap: 0.5rem; font-size: 0.7rem; font-weight: 700;">
+                                <span style="display: flex; align-items: center; gap: 0.2rem;"><i class="dot"
+                                        style="background:#0ea5e9; width:6px; height:6px;"></i> Rome</span>
+                                <span style="display: flex; align-items: center; gap: 0.2rem;"><i class="dot"
+                                        style="background:#22c55e; width:6px; height:6px;"></i> Berlin</span>
+                            </div>
+                            <button class="btn-filter" style="padding: 0.3rem 0.6rem; font-size: 0.7rem;">Jan - Aug <i
+                                    class="fa-solid fa-chevron-down"></i></button>
+                        </div>
+                    </div>
+                    <div class="bar-container" style="height: 250px;">
+                        <canvas id="netIncomeChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Money Stats Donut -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Money Stats</h3>
+                    </div>
+                    <div class="donut-container" style="height: 200px;">
+                        <canvas id="moneyStatsChart"></canvas>
+                        <div class="donut-center-total">
+                            <span style="font-size: 0.7rem;">Budget</span>
+                            <h2 style="font-size: 1.2rem;">₹60K</h2>
+                        </div>
+                    </div>
+                    <div style="margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <div class="dot" style="background: #db2777;"></div>
+                                <span style="font-size: 0.8rem; font-weight: 600;">Total Spent</span>
+                            </div>
+                            <span style="font-size: 0.85rem; font-weight: 800;">₹25,654</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <div class="dot" style="background: #0ea5e9;"></div>
+                                <span style="font-size: 0.8rem; font-weight: 600;">Saved</span>
+                            </div>
+                            <span style="font-size: 0.85rem; font-weight: 800;">₹34,346</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
 
     <script src="manager_dashboard.js"></script>
 </body>

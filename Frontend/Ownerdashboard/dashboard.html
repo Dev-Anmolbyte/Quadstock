@@ -28,7 +28,7 @@
             </div>
 
             <nav class="sidebar-menu">
-                <a href="dashboard.html" class="menu-item" title="Dashboard">
+                <a href="dashboard.html" class="menu-item active" title="Dashboard">
                     <i class="fa-solid fa-house"></i>
                     <span>Dashboard</span>
                 </a>
@@ -41,7 +41,7 @@
 
                     <span>Query</span>
                 </a>
-                <a href="#" class="menu-item active" title="Inventory">
+                <a href="#" class="menu-item" title="Inventory">
                     <i class="fa-solid fa-boxes-stacked"></i>
                     <span>Inventory</span>
                 </a>
@@ -85,20 +85,10 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Header -->
-            <header class="top-header">
-                <div class="header-left">
-                    <h1>Dashboard</h1>
-                </div>
-
-                <!-- Digital Clock Container -->
+            <!-- Top Bar (Clock & Actions) -->
+            <div class="top-bar">
                 <div class="digital-clock" id="digital-clock">
                     00:00:00 AM
-                </div>
-
-                <div class="search-container">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    <input type="text" placeholder="Search...">
                 </div>
 
                 <div class="header-right">
@@ -111,6 +101,13 @@
                         <span class="user-name">Owner Admin</span>
                         <i class="fa-solid fa-chevron-down"></i>
                     </div>
+                </div>
+            </div>
+
+            <!-- Header Title -->
+            <header class="top-header">
+                <div class="header-left">
+                    <h1>Dashboard</h1>
                 </div>
             </header>
 

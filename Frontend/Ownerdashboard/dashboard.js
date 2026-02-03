@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const timeString = now.toLocaleTimeString('en-US', { hour12: true });
         const clockEl = document.getElementById('digital-clock');
         if (clockEl) {
-            clockEl.innerHTML = `<span style="font-size:0.8em; margin-right:10px; color:#4f46e5;">${dateString}</span> ${timeString}`;
+            clockEl.innerHTML = `<span style="font-size:0.85em; margin-right:12px; color:#6366f1; font-weight:700; opacity:0.8;">${dateString}</span> <span style="font-weight:800;">${timeString}</span>`;
         }
     }
     setInterval(updateClock, 1000);
