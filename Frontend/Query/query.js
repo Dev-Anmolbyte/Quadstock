@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <i class="fa-solid fa-chart-simple"></i>
                             <span>Analytics</span>
                         </a>
-                        <a href="../Query/query.html?role=manager" class="nav-item">
+                        <a href="query.html?role=manager" class="nav-item active">
                             <i class="fa-solid fa-clipboard-question"></i>
                             <span>Query</span>
                         </a>
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="nav-section">
                     <h3 class="section-title">Business</h3>
                     <nav class="nav-menu">
-                        <a href="complain.html?role=manager" class="nav-item active">
+                        <a href="../Complain/complain.html?role=manager" class="nav-item">
                             <i class="fa-solid fa-triangle-exclamation"></i>
                             <span>Complain</span>
                         </a>
@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <i class="fa-solid fa-chart-simple"></i>
                         <span>Analytics</span>
                     </a>
-                    <a href="../Query/query.html?role=owner" class="menu-item" title="Query">
+                    <a href="query.html?role=owner" class="menu-item active" title="Query">
                         <i class="fa-solid fa-clipboard-question"></i>
                         <span>Query</span>
                     </a>
@@ -124,7 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <i class="fa-solid fa-users-gear"></i>
                         <span>Employees</span>
                     </a>
-                    <a href="complain.html?role=owner" class="menu-item active" title="Complain">
+                    <a href="../Complain/complain.html?role=owner" class="menu-item" title="Complain">
                         <i class="fa-solid fa-triangle-exclamation"></i>
                         <span>Complain</span>
                     </a>
@@ -214,16 +214,16 @@ document.addEventListener('DOMContentLoaded', () => {
     setupLayout();
 
     // --- State and Storage ---
-    const STORAGE_KEY = 'quadstock_complaints';
+    const STORAGE_KEY = 'quadstock_queries';
     const QUICK_REPLIES = [
-        { text: "I'm looking into this.", icon: "fa-magnifying-glass" },
-        { text: "Approved.", icon: "fa-check" },
-        { text: "Please meet me in the office.", icon: "fa-user-tie" },
-        { text: "Issue resolved.", icon: "fa-thumbs-up" },
-        { text: "Noted, thank you.", icon: "fa-clipboard-check" }
+        { text: "I'll get back to you soon.", icon: "fa-clock" },
+        { text: "Query resolved.", icon: "fa-check" },
+        { text: "Please clarify your doubt.", icon: "fa-comment-dots" },
+        { text: "Thank you for asking.", icon: "fa-heart" },
+        { text: "Checking with the team.", icon: "fa-users" }
     ];
 
-    let complaints = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    let queries = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
     let uploadedImages = []; // Temp storage for modal
     let tempReplyImages = {}; // Temp storage for replies by id: []
 
@@ -237,42 +237,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const CURRENT_USER = getCurrentUser();
 
-    if (complaints.length === 0) {
-        complaints = [
+    if (queries.length === 0) {
+        queries = [
             {
-                id: 'cmp_' + Date.now(),
+                id: 'qry_' + Date.now(),
                 staffName: 'Aarav Gupta',
                 role: 'Sales Staff',
                 timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-                subject: 'Air Conditioning issue',
-                description: 'The AC in the main showroom is leaking water.',
+                subject: 'Leave Procedure Query',
+                description: 'What is the procedure to apply for medical leave?',
                 status: 'open',
                 closedBy: null,
                 replies: [],
                 images: []
             }
         ];
-        saveComplaints();
+        saveQueries();
     }
 
     // --- DOM Elements ---
-    const listContainer = document.getElementById('complaints-list');
-    const raiseBtn = document.getElementById('btn-raise-complaint');
+    const listContainer = document.getElementById('queries-list');
+    const raiseBtn = document.getElementById('btn-raise-query');
     const modalOverlay = document.getElementById('raise-modal');
     const closeModalBtn = document.getElementById('btn-modal-cancel');
-    const submitComplaintBtn = document.getElementById('btn-modal-submit');
+    const submitQueryBtn = document.getElementById('btn-modal-submit');
     const staffNameInput = document.getElementById('staff-name');
-    const subjectInput = document.getElementById('complaint-subject');
-    const descInput = document.getElementById('complaint-desc');
+    const subjectInput = document.getElementById('query-subject');
+    const descInput = document.getElementById('query-desc');
     const roleSelect = document.getElementById('staff-role');
-    const fileInput = document.getElementById('complaint-files');
+    const fileInput = document.getElementById('query-files');
     const previewContainer = document.getElementById('image-preview-container');
 
     // --- Image Handling (Modal) ---
     fileInput.addEventListener('change', (e) => {
         const files = Array.from(e.target.files);
         if (uploadedImages.length + files.length > 5) {
-            alert('You can upload a maximum of 5 images.');
+            alert('You can upload a maximum of 5 attachments.');
             return;
         }
 
@@ -371,31 +371,31 @@ document.addEventListener('DOMContentLoaded', () => {
         return date.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
     }
 
-    function renderComplaints() {
+    function renderQueries() {
         listContainer.innerHTML = '';
-        const sorted = [...complaints].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        const sorted = [...queries].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
         if (sorted.length === 0) {
-            listContainer.innerHTML = `<div style="text-align:center; padding:2rem; color:var(--text-secondary);">No complaints yet.</div>`;
+            listContainer.innerHTML = `<div style="text-align:center; padding:2rem; color:var(--text-secondary);">No queries yet.</div>`;
             return;
         }
 
-        sorted.forEach(c => {
+        sorted.forEach(q => {
             const card = document.createElement('div');
-            card.className = `complaint-card status-${c.status}`;
+            card.className = `query-card status-${q.status}`;
 
-            const timeDisplay = formatTimeDisplay(c.timestamp);
-            const statusText = c.status === 'open' ? 'Open' : 'Closed';
-            const authorInitial = c.staffName.charAt(0).toUpperCase();
+            const timeDisplay = formatTimeDisplay(q.timestamp);
+            const statusText = q.status === 'open' ? 'Open' : 'Seen';
+            const authorInitial = q.staffName.charAt(0).toUpperCase();
 
             let imagesHtml = '';
-            if (c.images && c.images.length > 0) {
-                imagesHtml = `<div class="complaint-images-display">
-                    ${c.images.map(img => `<img src="${img.data}" class="complaint-img-view" onclick="viewImage('${img.data}')">`).join('')}
+            if (q.images && q.images.length > 0) {
+                imagesHtml = `<div class="query-images-display">
+                    ${q.images.map(img => `<img src="${img.data}" class="query-img-view" onclick="viewImage('${img.data}')">`).join('')}
                 </div>`;
             }
 
-            const repliesHtml = c.replies.map(r => `
+            const repliesHtml = q.replies.map(r => `
                 <div class="reply-item ${r.author.toLowerCase().includes('admin') || r.author.toLowerCase().includes('owner') ? 'owner-reply' : ''}">
                     <div class="reply-avatar">${r.author.charAt(0)}</div>
                     <div class="reply-bubble">
@@ -407,35 +407,35 @@ document.addEventListener('DOMContentLoaded', () => {
             `).join('');
 
             let actionAreaHtml = '';
-            if (c.status === 'closed') {
+            if (q.status === 'closed') {
                 actionAreaHtml = `
                     <div class="closed-overlay">
-                        <span><i class="fa-solid fa-lock"></i> Thread closed by ${c.closedBy}</span>
-                        <button class="btn-action-outline success" onclick="reopenComplaint('${c.id}')"><i class="fa-solid fa-unlock"></i> Re-open</button>
+                        <span><i class="fa-solid fa-lock"></i> Query marked as seen by ${q.closedBy}</span>
+                        <button class="btn-action-outline success" onclick="reopenQuery('${q.id}')"><i class="fa-solid fa-unlock"></i> Re-open</button>
                     </div>
                 `;
             } else {
-                const pillsHtml = QUICK_REPLIES.map(q => `<div class="quick-pill" onclick="fillReply('${c.id}', '${q.text.replace(/'/g, "\\'")}')"><i class="fa-solid ${q.icon}"></i> ${q.text}</div>`).join('');
+                const pillsHtml = QUICK_REPLIES.map(qr => `<div class="quick-pill" onclick="fillReply('${q.id}', '${qr.text.replace(/'/g, "\\'")}')"><i class="fa-solid ${qr.icon}"></i> ${qr.text}</div>`).join('');
                 actionAreaHtml = `
                     <div class="action-area">
                         <div class="quick-replies">${pillsHtml}</div>
-                        <div id="reply-preview-${c.id}" class="reply-preview-container"></div>
+                        <div id="reply-preview-${q.id}" class="reply-preview-container"></div>
                         <div class="input-row">
                             <div class="upload-btn-wrapper">
-                                <button class="mini-upload-btn" onclick="document.getElementById('reply-file-${c.id}').click()"><i class="fa-solid fa-camera"></i></button>
-                                <input type="file" id="reply-file-${c.id}" accept="image/*" multiple style="display:none" onchange="handleReplyImageUpload('${c.id}', this)">
+                                <button class="mini-upload-btn" onclick="document.getElementById('reply-file-${q.id}').click()"><i class="fa-solid fa-camera"></i></button>
+                                <input type="file" id="reply-file-${q.id}" accept="image/*" multiple style="display:none" onchange="handleReplyImageUpload('${q.id}', this)">
                             </div>
-                            <input type="text" class="main-input" id="reply-input-${c.id}" placeholder="Type your reply..." onkeyup="if(event.key === 'Enter') addReply('${c.id}')">
-                            <button class="btn-send-reply" onclick="addReply('${c.id}')"><i class="fa-solid fa-paper-plane"></i></button>
-                            <button class="btn-action-outline danger" onclick="closeComplaint('${c.id}')"><i class="fa-solid fa-check"></i> Close</button>
+                            <input type="text" class="main-input" id="reply-input-${q.id}" placeholder="Type your answer..." onkeyup="if(event.key === 'Enter') addReply('${q.id}')">
+                            <button class="btn-send-reply" onclick="addReply('${q.id}')"><i class="fa-solid fa-paper-plane"></i></button>
+                            <button class="btn-action-outline success" onclick="closeQuery('${q.id}')"><i class="fa-solid fa-check"></i> Mark Seen</button>
                         </div>
                     </div>
                 `;
             }
 
-            const hasManyReplies = c.replies.length > 2;
+            const hasManyReplies = q.replies.length > 2;
             const chatListClass = hasManyReplies ? 'reply-list collapsed' : 'reply-list';
-            const showMoreBtn = hasManyReplies ? `<button class="show-more-replies" onclick="toggleChat(this)"><i class="fa-solid fa-angles-down"></i> Show all ${c.replies.length} messages</button>` : '';
+            const showMoreBtn = hasManyReplies ? `<button class="show-more-replies" onclick="toggleChat(this)"><i class="fa-solid fa-angles-down"></i> Show all ${q.replies.length} messages</button>` : '';
 
             card.innerHTML = `
                 <div class="card-top-content">
@@ -443,18 +443,18 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="staff-info">
                             <div class="staff-avatar">${authorInitial}</div>
                             <div class="staff-details">
-                                <h4>${c.staffName}</h4>
-                                <span class="role-badge">${c.role || 'Staff'}</span>
+                                <h4>${q.staffName}</h4>
+                                <span class="role-badge">${q.role || 'Staff'}</span>
                             </div>
                         </div>
-                        <div class="complaint-meta">
-                            <span class="status-badge ${c.status}">${statusText}</span>
+                        <div class="query-meta">
+                            <span class="status-badge ${q.status}">${statusText}</span>
                             <span class="time-pill">${timeDisplay}</span>
                         </div>
                     </div>
-                    <div class="complaint-body-content">
-                        <span class="complaint-subject">${c.subject}</span>
-                        <p class="complaint-text">${c.description}</p>
+                    <div class="query-body-content">
+                        <span class="query-subject">${q.subject}</span>
+                        <p class="query-text">${q.description}</p>
                         ${imagesHtml}
                     </div>
                 </div>
@@ -491,17 +491,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const imgs = tempReplyImages[id] || [];
         if (!text && imgs.length === 0) return;
 
-        const complaint = complaints.find(c => c.id === id);
-        if (complaint && complaint.status === 'open') {
-            complaint.replies.push({
+        const query = queries.find(q => q.id === id);
+        if (query && query.status === 'open') {
+            query.replies.push({
                 author: CURRENT_USER,
                 text: text,
                 timestamp: new Date().toISOString(),
                 images: [...imgs]
             });
             tempReplyImages[id] = [];
-            saveComplaints();
-            renderComplaints();
+            saveQueries();
+            renderQueries();
         }
     };
 
@@ -511,7 +511,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmCancelBtn = document.getElementById('btn-confirm-cancel');
     let itemToClose = null;
 
-    window.closeComplaint = (id) => {
+    window.closeQuery = (id) => {
         itemToClose = id;
         confirmModal.classList.add('active');
     };
@@ -526,12 +526,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (confirmProceedBtn) {
         confirmProceedBtn.onclick = () => {
             if (itemToClose) {
-                const c = complaints.find(item => item.id === itemToClose);
-                if (c) {
-                    c.status = 'closed';
-                    c.closedBy = CURRENT_USER;
-                    saveComplaints();
-                    renderComplaints();
+                const q = queries.find(item => item.id === itemToClose);
+                if (q) {
+                    q.status = 'closed';
+                    q.closedBy = CURRENT_USER;
+                    saveQueries();
+                    renderQueries();
                 }
             }
             confirmModal.classList.remove('active');
@@ -549,12 +549,12 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    window.reopenComplaint = (id) => {
-        const c = complaints.find(item => item.id === id);
-        if (c) { c.status = 'open'; c.closedBy = null; saveComplaints(); renderComplaints(); }
+    window.reopenQuery = (id) => {
+        const q = queries.find(item => item.id === id);
+        if (q) { q.status = 'open'; q.closedBy = null; saveQueries(); renderQueries(); }
     };
 
-    function saveComplaints() { localStorage.setItem(STORAGE_KEY, JSON.stringify(complaints)); }
+    function saveQueries() { localStorage.setItem(STORAGE_KEY, JSON.stringify(queries)); }
 
     // --- Modal Logic ---
     raiseBtn.onclick = () => {
@@ -568,13 +568,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     closeModalBtn.onclick = () => modalOverlay.classList.remove('active');
 
-    submitComplaintBtn.onclick = () => {
+    submitQueryBtn.onclick = () => {
         const name = staffNameInput.value.trim();
         const subject = subjectInput.value.trim();
         const desc = descInput.value.trim();
         if (name && subject && desc) {
-            complaints.unshift({
-                id: 'cmp_' + Date.now(),
+            queries.unshift({
+                id: 'qry_' + Date.now(),
                 staffName: name,
                 role: roleSelect.value,
                 timestamp: new Date().toISOString(),
@@ -584,13 +584,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 replies: [],
                 images: [...uploadedImages]
             });
-            saveComplaints();
-            renderComplaints();
+            saveQueries();
+            renderQueries();
             modalOverlay.classList.remove('active');
         } else alert('Fill all fields');
     };
 
     modalOverlay.onclick = (e) => { if (e.target === modalOverlay) modalOverlay.classList.remove('active'); };
 
-    renderComplaints();
+    renderQueries();
 });

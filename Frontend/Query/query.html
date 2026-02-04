@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuadStock - Complaints</title>
+    <title>QuadStock - Queries</title>
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
         rel="stylesheet">
@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- CSS -->
     <link rel="stylesheet" href="../Ownerdashboard/dashboard.css" id="dashboard-css">
-    <link rel="stylesheet" href="complain.css">
+    <link rel="stylesheet" href="query.css">
 </head>
 
 <body>
@@ -43,37 +43,38 @@
                 </div>
             </div>
 
-            <!-- Complaint Content -->
-            <div class="complain-section">
-                <div class="complain-header">
+            <!-- Query Content -->
+            <div class="query-section">
+                <div class="query-header">
                     <div>
-                        <h1>Complaint Box</h1>
-                        <p style="color:var(--text-secondary); margin-top:0.5rem;">Manage and resolve staff complaints
+                        <h1>Query Box</h1>
+                        <p style="color:var(--text-secondary); margin-top:0.5rem;">Handle and track staff and customer
+                            queries
                         </p>
                     </div>
-                    <button id="btn-raise-complaint" class="btn-primary">
-                        <i class="fa-solid fa-plus"></i> Simulate Staff Complaint
+                    <button id="btn-raise-query" class="btn-primary">
+                        <i class="fa-solid fa-plus"></i> Simulate New Query
                     </button>
                 </div>
 
-                <div class="complaints-list" id="complaints-list">
+                <div class="queries-list" id="queries-list">
                     <!-- Loaded via JS -->
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Raise Complaint Modal (Simulating Staff View) -->
+    <!-- Raise Query Modal -->
     <div id="raise-modal" class="modal-overlay">
         <div class="modal-content">
-            <h3>Raise a Complaint</h3>
+            <h3>Submit a Query</h3>
             <div class="form-group">
-                <label for="staff-name">Staff Name</label>
-                <input type="text" id="staff-name" placeholder="e.g. Ramesh Kumar"
+                <label for="staff-name">Name</label>
+                <input type="text" id="staff-name" placeholder="Name of person asking..."
                     onkeyup="if(event.key === 'Enter') document.getElementById('btn-modal-submit').click()">
             </div>
             <div class="form-group">
-                <label for="staff-role">Role</label>
+                <label for="staff-role">Role/Type</label>
                 <select id="staff-role">
                     <option value="Sales Staff">Sales Staff</option>
                     <option value="Inventory Clerk">Inventory Clerk</option>
@@ -81,30 +82,31 @@
                     <option value="Security">Security</option>
                     <option value="Manager">Manager</option>
                     <option value="Owner">Owner</option>
+                    <option value="Customer">Customer</option>
                 </select>
             </div>
             <div class="form-group">
-                <label for="complaint-subject">Subject</label>
-                <input type="text" id="complaint-subject" placeholder="Brief summary"
+                <label for="query-subject">Subject</label>
+                <input type="text" id="query-subject" placeholder="Query topic"
                     onkeyup="if(event.key === 'Enter') document.getElementById('btn-modal-submit').click()">
             </div>
             <div class="form-group">
-                <label for="complaint-desc">Description</label>
-                <textarea id="complaint-desc" rows="4" placeholder="Describe the issue in detail..."></textarea>
+                <label for="query-desc">Description</label>
+                <textarea id="query-desc" rows="4" placeholder="Type your query details here..."></textarea>
 
                 <div class="image-upload-area">
                     <div class="upload-btn-wrapper">
-                        <button class="btn-upload"><i class="fa-solid fa-camera"></i> Phone/Video</button>
-                        <input type="file" id="complaint-files" accept="image/*" multiple>
+                        <button class="btn-upload"><i class="fa-solid fa-camera"></i> Photos/Docs</button>
+                        <input type="file" id="query-files" accept="image/*" multiple>
                     </div>
                     <span style="font-size: 0.75rem; color: var(--text-secondary); align-self: center;">Max 5
-                        images</span>
+                        attachments</span>
                 </div>
                 <div id="image-preview-container" class="image-preview-container"></div>
             </div>
             <div class="modal-actions">
                 <button id="btn-modal-cancel" class="btn-cancel">Cancel</button>
-                <button id="btn-modal-submit" class="btn-submit">Submit Complaint</button>
+                <button id="btn-modal-submit" class="btn-submit">Submit Query</button>
             </div>
         </div>
     </div>
@@ -112,22 +114,22 @@
     <!-- Confirmation Modal -->
     <div id="confirm-modal" class="modal-overlay">
         <div class="modal-content" style="max-width: 400px; text-align: center;">
-            <div style="font-size: 3rem; color: #ef4444; margin-bottom: 1rem;">
+            <div style="font-size: 3rem; color: #0d9488; margin-bottom: 1rem;">
                 <i class="fa-solid fa-circle-question"></i>
             </div>
-            <h3 style="margin-bottom: 1rem;">Are you sure?</h3>
-            <p style="color: var(--text-secondary); margin-bottom: 2rem;">Do you really want to close this complaint?
-                This action cannot be undone easily.</p>
+            <h3 style="margin-bottom: 1rem;">Mark as Seen?</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 2rem;">Do you want to mark this query as seen? It
+                will be moved to the resolved section.</p>
             <div class="modal-actions" style="justify-content: center;">
-                <button id="btn-confirm-cancel" class="btn-cancel">No, Keep Open</button>
+                <button id="btn-confirm-cancel" class="btn-cancel">Cancel</button>
                 <button id="btn-confirm-proceed" class="btn-submit"
-                    style="background: #ef4444; box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.3);">Yes, Close
-                    It</button>
+                    style="background: #0d9488; box-shadow: 0 10px 15px -3px rgba(13, 148, 136, 0.3);">Yes, Mark
+                    Seen</button>
             </div>
         </div>
     </div>
 
-    <script src="complain.js"></script>
+    <script src="query.js"></script>
 </body>
 
 </html>
