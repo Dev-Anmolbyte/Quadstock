@@ -285,29 +285,39 @@ document.addEventListener('DOMContentLoaded', () => {
         loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
 
-            const emailOrId = document.getElementById('login-id').value.toLowerCase(); // Treat as email mostly
-            const password = document.getElementById('password').value;
+            const emailOrId = document.getElementById('login-id').value.trim();
+            const password = document.getElementById('password').value.trim();
+
+            // 1. Check if any detail is missing
+            if (!emailOrId || !password) {
+                if (loginError) {
+                    loginError.style.display = 'block';
+                    loginError.textContent = 'Please enter your details.';
+                } else {
+                    alert('Please enter your details.');
+                }
+                return;
+            }
 
             const users = getUsers();
-            const user = users.find(u => u.email === emailOrId || u.phone === emailOrId); // Allow login by email or phone
+            const user = users.find(u =>
+                (u.email && u.email.toLowerCase() === emailOrId.toLowerCase()) ||
+                (u.phone && u.phone === emailOrId)
+            );
 
+            // 2. If user not found, redirect to signup
             if (!user) {
                 if (loginError) {
                     loginError.style.display = 'block';
-                    loginError.textContent = 'Account not found. Please sign up first. Redirecting...';
+                    loginError.textContent = 'User not found. Redirecting to signup...';
                 }
                 setTimeout(() => {
                     window.location.href = 'signup.html';
                 }, 1500);
             } else {
+                // 3. Check credentials
                 if (user.password === password) {
-                    // Success
-                    localStorage.setItem('currentUser', JSON.stringify(user)); // Session
-                    // Redirect to Landing or Dashboard (Simulating login success)
-                    // Assuming for now it goes back to landing or a dashboard if it existed
-                    // Since specific dashboard URL isn't clear, we'll go to landing as "Logged In" state is managed there maybe?
-                    // Or just reload/alert for now.
-                    // Actually usually goes to index or dashboard. Let's go to landing.html
+                    localStorage.setItem('currentUser', JSON.stringify(user));
                     window.location.href = '../landing/landing.html';
                 } else {
                     if (loginError) {

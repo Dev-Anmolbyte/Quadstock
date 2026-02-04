@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuadStock - Employee Login</title>
+    <!-- Same font as dashboard -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="employee_login.css">
+</head>
+
+<body>
+    <!-- Background Patterns -->
+    <div class="background-decor">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <div class="login-wrapper">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-users-gear"></i>
+                </div>
+                <h2>Employee Login</h2>
+                <p>Welcome back! Please enter your details.</p>
+            </div>
+
+            <form id="employee-login-form">
+                <div class="form-group">
+                    <label for="employee-id">Employee ID</label>
+                    <div class="input-container">
+                        <i class="fa-solid fa-id-card-clip"></i>
+                        <input type="text" id="employee-id" placeholder="Enter your ID (e.g. EMP-001)" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="input-container">
+                        <i class="fa-solid fa-lock"></i>
+                        <input type="password" id="password" placeholder="••••••••" required>
+                        <button type="button" class="toggle-password" id="toggle-password">
+                            <i class="fa-regular fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="login-options">
+                    <label class="remember-me">
+                        <input type="checkbox">
+                        <span>Remember me</span>
+                    </label>
+                    <!-- <a href="#" class="forgot-link">Forgot Password?</a> -->
+                </div>
+
+                <button type="submit" class="btn-login">
+                    <span>Sign In</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+
+            <div class="login-footer">
+                <p>Are you an Owner? <a href="../authentication/login.html">Owner Login</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="employee_login.js"></script>
+</body>
+
+</html>

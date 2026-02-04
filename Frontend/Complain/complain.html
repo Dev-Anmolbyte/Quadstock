@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuadStock - Complaints</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- CSS -->
+    <link rel="stylesheet" href="../Ownerdashboard/dashboard.css" id="dashboard-css">
+    <link rel="stylesheet" href="complain.css">
+</head>
+
+<body>
+    <div class="dashboard-container" id="main-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar-target">
+            <!-- Dynamic sidebar content -->
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <div class="top-bar" id="topbar-target">
+                <div class="digital-clock" id="digital-clock">
+                    00:00:00 AM
+                </div>
+
+                <div class="header-right">
+                    <button class="theme-toggle-btn" id="theme-toggle" title="Toggle Theme">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+
+                    <div class="user-profile" id="user-profile-target">
+                        <img src="https://ui-avatars.com/api/?name=User&background=random" alt="User">
+                        <span class="user-name">Admin</span>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Complaint Content -->
+            <div class="complain-section">
+                <div class="complain-header">
+                    <div>
+                        <h1>Complaint Box</h1>
+                        <p style="color:var(--text-secondary); margin-top:0.5rem;">Manage and resolve staff complaints
+                        </p>
+                    </div>
+                    <button id="btn-raise-complaint" class="btn-primary">
+                        <i class="fa-solid fa-plus"></i> Simulate Staff Complaint
+                    </button>
+                </div>
+
+                <div class="complaints-list" id="complaints-list">
+                    <!-- Loaded via JS -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Raise Complaint Modal (Simulating Staff View) -->
+    <div id="raise-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Raise a Complaint</h3>
+            <div class="form-group">
+                <label for="staff-name">Staff Name</label>
+                <input type="text" id="staff-name" placeholder="e.g. Ramesh Kumar"
+                    onkeyup="if(event.key === 'Enter') document.getElementById('btn-modal-submit').click()">
+            </div>
+            <div class="form-group">
+                <label for="staff-role">Role</label>
+                <select id="staff-role">
+                    <option value="Sales Staff">Sales Staff</option>
+                    <option value="Inventory Clerk">Inventory Clerk</option>
+                    <option value="Cashier">Cashier</option>
+                    <option value="Security">Security</option>
+                    <option value="Manager">Manager</option>
+                    <option value="Owner">Owner</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="complaint-subject">Subject</label>
+                <input type="text" id="complaint-subject" placeholder="Brief summary"
+                    onkeyup="if(event.key === 'Enter') document.getElementById('btn-modal-submit').click()">
+            </div>
+            <div class="form-group">
+                <label for="complaint-desc">Description</label>
+                <textarea id="complaint-desc" rows="4" placeholder="Describe the issue in detail..."></textarea>
+
+                <div class="image-upload-area">
+                    <div class="upload-btn-wrapper">
+                        <button class="btn-upload"><i class="fa-solid fa-camera"></i> Phone/Video</button>
+                        <input type="file" id="complaint-files" accept="image/*" multiple>
+                    </div>
+                    <span style="font-size: 0.75rem; color: var(--text-secondary); align-self: center;">Max 5
+                        images</span>
+                </div>
+                <div id="image-preview-container" class="image-preview-container"></div>
+            </div>
+            <div class="modal-actions">
+                <button id="btn-modal-cancel" class="btn-cancel">Cancel</button>
+                <button id="btn-modal-submit" class="btn-submit">Submit Complaint</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="complain.js"></script>
+</body>
+
+</html>

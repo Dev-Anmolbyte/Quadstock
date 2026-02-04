@@ -271,6 +271,28 @@ document.addEventListener('DOMContentLoaded', function () {
         initSparkline('dailyRevenueSparkline', [30, 45, 32, 60, 55, 80, 70], '#0ea5e9');
         initSparkline('outstandingCreditSparkline', [20, 35, 40, 30, 50, 45, 60], '#ef4444');
         initSparkline('paymentSplitSparkline', [70, 65, 75, 70, 80, 72, 85], '#a855f7');
+
+        // New Inventory Sparklines
+        initSparkline('lowStockSparkline', [10, 15, 12, 18, 20, 15, 18], '#f97316');
+        initSparkline('expirySoonSparkline', [5, 8, 12, 10, 8, 15, 8], '#ef4444');
+        initSparkline('deadStockSparkline', [30, 28, 25, 24, 22, 24, 24], '#0ea5e9');
+
+        // --- Update Summary Card Numbers Dynamically ---
+
+        // 1. Low Stock Count
+        const lowStockRows = document.querySelectorAll('#low-stock tbody tr').length;
+        const lowStockSummary = document.querySelector('#low-stock-summary h3');
+        if (lowStockSummary) lowStockSummary.innerText = lowStockRows;
+
+        // 2. Expiry Soon Count
+        const expiryRows = document.querySelectorAll('#expiry-report tbody tr').length;
+        const expirySummary = document.querySelector('#expiry-soon-summary h3');
+        if (expirySummary) expirySummary.innerText = expiryRows;
+
+        // 3. Dead Stock Count
+        const deadStockRows = document.querySelectorAll('#dead-stock tbody tr').length;
+        const deadStockSummary = document.querySelector('#dead-stock-summary h3');
+        if (deadStockSummary) deadStockSummary.innerText = deadStockRows;
     }
 
     // --- Modal Logic for Godam Alert ---
@@ -494,13 +516,16 @@ document.addEventListener('DOMContentLoaded', function () {
                         clearInterval(timer);
                     } else {
                         // Attempt to maintain basic currency formatting during count
+                        let formattedValue;
                         if (originalText.includes('₹')) {
-                            stat.innerText = '₹' + Math.floor(start).toLocaleString();
+                            // If it has decimals, show some
+                            formattedValue = '₹' + (numericValue % 1 !== 0 ? start.toFixed(2) : Math.floor(start)).toLocaleString();
                         } else if (originalText.includes('%')) {
-                            stat.innerText = '+' + Math.floor(start) + '%';
+                            formattedValue = '+' + Math.floor(start) + '%';
                         } else {
-                            stat.innerText = Math.floor(start).toLocaleString();
+                            formattedValue = Math.floor(start).toLocaleString();
                         }
+                        stat.innerText = formattedValue;
                     }
                 }, stepTime);
             }

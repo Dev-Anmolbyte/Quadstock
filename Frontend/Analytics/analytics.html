@@ -101,16 +101,13 @@
                     00:00:00 AM
                 </div>
 
-                <div class="search-container">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    <input type="text" placeholder="Search analytics...">
-                </div>
+
 
                 <div class="header-right">
                     <button class="theme-toggle-btn" id="theme-toggle" title="Toggle Theme">
                         <i class="fa-solid fa-moon"></i>
                     </button>
-                    <button class="notif-btn"><i class="fa-regular fa-bell"></i></button>
+
                     <div class="user-profile">
                         <img src="https://ui-avatars.com/api/?name=Floyd+Miles&background=random" alt="User">
                         <span class="user-name">Owner Admin</span>
@@ -124,14 +121,13 @@
                 <section id="galla-section" class="analytics-section">
                     <div class="section-header">
                         <h2>💰 Financial Overview (Galla)</h2>
-                        <p>Focus on cash flow and pending payments</p>
                     </div>
                     <div class="stats-row">
                         <div class="stat-card" id="daily-revenue">
                             <div class="stat-icon blue-bg"><i class="fa-solid fa-indian-rupee-sign"></i></div>
                             <div class="stat-info">
                                 <p class="label">Daily Revenue</p>
-                                <h3>₹45,250</h3>
+                                <h3>80,150</h3>
                             </div>
                             <!-- Mini Sparkline -->
                             <div class="sparkline-container">
@@ -142,7 +138,7 @@
                             <div class="stat-icon red-bg"><i class="fa-solid fa-file-invoice"></i></div>
                             <div class="stat-info">
                                 <p class="label">Outstanding Credit</p>
-                                <h3>₹1,12,000</h3>
+                                <h3>₹19,000</h3>
                             </div>
                             <!-- Mini Sparkline -->
                             <div class="sparkline-container">
@@ -298,7 +294,6 @@
                 <section id="vyapaar-section" class="analytics-section">
                     <div class="section-header">
                         <h2>📈 Sales Trends (Vyapaar Meter)</h2>
-                        <p>Customer behavior and business speed</p>
                     </div>
                     <div class="analytics-grid">
                         <div class="card chart-large" id="peak-traffic">
@@ -392,8 +387,41 @@
                 <section id="godam-section" class="analytics-section">
                     <div class="section-header">
                         <h2>⚠️ Inventory Alerts (Godam Alert)</h2>
-                        <p>Stock risks and required actions</p>
                     </div>
+
+                    <div class="stats-row">
+                        <div class="stat-card" id="low-stock-summary">
+                            <div class="stat-icon orange-bg"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                            <div class="stat-info">
+                                <p class="label">Low Stock Items</p>
+                                <h3>15</h3>
+                            </div>
+                            <div class="sparkline-container">
+                                <canvas id="lowStockSparkline"></canvas>
+                            </div>
+                        </div>
+                        <div class="stat-card" id="expiry-soon-summary">
+                            <div class="stat-icon red-bg"><i class="fa-solid fa-hourglass-end"></i></div>
+                            <div class="stat-info">
+                                <p class="label">Expiry Soon</p>
+                                <h3>8</h3>
+                            </div>
+                            <div class="sparkline-container">
+                                <canvas id="expirySoonSparkline"></canvas>
+                            </div>
+                        </div>
+                        <div class="stat-card" id="dead-stock-summary">
+                            <div class="stat-icon blue-bg"><i class="fa-solid fa-box-open"></i></div>
+                            <div class="stat-info">
+                                <p class="label">Dead Stock Items</p>
+                                <h3>24</h3>
+                            </div>
+                            <div class="sparkline-container">
+                                <canvas id="deadStockSparkline"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="godam-alert-grid">
                         <!-- 1. Low Stock Warning -->
                         <div class="card full-width-card" id="low-stock">
