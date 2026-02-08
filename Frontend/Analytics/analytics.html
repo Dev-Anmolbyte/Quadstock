@@ -72,6 +72,36 @@
                         <a href="#dead-stock" class="submenu-item">Dead Stock Report</a>
                     </div>
                 </div>
+
+                <!-- Standard Navigation Links -->
+                <a href="../Query/query.html?role=owner" class="menu-item" title="Query">
+                    <i class="fa-solid fa-clipboard-question"></i>
+                    <span>Query</span>
+                </a>
+                <a href="#" class="menu-item" title="Inventory">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                    <span>Inventory</span>
+                </a>
+                <a href="../smartexpiry/smartexpiry.html" class="menu-item" title="Smart Expiry">
+                    <i class="fa-solid fa-hourglass-end"></i>
+                    <span>Smart Expiry</span>
+                </a>
+                <a href="#" class="menu-item" title="Employees">
+                    <i class="fa-solid fa-users-gear"></i>
+                    <span>Employees</span>
+                </a>
+                <a href="../Complain/complain.html?role=owner" class="menu-item" title="Complain">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span>Complain</span>
+                </a>
+                <a href="#" class="menu-item" title="Pending Payments">
+                    <i class="fa-solid fa-indian-rupee-sign"></i>
+                    <span>Pending Payments</span>
+                </a>
+                <a href="#" class="menu-item" title="Settings">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Settings</span>
+                </a>
             </nav>
 
             <div class="sidebar-footer-card">
@@ -546,6 +576,48 @@
     </div>
 
     <script src="analytics.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const role = urlParams.get('role');
+
+            if (role === 'manager') {
+                // Update Dashboard Link
+                const dashboardLink = document.querySelector('a[href="../Ownerdashboard/dashboard.html"]');
+                if (dashboardLink) {
+                    dashboardLink.href = "../Managerdashboard/manager_dashboard.html";
+                }
+
+                // Update Query Link
+                const queryLink = document.querySelector('a[href*="query.html"]');
+                if (queryLink) {
+                    queryLink.href = "../Query/query.html?role=manager";
+                }
+
+                // Update Complain Link
+                const complainLink = document.querySelector('a[href*="complain.html"]');
+                if (complainLink) {
+                    complainLink.href = "../Complain/complain.html?role=manager";
+                }
+
+                // Update Smart Expiry Link
+                const smartExpiryLink = document.querySelector('a[href*="smartexpiry.html"]');
+                if (smartExpiryLink) {
+                    smartExpiryLink.href = "../smartexpiry/smartexpiry.html?role=manager";
+                }
+
+                // Update Profile Info
+                const userName = document.querySelector('.user-profile .user-name');
+                const userRole = document.querySelector('.user-profile small');
+                if (userName) userName.textContent = "Manager";
+                if (userRole) userRole.textContent = "Shift Manager";
+
+                // Update Profile Image
+                const userImg = document.querySelector('.user-profile img');
+                if (userImg) userImg.src = "https://ui-avatars.com/api/?name=Manager&background=003f3f&color=fff";
+            }
+        });
+    </script>
 </body>
 
 </html>

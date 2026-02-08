@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             <i class="fa-solid fa-house-chimney"></i>
                             <span>Dashboard</span>
                         </a>
-                        <a href="../Analytics/analytics.html" class="nav-item">
+                        <a href="../Analytics/analytics.html?role=manager" class="nav-item">
                             <i class="fa-solid fa-chart-simple"></i>
                             <span>Analytics</span>
                         </a>

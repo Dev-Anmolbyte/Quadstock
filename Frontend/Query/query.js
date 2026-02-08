@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <i class="fa-solid fa-house-chimney"></i>
                             <span>Dashboard</span>
                         </a>
-                        <a href="../Analytics/analytics.html" class="nav-item">
+                        <a href="../Analytics/analytics.html?role=manager" class="nav-item">
                             <i class="fa-solid fa-chart-simple"></i>
                             <span>Analytics</span>
                         </a>
@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <i class="fa-solid fa-boxes-stacked"></i>
                             <span>Inventory</span>
                         </a>
-                        <a href="#" class="nav-item">
+                        <a href="../smartexpiry/smartexpiry.html?role=manager" class="nav-item">
                             <i class="fa-solid fa-hourglass-end"></i>
                             <span>Smart Expiry</span>
                         </a>
@@ -116,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <i class="fa-solid fa-boxes-stacked"></i>
                         <span>Inventory</span>
                     </a>
-                    <a href="#" class="menu-item" title="Smart Expiry">
+                    <a href="../smartexpiry/smartexpiry.html" class="menu-item" title="Smart Expiry">
                         <i class="fa-solid fa-hourglass-end"></i>
                         <span>Smart Expiry</span>
                     </a>
