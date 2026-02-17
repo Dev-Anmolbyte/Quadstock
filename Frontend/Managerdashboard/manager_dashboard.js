@@ -1,4 +1,23 @@
+// --- Authentication Check (Start of file) ---
+if (!localStorage.getItem('currentEmployee')) {
+    window.location.href = '../EmployeeLogin/employee_login.html';
+}
+
 document.addEventListener('DOMContentLoaded', function () {
+
+    // --- Logout Functionality ---
+    // Selector based on the link added: href="../landing/landing.html" and text "Logout"
+    const logoutBtn = document.querySelector('a[href*="landing.html"]');
+
+    if (logoutBtn && logoutBtn.textContent.trim().includes('Logout')) {
+        logoutBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.removeItem('currentEmployee');
+            window.location.replace('../EmployeeLogin/employee_login.html');
+        });
+    }
+
+
     // --- Chart Colors ---
     const getChartColors = () => {
         const isDark = document.body.getAttribute('data-theme') === 'dark';

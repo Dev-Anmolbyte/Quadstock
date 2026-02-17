@@ -1,4 +1,20 @@
+// --- Authentication Check (Start of file) ---
+if (!localStorage.getItem('currentUser')) {
+    window.location.href = '../Authentication/login.html';
+}
+
 document.addEventListener('DOMContentLoaded', function () {
+
+    // --- Logout Functionality ---
+    const logoutBtn = document.querySelector('a[title="Logout"]');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.removeItem('currentUser');
+            // Prevent back navigation
+            window.location.replace('../Authentication/login.html');
+        });
+    }
 
     // --- Digital Clock ---
     function updateClock() {

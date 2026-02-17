@@ -265,16 +265,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            // Generate Unique ID
+            const uniqueId = 'QS-' + Math.floor(10000 + Math.random() * 90000);
+
             // Register User
             const newUser = {
                 email,
                 password, // In real app, hash this!
                 ownerName,
                 shopName,
-                phone
+                phone,
+                uniqueId: uniqueId
             };
 
             saveUser(newUser);
+
+            alert('Registration Successful!\nYour Unique Owner ID is: ' + uniqueId + '\nPlease save this for future login.');
 
             // Redirect
             window.location.href = 'login.html';
@@ -302,7 +308,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const users = getUsers();
             const user = users.find(u =>
                 (u.email && u.email.toLowerCase() === emailOrId.toLowerCase()) ||
-                (u.phone && u.phone === emailOrId)
+                (u.phone && u.phone === emailOrId) ||
+                (u.uniqueId && u.uniqueId.toUpperCase() === emailOrId.toUpperCase())
             );
 
             // 2. If user not found, redirect to signup
@@ -318,7 +325,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // 3. Check credentials
                 if (user.password === password) {
                     localStorage.setItem('currentUser', JSON.stringify(user));
-                    window.location.href = '../landing/landing.html';
+                    window.location.href = '../Ownerdashboard/dashboard.html';
                 } else {
                     if (loginError) {
                         loginError.style.display = 'block';

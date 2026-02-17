@@ -46,6 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // If the user is a manager, redirect to manager dashboard
                 // For demo purposes, let's say all EMP logins go to manager dashboard if ID contains 'MGR'
                 if (empId.toUpperCase().includes('MGR')) {
+                    localStorage.setItem('currentEmployee', JSON.stringify({ id: empId, role: 'manager' }));
                     window.location.href = '../Managerdashboard/manager_dashboard.html';
                 } else {
                     // For now, just go to dashboard or stay here
