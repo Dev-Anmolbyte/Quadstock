@@ -1,4 +1,18 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // --- 0. RBAC Security Check ---
+    const currentEmployee = JSON.parse(localStorage.getItem('currentEmployee'));
+    if (currentEmployee && currentEmployee.role === 'staff') {
+        // Hide Restricted Actions
+        const btnAdd = document.getElementById('add-product-btn');
+        if (btnAdd) btnAdd.style.display = 'none';
+
+        // Add Style to hide edit/delete buttons dynamically
+        const style = document.createElement('style');
+        style.innerHTML = `
+            .edit-btn, .delete-btn, .edit-group-btn { display: none !important; }
+        `;
+        document.head.appendChild(style);
+    }
     // --- 1. State & Constants ---
     let inventory = JSON.parse(localStorage.getItem('inventory')) || [];
     let isEditing = false;

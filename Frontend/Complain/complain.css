@@ -2,11 +2,11 @@
 
 .main-content {
     background-image:
-        linear-gradient(rgba(99, 102, 241, 0.12) 1.5px, transparent 1.5px),
-        linear-gradient(90deg, rgba(99, 102, 241, 0.12) 1.5px, transparent 1.5px),
-        radial-gradient(rgba(99, 102, 241, 0.25) 2px, transparent 2px),
-        radial-gradient(circle at 100% 0%, rgba(99, 102, 241, 0.2) 0%, transparent 40%),
-        radial-gradient(circle at 0% 100%, rgba(236, 72, 153, 0.2) 0%, transparent 40%);
+        linear-gradient(rgba(244, 124, 37, 0.12) 1.5px, transparent 1.5px),
+        linear-gradient(90deg, rgba(244, 124, 37, 0.12) 1.5px, transparent 1.5px),
+        radial-gradient(rgba(244, 124, 37, 0.25) 2px, transparent 2px),
+        radial-gradient(circle at 100% 0%, rgba(244, 124, 37, 0.2) 0%, transparent 40%),
+        radial-gradient(circle at 0% 100%, rgba(239, 108, 0, 0.2) 0%, transparent 40%);
     background-size: 60px 60px, 60px 60px, 30px 30px, 100% 100%, 100% 100%;
     background-attachment: fixed;
     background-color: var(--bg-body);
@@ -27,7 +27,7 @@
     background-image:
         linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
         linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-        radial-gradient(rgba(99, 102, 241, 0.15) 2px, transparent 2px);
+        radial-gradient(rgba(244, 124, 37, 0.15) 2px, transparent 2px);
 }
 
 .complain-section {
@@ -46,7 +46,7 @@
 
 .complain-header h1 {
     font-size: 1.8rem;
-    background: linear-gradient(135deg, #4f46e5 0%, #ec4899 100%);
+    background: linear-gradient(135deg, #D66010 0%, #EF6C00 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -54,7 +54,7 @@
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
+    background: linear-gradient(135deg, #F47C25 0%, #BF360C 100%);
     color: white;
     border: none;
     padding: 0.85rem 1.75rem;
@@ -64,13 +64,13 @@
     display: flex;
     align-items: center;
     gap: 0.6rem;
-    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+    box-shadow: 0 4px 15px rgba(244, 124, 37, 0.4);
     transition: all 0.3s ease;
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
+    box-shadow: 0 6px 20px rgba(244, 124, 37, 0.6);
 }
 
 .complaints-list {
@@ -271,7 +271,7 @@
     border-radius: 2rem;
     font-size: 0.8rem;
     font-weight: 700;
-    color: #6366f1;
+    color: #F47C25;
     cursor: pointer;
     margin: -0.75rem 0 1rem 0;
     display: flex;
@@ -284,7 +284,7 @@
 
 .show-more-replies:hover {
     transform: translateY(-1px);
-    box-shadow: 0 6px 12px -2px rgba(99, 102, 241, 0.2);
+    box-shadow: 0 6px 12px -2px rgba(244, 124, 37, 0.2);
     background: #f5f3ff;
 }
 
@@ -313,7 +313,7 @@
 }
 
 .reply-item.owner-reply .reply-avatar {
-    background: #6366f1;
+    background: #F47C25;
     color: white;
 }
 
@@ -328,12 +328,12 @@
 }
 
 .reply-item.owner-reply .reply-bubble {
-    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    background: linear-gradient(135deg, #F47C25 0%, #D66010 100%);
     color: white;
     border: none;
     border-radius: 1rem;
     border-top-right-radius: 0;
-    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);
+    box-shadow: 0 4px 15px rgba(244, 124, 37, 0.2);
 }
 
 .reply-author-name {
@@ -381,8 +381,8 @@
 
 .quick-pill:hover {
     background: #f3f4f6;
-    color: #6366f1;
-    border-color: #6366f1;
+    color: #F47C25;
+    border-color: #F47C25;
 }
 
 .quick-pill i {
@@ -408,15 +408,15 @@
 
 .main-input:focus {
     outline: none;
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    border-color: #F47C25;
+    box-shadow: 0 0 0 3px rgba(244, 124, 37, 0.1);
 }
 
 .btn-send-reply {
     width: 48px;
     height: 48px;
     border-radius: 0.75rem;
-    background: #6366f1;
+    background: #F47C25;
     color: white;
     border: none;
     cursor: pointer;
@@ -428,7 +428,7 @@
 }
 
 .btn-send-reply:hover {
-    background: #4f46e5;
+    background: #D66010;
     transform: scale(1.05);
 }
 
@@ -546,9 +546,9 @@
 .form-group select:focus,
 .form-group textarea:focus {
     outline: none;
-    border-color: #6366f1;
+    border-color: #F47C25;
     background: var(--bg-white);
-    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    box-shadow: 0 0 0 4px rgba(244, 124, 37, 0.1);
 }
 
 .modal-actions {
@@ -574,19 +574,19 @@
 }
 
 .btn-submit {
-    background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
+    background: linear-gradient(135deg, #F47C25 0%, #BF360C 100%);
     color: white;
     border: none;
     padding: 0.85rem 2rem;
     border-radius: 1rem;
     font-weight: 700;
     cursor: pointer;
-    box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4);
+    box-shadow: 0 10px 15px -3px rgba(244, 124, 37, 0.4);
 }
 
 .btn-submit:hover {
     transform: translateY(-2px);
-    box-shadow: 0 15px 20px -5px rgba(99, 102, 241, 0.5);
+    box-shadow: 0 15px 20px -5px rgba(244, 124, 37, 0.5);
 }
 
 .closed-overlay {
@@ -634,8 +634,8 @@
 }
 
 .btn-upload:hover {
-    border-color: #6366f1;
-    color: #6366f1;
+    border-color: #F47C25;
+    color: #F47C25;
     background-color: #f5f3ff;
 }
 
@@ -739,8 +739,8 @@
 }
 
 .mini-upload-btn:hover {
-    border-color: #6366f1;
-    color: #6366f1;
+    border-color: #F47C25;
+    color: #F47C25;
 }
 
 .reply-images {

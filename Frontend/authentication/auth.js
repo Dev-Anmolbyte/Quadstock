@@ -1,129 +1,19 @@
 
+import { initInteractiveBackground } from '../Shared/interactive-bg.js';
+import { togglePasswordVisibility, calculatePasswordStrength, validateEmail, validatePhone, showError, clearError } from '../Shared/auth-utils.js';
 
 // --- Main Logic ---
 document.addEventListener('DOMContentLoaded', () => {
     // --- Interactive Background Logic ---
-    const bgContainer = document.getElementById('interactive-bg');
-    if (bgContainer) {
-        initInteractiveBackground(bgContainer);
-    }
-
-    function initInteractiveBackground(container) {
-        const orbCount = 4;
-        const orbs = [];
-        const mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2, isActive: false };
-        let mouseTimer = null;
-
-
-        // Initialize Orbs
-        for (let i = 1; i <= orbCount; i++) {
-            const orb = document.createElement('div');
-            orb.classList.add('bg-orb');
-            orb.style.backgroundColor = `var(--orb-${i})`;
-
-            // Random sizes
-            const size = Math.random() * 300 + 400; // 400-700px
-            orb.style.width = `${size}px`;
-            orb.style.height = `${size}px`;
-
-            container.appendChild(orb);
-
-            orbs.push({
-                element: orb,
-                x: Math.random() * window.innerWidth,
-                y: Math.random() * window.innerHeight,
-                vx: (Math.random() - 0.5) * 4, // FASTER Random velocity (increased from 1.5 to 4)
-                vy: (Math.random() - 0.5) * 4,
-                targetX: Math.random() * window.innerWidth,
-                targetY: Math.random() * window.innerHeight,
-                size: size
-            });
-        }
-
-        // Mouse Events (Only active when moving ON the window)
-        window.addEventListener('mousemove', (e) => {
-            mouse.x = e.clientX;
-            mouse.y = e.clientY;
-            mouse.isActive = true;
-
-            // Reset idle timer
-            clearTimeout(mouseTimer);
-            mouseTimer = setTimeout(() => {
-                mouse.isActive = false;
-            }, 2000); // 2 seconds idle
-        });
-
-
-        // Animation Loop
-        function animate() {
-            orbs.forEach((orb, index) => {
-                // Active if mouse moving OR user is typing
-                const isActiveMode = mouse.isActive;
-
-                if (isActiveMode) {
-                    // MOUSE/TYPING FOLLOW MODE (Swarming TIGHTER)
-                    // Reduce lag to make them converge faster
-                    const lag = 0.05 + (index * 0.015);
-
-                    // Reduce wobble to make them cluster tighter
-                    const wobble = Math.sin(Date.now() / 800 + index) * 20;
-
-                    const dx = mouse.x - orb.x + wobble;
-                    const dy = mouse.y - orb.y + wobble;
-
-                    orb.x += dx * lag;
-                    orb.y += dy * lag;
-                } else {
-                    // IDLE MODE (FAST Random Floating)
-                    // Move towards random targets
-                    const dx = orb.targetX - orb.x;
-                    const dy = orb.targetY - orb.y;
-
-                    // Distance check
-                    if (Math.sqrt(dx * dx + dy * dy) < 100) {
-                        // Pick new target
-                        orb.targetX = Math.random() * window.innerWidth;
-                        orb.targetY = Math.random() * window.innerHeight;
-                    }
-
-                    // Move smooth but faster
-                    orb.x += orb.vx;
-                    orb.y += orb.vy;
-
-                    // Bounce off walls
-                    if (orb.x < -200 || orb.x > window.innerWidth + 200) orb.vx *= -1;
-                    if (orb.y < -200 || orb.y > window.innerHeight + 200) orb.vy *= -1;
-                }
-
-                // Apply transform
-                orb.element.style.transform = `translate(${orb.x}px, ${orb.y}px) translate(-50%, -50%)`;
-            });
-            requestAnimationFrame(animate);
-        }
-
-        animate();
-    }
+    // Pass the container ID
+    initInteractiveBackground('interactive-bg', { orbCount: 4 });
 
     // --- Password Visibility Toggle ---
     const toggleButtons = document.querySelectorAll('.input-icon');
 
     toggleButtons.forEach(btn => {
         btn.addEventListener('click', () => {
-            // Find the input element within the same parent wrapper
-            const input = btn.previousElementSibling;
-            const icon = btn.querySelector('i');
-
-            if (input && input.tagName === 'INPUT') {
-                if (input.type === 'password') {
-                    input.type = 'text';
-                    icon.classList.remove('fa-eye');
-                    icon.classList.add('fa-eye-slash');
-                } else {
-                    input.type = 'password';
-                    icon.classList.remove('fa-eye-slash');
-                    icon.classList.add('fa-eye');
-                }
-            }
+            togglePasswordVisibility(btn);
         });
     });
 
@@ -135,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (passwordInput && strengthSegment && strengthText) {
         passwordInput.addEventListener('input', () => {
             const val = passwordInput.value;
-            const result = calculateStrength(val);
+            const result = calculatePasswordStrength(val);
 
             // Reset classes
             strengthSegment.className = 'strength-segment';
@@ -160,59 +50,37 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function calculateStrength(password) {
-        let score = 0;
-        if (!password) return 'weak';
-
-        if (password.length > 6) score += 1;
-        if (password.length > 10) score += 1;
-        if (/[A-Z]/.test(password)) score += 1;
-        if (/[0-9]/.test(password)) score += 1;
-        if (/[^A-Za-z0-9]/.test(password)) score += 1;
-
-        if (score < 3) return 'weak';
-        if (score < 5) return 'medium';
-        return 'strong';
-    }
-
     // --- Input Validations (Email & Phone) ---
     const emailInput = document.getElementById('email');
     const phoneInput = document.getElementById('phone');
 
     if (emailInput) {
-        // Enforce Lowercase and Valid Email characters (roughly)
-        emailInput.addEventListener('input', (e) => {
-            let val = e.target.value;
-            // Force lowercase
-            val = val.toLowerCase();
-            // Remove any spaces
-            val = val.replace(/\s/g, '');
-
-            // Note: Preventing *all* non-alphanumeric would break email structure (@ and .)
-            // User requested "only lowercase character and number". 
-            // If strictly interpreted, that's not an email.
-            // I will assume they mean "standard email format but strictly lowercase".
-
-            if (val !== e.target.value) {
-                e.target.value = val;
+        emailInput.addEventListener('blur', (e) => { // Validate on blur, not input
+            const val = e.target.value;
+            if (val && !validateEmail(val)) {
+                showError(emailInput, 'Please enter a valid email address.');
+            } else {
+                clearError(emailInput);
             }
         });
+        emailInput.addEventListener('input', () => clearError(emailInput));
     }
 
     if (phoneInput) {
         // Enforce Numbers Only and Max Length 10
         phoneInput.addEventListener('input', (e) => {
             let val = e.target.value;
-            // Remove non-digits
             val = val.replace(/\D/g, '');
-
-            // Limit to 10 chars
-            if (val.length > 10) {
-                val = val.slice(0, 10);
-            }
-
-            if (val !== e.target.value) {
-                e.target.value = val;
+            if (val.length > 10) val = val.slice(0, 10);
+            if (val !== e.target.value) e.target.value = val;
+            clearError(phoneInput);
+        });
+        phoneInput.addEventListener('blur', (e) => {
+            const val = e.target.value;
+            if (val && !validatePhone(val)) {
+                showError(phoneInput, 'Phone number must be exactly 10 digits.');
+            } else {
+                clearError(phoneInput);
             }
         });
     }
@@ -241,28 +109,40 @@ document.addEventListener('DOMContentLoaded', () => {
             const shopName = document.getElementById('shop-name').value;
             const phone = document.getElementById('phone').value;
 
+            let isValid = true;
+
             // Basic Validation
             if (password !== confirmPass) {
-                alert('Passwords do not match!');
-                return;
+                showError(document.getElementById('confirm-password'), 'Passwords do not match!');
+                isValid = false;
+            } else {
+                clearError(document.getElementById('confirm-password'));
             }
 
-            if (password.length < 6) { // Simple check, strength meter handles visual
-                alert('Password is too weak. Please use at least 6 characters.');
-                return;
+            if (calculatePasswordStrength(password) === 'weak') {
+                showError(document.getElementById('signup-password'), 'Password is too weak. Please use at least 6 characters.');
+                isValid = false;
+            } else {
+                clearError(document.getElementById('signup-password'));
             }
 
-            if (phone.length !== 10) {
-                alert('Phone number must be exactly 10 digits.');
-                return;
+            if (!validatePhone(phone)) {
+                showError(document.getElementById('phone'), 'Phone number must be exactly 10 digits.');
+                isValid = false;
+            } else {
+                clearError(document.getElementById('phone'));
             }
+
+            if (!isValid) return;
 
             // Check if user exists
             const users = getUsers();
             if (users.find(u => u.email === email)) {
-                alert('User already exists with this email. Please Login.');
-                window.location.href = 'login.html';
+                showError(document.getElementById('email'), 'User already exists with this email. Please Login.');
+                // setTimeout(() => window.location.href = 'login.html', 2000); // Optional auto-redirect
                 return;
+            } else {
+                clearError(document.getElementById('email'));
             }
 
             // Generate Unique ID
@@ -280,27 +160,79 @@ document.addEventListener('DOMContentLoaded', () => {
 
             saveUser(newUser);
 
-            alert('Registration Successful!\nYour Unique Owner ID is: ' + uniqueId + '\nPlease save this for future login.');
+            // Show Success Modal
+            const modal = document.getElementById('signup-success-modal');
+            const ownerIdDisplay = document.getElementById('generated-owner-id');
+            const copyBtn = document.getElementById('copy-id-btn');
 
-            // Redirect
-            window.location.href = 'login.html';
+            if (modal && ownerIdDisplay) {
+                ownerIdDisplay.textContent = uniqueId;
+                modal.classList.add('active');
+
+                // Copy Functionality
+                if (copyBtn) {
+                    copyBtn.onclick = () => { // Use onclick to avoid multiple bindings if re-run
+                        navigator.clipboard.writeText(uniqueId).then(() => {
+                            const originalIcon = '<i class="fa-regular fa-copy"></i>';
+                            copyBtn.innerHTML = '<i class="fa-solid fa-check"></i>';
+                            copyBtn.style.color = 'var(--primary-green)';
+                            setTimeout(() => {
+                                copyBtn.innerHTML = originalIcon;
+                                copyBtn.style.color = '';
+                            }, 2000);
+                        }).catch(err => {
+                            console.error('Failed to copy: ', err);
+                            // Fallback for non-secure contexts
+                            const textArea = document.createElement("textarea");
+                            textArea.value = uniqueId;
+                            document.body.appendChild(textArea);
+                            textArea.select();
+                            try {
+                                document.execCommand('copy');
+                                const originalIcon = '<i class="fa-regular fa-copy"></i>';
+                                copyBtn.innerHTML = '<i class="fa-solid fa-check"></i>';
+                                copyBtn.style.color = 'var(--primary-green)';
+                                setTimeout(() => {
+                                    copyBtn.innerHTML = originalIcon;
+                                    copyBtn.style.color = '';
+                                }, 2000);
+                            } catch (err) {
+                                console.error('Fallback copy failed', err);
+                            }
+                            document.body.removeChild(textArea);
+                        });
+                    };
+                }
+            } else {
+                // Fallback if modal elements missing
+                alert(`Registration Successful! Your Owner ID is: ${uniqueId}`);
+                window.location.href = 'login.html';
+            }
         });
     }
 
     if (loginForm) {
+        // Also clear error on input
+        const inputs = loginForm.querySelectorAll('input');
+        inputs.forEach(inp => {
+            inp.addEventListener('input', () => {
+                if (loginError) {
+                    loginError.style.display = 'none';
+                    loginError.textContent = '';
+                }
+            });
+        });
+
         loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
 
             const emailOrId = document.getElementById('login-id').value.trim();
             const password = document.getElementById('password').value.trim();
 
-            // 1. Check if any detail is missing
             if (!emailOrId || !password) {
                 if (loginError) {
                     loginError.style.display = 'block';
                     loginError.textContent = 'Please enter your details.';
-                } else {
-                    alert('Please enter your details.');
                 }
                 return;
             }
@@ -312,17 +244,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 (u.uniqueId && u.uniqueId.toUpperCase() === emailOrId.toUpperCase())
             );
 
-            // 2. If user not found, redirect to signup
-            if (!user) {
-                if (loginError) {
-                    loginError.style.display = 'block';
-                    loginError.textContent = 'User not found. Redirecting to signup...';
-                }
-                setTimeout(() => {
-                    window.location.href = 'signup.html';
-                }, 1500);
-            } else {
-                // 3. Check credentials
+            if (user) {
+                // Owner Found
                 if (user.password === password) {
                     localStorage.setItem('currentUser', JSON.stringify(user));
                     window.location.href = '../Ownerdashboard/dashboard.html';
@@ -330,20 +253,40 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (loginError) {
                         loginError.style.display = 'block';
                         loginError.textContent = 'Invalid credentials. Please try again.';
-                    } else {
-                        alert('Invalid credentials.');
                     }
                 }
+            } else {
+                // Not Owner. Check if Employee Credentials.
+                const employees = JSON.parse(localStorage.getItem('quadstock_employees') || '[]');
+                const employee = employees.find(e =>
+                    ((e.empId && e.empId.toUpperCase() === emailOrId.toUpperCase()) ||
+                        (e.email && e.email.toLowerCase() === emailOrId.toLowerCase())) &&
+                    e.password === password
+                );
+
+                if (employee) {
+                    if (loginError) {
+                        loginError.style.display = 'block';
+                        loginError.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+                        loginError.style.borderColor = '#ef4444';
+                        loginError.style.color = '#ef4444';
+                        loginError.innerHTML = '<strong>Access Denied.</strong> Employee credentials detected.<br>Redirecting to Staff Portal...';
+                    }
+                    setTimeout(() => {
+                        window.location.href = 'employee_login.html';
+                    }, 3000);
+                    return;
+                }
+
+                // Not found anywhere
+                if (loginError) {
+                    loginError.style.display = 'block';
+                    loginError.textContent = 'User not found. Redirecting to signup...';
+                }
+                setTimeout(() => {
+                    window.location.href = 'signup.html';
+                }, 1500);
             }
         });
-
-        // Hide error on input
-        const inputs = loginForm.querySelectorAll('input');
-        inputs.forEach(inp => {
-            inp.addEventListener('input', () => {
-                if (loginError) loginError.style.display = 'none';
-            });
-        });
     }
-
 });

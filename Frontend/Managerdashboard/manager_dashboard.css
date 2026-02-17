@@ -1,35 +1,35 @@
 :root {
-    --bg-body: #f1f8f8;
-    --bg-white: #ffffff;
-    --primary: #003f3f;
-    --primary-light: #e6f2f2;
-    --text-main: #1e293b;
-    --text-muted: #64748b;
-    --border-color: #e2e8f0;
+    --bg-body: #FFFBF5;
+    --bg-white: #FFFFFF;
+    --primary: #F47C25;
+    --primary-light: #FFF3E0;
+    --text-main: #372F2A;
+    --text-muted: #70655F;
+    --border-color: #EADBC8;
 
     /* Stat Card Colors */
-    --c-green-bg: #dcfce7;
-    --c-green-text: #166534;
-    --c-teal-bg: #ccfbf1;
-    --c-teal-text: #0f766e;
-    --c-pink-bg: #fce7f3;
-    --c-pink-text: #9d174d;
-    --c-purple-bg: #f3e8ff;
-    --c-purple-text: #6b21a8;
+    --c-green-bg: #E8F5E9;
+    --c-green-text: #2E7D32;
+    --c-teal-bg: #E0F7FA;
+    --c-teal-text: #006064;
+    --c-pink-bg: #FCE4EC;
+    --c-pink-text: #C2185B;
+    --c-purple-bg: #F3E5F5;
+    --c-purple-text: #7B1FA2;
 
-    --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
-    --header-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    --card-shadow: 0 10px 25px -5px rgba(139, 69, 19, 0.05), 0 8px 10px -6px rgba(139, 69, 19, 0.05);
+    --header-shadow: 0 4px 6px -1px rgba(139, 69, 19, 0.05);
     --sidebar-width: 280px;
 }
 
 [data-theme="dark"] {
-    --bg-body: #0f172a;
-    --bg-white: #1e293b;
-    --text-main: #f8fafc;
-    --text-muted: #94a3b8;
-    --border-color: #334155;
-    --primary: #2dd4bf;
-    --primary-light: rgba(45, 212, 191, 0.1);
+    --bg-body: #1C1917;
+    --bg-white: #292524;
+    --text-main: #FDE8D8;
+    --text-muted: #A8A29E;
+    --border-color: #44403C;
+    --primary: #F47C25;
+    --primary-light: rgba(244, 124, 37, 0.1);
     --header-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 

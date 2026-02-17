@@ -9,11 +9,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
     <!-- Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
     <!-- CSS -->
     <link rel="stylesheet" href="manager_dashboard.css">
+    <link rel="stylesheet" href="../Shared/notification_badge.css">
     <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" crossorigin="anonymous"></script>
 </head>
 
 <body>
@@ -57,7 +60,7 @@
                         <i class="fa-solid fa-hourglass-end"></i>
                         <span>Smart Expiry</span>
                     </a>
-                    <a href="#" class="nav-item">
+                    <a href="../Employees/employees.html" class="nav-item">
                         <i class="fa-solid fa-users-gear"></i>
                         <span>Employees</span>
                     </a>
@@ -68,14 +71,17 @@
                 <h3 class="section-title">Business</h3>
                 <nav class="nav-menu">
                     <a href="../Complain/complain.html?role=manager" class="nav-item">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
-                        <span>Complain</span>
+                        <div style="position:relative;">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <span id="nav-badge-complain" class="nav-badge" style="display:none;">0</span>
+                        </div>
+                        <span>Complaints</span>
                     </a>
-                    <a href="#" class="nav-item">
+                    <a href="../Udhaar/udhaar.html" class="nav-item">
                         <i class="fa-solid fa-file-invoice-dollar"></i>
-                        <span>Pending Payments</span>
+                        <span>Udhaar/Pending</span>
                     </a>
-                    <a href="#" class="nav-item">
+                    <a href="../Settings/settings.html?role=manager" class="nav-item">
                         <i class="fa-solid fa-gear"></i>
                         <span>Settings</span>
                     </a>
@@ -99,7 +105,7 @@
                 </div>
 
                 <div class="user-actions">
-                    <button class="theme-toggle-btn" id="theme-toggle"
+                    <button class="theme-toggle-btn" id="theme-toggle" aria-label="Toggle theme"
                         style="background: var(--bg-white); border: none; padding: 0.5rem; border-radius: 50%; cursor: pointer; color: var(--text-muted); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
                         <i class="fa-solid fa-moon"></i>
                     </button>
@@ -162,6 +168,20 @@
                     </div>
                 </div>
 
+                <!-- Card 5: Udhaar Pending -->
+                <div class="stat-card red">
+                    <div class="stat-val-group">
+                        <span class="stat-title">Udhaar Pending</span>
+                        <h3 class="stat-value" id="dash-total-udhaar">₹0</h3>
+                        <span class="stat-trend">Needs Attention</span>
+                    </div>
+                    <div class="mini-chart">
+                        <div class="mini-bar" style="height: 70%;"></div>
+                        <div class="mini-bar" style="height: 50%;"></div>
+                        <div class="mini-bar" style="height: 80%;"></div>
+                    </div>
+                </div>
+
                 <!-- Card 3: Products Sold -->
                 <div class="stat-card pink">
                     <div class="card-top">
@@ -221,34 +241,29 @@
                     </div>
                 </div>
 
-                <!-- Card 6: Employees -->
+                <!-- Card 6: Active Queries -->
                 <div class="stat-card teal" style="background: #f0f9ff; color: #0369a1;">
                     <div class="card-top">
                         <div class="icon-box-small" style="background: rgba(3, 105, 161, 0.1);"><i
-                                class="fa-solid fa-users"></i></div>
+                                class="fa-solid fa-clipboard-question"></i></div>
                     </div>
                     <div class="stat-val-group">
-                        <span class="stat-title" style="color: #0369a1;">Total Employees</span>
+                        <span class="stat-title" style="color: #0369a1;">Active Queries</span>
                         <h3 class="stat-value">5</h3>
-                        <span class="stat-trend">All Present</span>
+                        <span class="stat-trend">Needs Reply</span>
                     </div>
                 </div>
 
-                <!-- Card 7: Returns -->
-                <div class="stat-card purple" style="background: #fdf4ff; color: #a21caf;">
+                <!-- Card 7: Complaints -->
+                <div class="stat-card purple" style="background: #fee2e2; color: #b91c1c;">
                     <div class="card-top">
-                        <div class="icon-box-small" style="background: rgba(162, 28, 175, 0.1);"><i
-                                class="fa-solid fa-rotate-left"></i></div>
+                        <div class="icon-box-small" style="background: rgba(185, 28, 28, 0.1);"><i
+                                class="fa-solid fa-triangle-exclamation"></i></div>
                     </div>
                     <div class="stat-val-group">
-                        <span class="stat-title" style="color: #a21caf;">Returns</span>
-                        <h3 class="stat-value">12</h3>
-                        <select id="returns-period-select" class="card-select purple">
-                            <option value="today">Today</option>
-                            <option value="yesterday">Yesterday</option>
-                            <option value="weekly">Weekly</option>
-                            <option value="monthly">Monthly</option>
-                        </select>
+                        <span class="stat-title" style="color: #b91c1c;">Open Complaints</span>
+                        <h3 class="stat-value">3</h3>
+                        <span class="stat-trend">High Priority</span>
                     </div>
                 </div>
 
@@ -335,98 +350,57 @@
                     </div>
                 </div>
 
-                <!-- Quick Details (Mapped from Owner Dashboard) -->
+                <!-- Urgent Attention (Mapped from Owner Dashboard) -->
                 <div class="chart-card" style="padding: 1.5rem;">
                     <div class="chart-header">
-                        <h3>Quick Details</h3>
-                        <a href="#" style="color: var(--primary);"><i class="fa-solid fa-arrow-right"></i></a>
+                        <h3>Urgent Attention</h3>
                     </div>
                     <div class="nav-menu" style="gap: 1.25rem; margin-top: 1rem;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <a href="../smartexpiry/smartexpiry.html"
+                            style="display: flex; justify-content: space-between; align-items: center; text-decoration:none; color:inherit;">
                             <div style="display: flex; align-items: center; gap: 1rem;">
-                                <div class="icon-box-small" style="color: #3b82f6; background: #eff6ff;"><i
-                                        class="fa-regular fa-user"></i></div>
-                                <span style="font-size: 0.85rem; font-weight: 600;">419 new customers</span>
+                                <div class="icon-box-small" style="color: #ef4444; background: #fee2e2;"><i
+                                        class="fa-solid fa-hourglass-end"></i></div>
+                                <span style="font-size: 0.85rem; font-weight: 600;">Items Expiring Soon</span>
                             </div>
-                            <span style="font-size: 0.7rem; color: var(--text-muted);">24h</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div style="display: flex; align-items: center; gap: 1rem;">
-                                <div class="icon-box-small" style="color: #22c55e; background: #f0fdf4;"><i
-                                        class="fa-solid fa-rotate"></i></div>
-                                <span style="font-size: 0.85rem; font-weight: 600;">Awaiting Process</span>
-                            </div>
-                            <span style="font-size: 0.7rem; color: var(--text-muted);">345 orders</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.8rem; font-weight:700; color: var(--primary);">View 8</span>
+                        </a>
+                        <a href="../Inventory/inventory.html"
+                            style="display: flex; justify-content: space-between; align-items: center; text-decoration:none; color:inherit;">
                             <div style="display: flex; align-items: center; gap: 1rem;">
                                 <div class="icon-box-small" style="color: #f97316; background: #fff7ed;"><i
+                                        class="fa-solid fa-triangle-exclamation"></i></div>
+                                <span style="font-size: 0.85rem; font-weight: 600;">Low Stock Alerts</span>
+                            </div>
+                            <span style="font-size: 0.8rem; font-weight:700; color: var(--primary);">Restock 15</span>
+                        </a>
+                        <a href="../Query/query.html"
+                            style="display: flex; justify-content: space-between; align-items: center; text-decoration:none; color:inherit;">
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <div class="icon-box-small" style="color: #3b82f6; background: #eff6ff;"><i
+                                        class="fa-solid fa-clipboard-question"></i></div>
+                                <span style="font-size: 0.85rem; font-weight: 600;">Unresolved Queries</span>
+                            </div>
+                            <span style="font-size: 0.8rem; font-weight:700; color: var(--primary);">Reply 5</span>
+                        </a>
+                        <a href="../Complain/complain.html"
+                            style="display: flex; justify-content: space-between; align-items: center; text-decoration:none; color:inherit;">
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <div class="icon-box-small" style="color: #b91c1c; background: #fef2f2;"><i
                                         class="fa-solid fa-circle-exclamation"></i></div>
-                                <span style="font-size: 0.85rem; font-weight: 600;">Low in Stock</span>
+                                <span style="font-size: 0.85rem; font-weight: 600;">Open Complaints</span>
                             </div>
-                            <span style="font-size: 0.7rem; color: var(--text-muted);">350 orders</span>
-                        </div>
+                            <span style="font-size: 0.8rem; font-weight:700; color: var(--primary);">Resolve 3</span>
+                        </a>
                     </div>
                 </div>
             </div>
 
-            <!-- Charts Row: Bar & Donut mapped from Owner Dashboard -->
-            <div class="charts-row">
-                <!-- Net Income Bar Chart -->
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <h3>Net Income</h3>
-                        <div style="display: flex; gap: 1rem; align-items: center;">
-                            <div style="display: flex; gap: 0.5rem; font-size: 0.7rem; font-weight: 700;">
-                                <span style="display: flex; align-items: center; gap: 0.2rem;"><i class="dot"
-                                        style="background:#0ea5e9; width:6px; height:6px;"></i> Rome</span>
-                                <span style="display: flex; align-items: center; gap: 0.2rem;"><i class="dot"
-                                        style="background:#22c55e; width:6px; height:6px;"></i> Berlin</span>
-                            </div>
-                            <button class="btn-filter" style="padding: 0.3rem 0.6rem; font-size: 0.7rem;">Jan - Aug <i
-                                    class="fa-solid fa-chevron-down"></i></button>
-                        </div>
-                    </div>
-                    <div class="bar-container" style="height: 250px;">
-                        <canvas id="netIncomeChart"></canvas>
-                    </div>
-                </div>
-
-                <!-- Money Stats Donut -->
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <h3>Money Stats</h3>
-                    </div>
-                    <div class="donut-container" style="height: 200px;">
-                        <canvas id="moneyStatsChart"></canvas>
-                        <div class="donut-center-total">
-                            <span style="font-size: 0.7rem;">Budget</span>
-                            <h2 style="font-size: 1.2rem;">₹60K</h2>
-                        </div>
-                    </div>
-                    <div style="margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                            <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                <div class="dot" style="background: #db2777;"></div>
-                                <span style="font-size: 0.8rem; font-weight: 600;">Total Spent</span>
-                            </div>
-                            <span style="font-size: 0.85rem; font-weight: 800;">₹25,654</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                <div class="dot" style="background: #0ea5e9;"></div>
-                                <span style="font-size: 0.8rem; font-weight: 600;">Saved</span>
-                            </div>
-                            <span style="font-size: 0.85rem; font-weight: 800;">₹34,346</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- Charts Removed -->
         </main>
     </div>
 
-    <script src="manager_dashboard.js"></script>
+    <script src="manager_dashboard.js" type="module"></script>
 </body>
 
 </html>

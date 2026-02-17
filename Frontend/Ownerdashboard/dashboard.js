@@ -1,9 +1,20 @@
+import { updateDashboardStats, resetNotification } from '../Shared/dashboard_stats.js';
+
 // --- Authentication Check (Start of file) ---
 if (!localStorage.getItem('currentUser')) {
     window.location.href = '../Authentication/login.html';
 }
 
 document.addEventListener('DOMContentLoaded', function () {
+
+    // Initialize Shared Stats
+    updateDashboardStats();
+
+    // Attach Notification Reset Listeners
+    const complainLink = document.querySelector('a[href*="Complain/complain.html"]');
+    if (complainLink) {
+        complainLink.addEventListener('click', () => resetNotification('complain'));
+    }
 
     // --- Logout Functionality ---
     const logoutBtn = document.querySelector('a[title="Logout"]');
@@ -17,6 +28,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // --- Digital Clock ---
+    // (Consolidated logic TODO: Move to shared entirely if styled same way)
     function updateClock() {
         const now = new Date();
         const dateString = now.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' });
@@ -180,71 +192,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // --- Chart Management ---
-    let netIncomeChart;
-    let moneyStatsChart;
-
-    const getChartColors = () => {
-        const isDark = document.body.getAttribute('data-theme') === 'dark';
-        return {
-            text: isDark ? '#94a3b8' : '#64748b',
-            grid: isDark ? '#334155' : '#f3f4f6',
-            tooltipBg: isDark ? '#1e293b' : '#ffffff',
-            tooltipText: isDark ? '#f8fafc' : '#1e293b'
-        };
-    };
-
     function initCharts() {
-        if (netIncomeChart) netIncomeChart.destroy();
-        if (moneyStatsChart) moneyStatsChart.destroy();
-
-        const colors = getChartColors();
-        Chart.defaults.color = colors.text;
-        Chart.defaults.borderColor = colors.grid;
-
-        const ctxBar = document.getElementById('netIncomeChart');
-        if (ctxBar) {
-            netIncomeChart = new Chart(ctxBar.getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
-                    datasets: [
-                        { label: 'Rome', data: [25, 30, 35, 45, 20, 15, 60, 40], backgroundColor: '#6366f1', borderRadius: 4, barPercentage: 0.6, categoryPercentage: 0.5 },
-                        { label: 'Berlin', data: [15, 35, 20, 15, 25, 30, 40, 50], backgroundColor: '#22c55e', borderRadius: 4, barPercentage: 0.6, categoryPercentage: 0.5 },
-                        { label: 'Paris', data: [35, 10, 45, 20, 30, 40, 20, 30], backgroundColor: '#db2777', borderRadius: 4, barPercentage: 0.6, categoryPercentage: 0.5 },
-                        { label: 'Zurich', data: [10, 25, 15, 30, 25, 35, 30, 45], backgroundColor: '#9ca3af', borderRadius: 4, barPercentage: 0.6, categoryPercentage: 0.5 }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: { beginAtZero: true, grid: { color: colors.grid, drawBorder: false }, ticks: { callback: v => v + 'k', color: colors.text }, border: { display: false } },
-                        x: { grid: { display: false }, ticks: { color: colors.text }, border: { display: false } }
-                    },
-                    interaction: { mode: 'index', intersect: false },
-                    plugins: {
-                        tooltip: { backgroundColor: colors.tooltipBg, titleColor: colors.tooltipText, bodyColor: colors.tooltipText, padding: 10, cornerRadius: 8, titleFont: { size: 12 }, bodyFont: { size: 12 }, borderColor: colors.grid, borderWidth: 1 }
-                    }
-                }
-            });
-        }
-
-        const ctxDonut = document.getElementById('moneyStatsChart');
-        if (ctxDonut) {
-            moneyStatsChart = new Chart(ctxDonut.getContext('2d'), {
-                type: 'doughnut',
-                data: {
-                    labels: ['Total spent', 'Money saved'],
-                    datasets: [{ data: [42, 58], backgroundColor: ['#db2777', '#818cf8'], borderWidth: 0, cutout: '75%', hoverOffset: 4 }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { tooltip: { enabled: false } }
-                }
-            });
-        }
+        // Charts removed
     }
 
     initCharts();

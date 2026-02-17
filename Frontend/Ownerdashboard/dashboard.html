@@ -5,15 +5,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QuadStock - Owner Dashboard</title>
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="../Shared/notification_badge.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
     <!-- Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- CSS -->
-    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
     <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" crossorigin="anonymous"></script>
 </head>
 
 <body>
@@ -48,19 +49,22 @@
                     <i class="fa-solid fa-hourglass-end"></i>
                     <span>Smart Expiry</span>
                 </a>
-                <a href="#" class="menu-item" title="Employees">
+                <a href="../Employees/employees.html" class="menu-item" title="Employees">
                     <i class="fa-solid fa-users-gear"></i>
                     <span>Employees</span>
                 </a>
-                <a href="../Complain/complain.html?role=owner" class="menu-item" title="Complain">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                    <span>Complain</span>
+                <a href="../Complain/complain.html" class="menu-item" title="Complaints">
+                    <div style="position:relative;">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span id="nav-badge-complain" class="nav-badge" style="display:none;">0</span>
+                    </div>
+                    <span>Complaints</span>
                 </a>
-                <a href="#" class="menu-item" title="Pending Payments">
+                <a href="../Udhaar/udhaar.html" class="menu-item" title="Pending Payments">
                     <i class="fa-solid fa-indian-rupee-sign"></i>
-                    <span>Pending Payments</span>
+                    <span>Udhaar/Pending</span>
                 </a>
-                <a href="#" class="menu-item" title="Settings">
+                <a href="../Settings/settings.html?role=owner" class="menu-item" title="Settings">
                     <i class="fa-solid fa-gear"></i>
                     <span>Settings</span>
                 </a>
@@ -95,7 +99,7 @@
                 </div>
 
                 <div class="header-right">
-                    <button class="theme-toggle-btn" id="theme-toggle" title="Toggle Theme">
+                    <button class="theme-toggle-btn" id="theme-toggle" title="Toggle Theme" aria-label="Toggle theme">
                         <i class="fa-solid fa-moon"></i>
                     </button>
 
@@ -166,38 +170,46 @@
                             <h3>15</h3>
                         </div>
                     </div>
-                    <!-- New Card 6 -->
+
+                    <!-- New Card 6: Total Udhaar Pending -->
                     <div class="stat-card">
-                        <div class="stat-icon orange-bg"><i class="fa-solid fa-users"></i></div>
+                        <div class="stat-icon red-bg"><i class="fa-solid fa-hand-holding-dollar"></i></div>
                         <div class="stat-info">
-                            <p class="label">Total Employees</p>
-                            <h3>5</h3>
+                            <p class="label">Total Udhaar Pending</p>
+                            <h3 id="dash-total-udhaar">₹0</h3>
                         </div>
-                        <button class="more-btn"><i class="fa-solid fa-ellipsis"></i></button>
+                    </div>
+                </div>
+
+                <!-- Action Banners -->
+                <div class="action-banners"
+                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+                    <!-- Analytics Teaser (Saffron) -->
+                    <div class="card"
+                        style="background: linear-gradient(135deg, #F47C25 0%, #E65100 100%); color: white; display:flex; align-items:center; justify-content:space-between; padding:2rem;">
+                        <div>
+                            <h2 style="margin-bottom:0.5rem; font-size:1.5rem;">View Deep Analytics</h2>
+                            <p style="opacity:0.9; margin-bottom:1.5rem;">Get detailed insights into revenue, stock
+                                trends, and store performance.</p>
+                            <a href="../Analytics/analytics.html" class="btn-primary"
+                                style="background:white; color:#E65100; padding:0.8rem 1.5rem; border-radius:0.5rem; text-decoration:none; font-weight:700;">Go
+                                to Analytics <i class="fa-solid fa-arrow-right" style="margin-left:0.5rem;"></i></a>
+                        </div>
+                        <i class="fa-solid fa-chart-pie" style="font-size:5rem; opacity:0.3;"></i>
                     </div>
 
-
-                    <!-- New Card 7 -->
-                    <div class="stat-card">
-                        <div class="stat-icon pink-bg"><i class="fa-solid fa-rotate-left"></i></div>
-                        <div class="stat-info">
-                            <p class="label">Returns</p>
-                            <h3>12</h3>
+                    <!-- Smart Expiry Teaser (Green) -->
+                    <div class="card"
+                        style="background: linear-gradient(135deg, #138808 0%, #1B5E20 100%); color: white; display:flex; align-items:center; justify-content:space-between; padding:2rem;">
+                        <div>
+                            <h2 style="margin-bottom:0.5rem; font-size:1.5rem;">Manage Expiries</h2>
+                            <p style="opacity:0.9; margin-bottom:1.5rem;">8 items are expiring soon. Take action to
+                                reduce waste.</p>
+                            <a href="../smartexpiry/smartexpiry.html" class="btn-primary"
+                                style="background:white; color:#1B5E20; padding:0.8rem 1.5rem; border-radius:0.5rem; text-decoration:none; font-weight:700;">Check
+                                Expiry <i class="fa-solid fa-arrow-right" style="margin-left:0.5rem;"></i></a>
                         </div>
-                        <select id="returns-period-select" class="returns-select">
-                            <option value="today">Today</option>
-                            <option value="yesterday">Yesterday</option>
-                            <option value="weekly">Weekly</option>
-                            <option value="monthly">Monthly</option>
-                        </select>
-                    </div>
-                    <!-- New Card 8 -->
-                    <div class="stat-card">
-                        <div class="stat-icon purple-bg"><i class="fa-solid fa-hourglass-half"></i></div>
-                        <div class="stat-info">
-                            <p class="label">Smart Expiry</p>
-                            <h3>8</h3>
-                        </div>
+                        <i class="fa-solid fa-hourglass-end" style="font-size:5rem; opacity:0.3;"></i>
                     </div>
                 </div>
 
@@ -275,113 +287,57 @@
                     <!-- Quick Details -->
                     <div class="card quick-details-card">
                         <div class="card-header">
-                            <h3>Quick Details</h3>
-                            <a href="#" class="link-arrow"><i class="fa-solid fa-arrow-right"></i></a>
+                            <h3>Urgent Attention</h3>
                         </div>
                         <ul class="details-list">
                             <li>
                                 <div class="detail-left">
-                                    <div class="icon-box blue-text"><i class="fa-regular fa-user"></i></div>
-                                    <span>419 new customers</span>
+                                    <div class="icon-box red-text"><i class="fa-solid fa-hourglass-end"></i></div>
+                                    <span>Items Expiring Soon</span>
                                 </div>
-                                <span class="detail-right">Last 24 Hours</span>
+                                <a href="../smartexpiry/smartexpiry.html" class="detail-right"
+                                    style="text-decoration:none; color:var(--primary-color); font-weight:600;">View 8
+                                    Items</a>
                             </li>
                             <li>
                                 <div class="detail-left">
-                                    <div class="icon-box green-text"><i class="fa-solid fa-rotate"></i></div>
-                                    <span>Awaiting Process</span>
-                                </div>
-                                <span class="detail-right">345 orders</span>
-                            </li>
-                            <li>
-                                <div class="detail-left">
-                                    <div class="icon-box gray-text"><i class="fa-regular fa-clock"></i></div>
-                                    <span>On Hold</span>
-                                </div>
-                                <span class="detail-right">180 orders</span>
-                            </li>
-                            <li>
-                                <div class="detail-left">
-                                    <div class="icon-box orange-text"><i class="fa-solid fa-circle-exclamation"></i>
+                                    <div class="icon-box orange-text"><i class="fa-solid fa-triangle-exclamation"></i>
                                     </div>
-                                    <span>Low in Stock</span>
+                                    <span>Low Stock Alerts</span>
                                 </div>
-                                <span class="detail-right">350 orders</span>
+                                <a href="../Inventory/inventory.html" class="detail-right"
+                                    style="text-decoration:none; color:var(--primary-color); font-weight:600;">Restock
+                                    15 Items</a>
                             </li>
                             <li>
                                 <div class="detail-left">
-                                    <div class="icon-box red-text"><i class="fa-solid fa-circle-xmark"></i></div>
-                                    <span>Out of Stock</span>
+                                    <div class="icon-box blue-text"><i class="fa-solid fa-clipboard-question"></i></div>
+                                    <span>Unresolved Queries</span>
                                 </div>
-                                <span class="detail-right">27 items</span>
+                                <a href="../Query/query.html" class="detail-right"
+                                    style="text-decoration:none; color:var(--primary-color); font-weight:600;">Reply to
+                                    5</a>
+                            </li>
+                            <li>
+                                <div class="detail-left">
+                                    <div class="icon-box red-text"><i class="fa-solid fa-circle-exclamation"></i></div>
+                                    <span>Open Complaints</span>
+                                </div>
+                                <a href="../Complain/complain.html" class="detail-right"
+                                    style="text-decoration:none; color:var(--primary-color); font-weight:600;">Resolve
+                                    3</a>
                             </li>
                         </ul>
                     </div>
                 </div>
 
-                <!-- Bottom Section: Charts -->
-                <div class="bottom-section">
-                    <!-- Net Income Chart -->
-                    <div class="card chart-main-card">
-                        <div class="card-header">
-                            <h3>Net Income</h3>
-                            <div class="card-actions">
-                                <div class="chart-legend-custom">
-                                    <span><i class="dot blue"></i> Rome</span>
-                                    <span><i class="dot green"></i> Berlin</span>
-                                    <span><i class="dot pink"></i> Paris</span>
-                                    <span><i class="dot gray"></i> Zurich</span>
-                                </div>
-                                <button class="date-dropdown">
-                                    <i class="fa-regular fa-calendar"></i> Jan - Aug <i
-                                        class="fa-solid fa-chevron-down"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="bar-chart-container">
-                            <canvas id="netIncomeChart"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- Money Stats Donut -->
-                    <div class="card chart-donut-card">
-                        <div class="card-header">
-                            <h3>Money Stats</h3>
-                        </div>
-                        <div class="donut-chart-container">
-                            <canvas id="moneyStatsChart"></canvas>
-                            <div class="donut-center-text">
-                                <h3>49%</h3>
-                                <p>Saved</p>
-                            </div>
-                        </div>
-                        <div class="donut-legend-right">
-                            <div class="legend-total">
-                                <p>Total Budget</p>
-                                <h3>₹60,000</h3>
-                            </div>
-                            <div class="legend-item">
-                                <span class="dot pink"></span>
-                                <div>
-                                    <p class="val">₹25,654</p>
-                                    <p class="lbl">Total spent</p>
-                                </div>
-                            </div>
-                            <div class="legend-item">
-                                <span class="dot blue"></span>
-                                <div>
-                                    <p class="val">₹34,346</p>
-                                    <p class="lbl">Money saved</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <!-- Bottom Section: Charts Removed -->
+                <!-- <div class="bottom-section"> ... </div> -->
             </div>
         </main>
     </div>
 
-    <script src="dashboard.js"></script>
+    <script src="dashboard.js" type="module"></script>
 </body>
 
 </html>

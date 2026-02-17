@@ -1,9 +1,20 @@
+import { updateDashboardStats, resetNotification } from '../Shared/dashboard_stats.js';
+
 // --- Authentication Check (Start of file) ---
 if (!localStorage.getItem('currentEmployee')) {
     window.location.href = '../EmployeeLogin/employee_login.html';
 }
 
 document.addEventListener('DOMContentLoaded', function () {
+
+    // Initialize Shared Stats
+    updateDashboardStats();
+
+    // Attach Notification Reset Listeners
+    const complainLink = document.querySelector('a[href*="Complain/complain.html"]');
+    if (complainLink) {
+        complainLink.addEventListener('click', () => resetNotification('complain'));
+    }
 
     // --- Logout Functionality ---
     // Selector based on the link added: href="../landing/landing.html" and text "Logout"
@@ -34,6 +45,7 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     // --- Digital Clock ---
+    // (Consolidated logic TODO: Move to shared entirely if styled same way)
     function updateClock() {
         const now = new Date();
         const dateString = now.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' });
@@ -168,67 +180,8 @@ document.addEventListener('DOMContentLoaded', function () {
         parseAndAnimate(statH3s[0], 10000000 + Math.floor(Math.random() * 1000000));
     });
 
-    // --- Charts Logic ---
-    let netIncomeChart;
-    let moneyStatsChart;
-
     function initCharts() {
-        if (netIncomeChart) netIncomeChart.destroy();
-        if (moneyStatsChart) moneyStatsChart.destroy();
-
-        const colors = getChartColors();
-
-        // 1. Net Income Bar Chart (Owner Dashboard Content)
-        const ctxNet = document.getElementById('netIncomeChart')?.getContext('2d');
-        if (ctxNet) {
-            netIncomeChart = new Chart(ctxNet, {
-                type: 'bar',
-                data: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
-                    datasets: [
-                        { label: 'Rome', data: [25, 30, 35, 45, 20, 15, 60, 40], backgroundColor: colors.blue, borderRadius: 10, barPercentage: 0.6 },
-                        { label: 'Berlin', data: [15, 35, 20, 15, 25, 30, 40, 50], backgroundColor: colors.green, borderRadius: 10, barPercentage: 0.6 }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: { beginAtZero: true, grid: { color: colors.grid, drawBorder: false }, ticks: { color: colors.text, callback: v => v + 'k' } },
-                        x: { grid: { display: false }, ticks: { color: colors.text } }
-                    },
-                    plugins: {
-                        legend: { display: false }
-                    }
-                }
-            });
-        }
-
-        // 2. Money Stats Donut Chart (Owner Dashboard Content)
-        const ctxMoney = document.getElementById('moneyStatsChart')?.getContext('2d');
-        if (ctxMoney) {
-            moneyStatsChart = new Chart(ctxMoney, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Total spent', 'Money saved'],
-                    datasets: [{
-                        data: [42, 58],
-                        backgroundColor: [colors.pink, colors.blue],
-                        borderWidth: 0,
-                        cutout: '75%',
-                        hoverOffset: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: { enabled: true }
-                    }
-                }
-            });
-        }
+        // Charts removed
     }
 
     // --- Interactivity ---

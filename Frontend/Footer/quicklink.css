@@ -4,18 +4,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-    --primary: #fb923c;
-    /* Warm Orange */
-    --primary-dark: #ea580c;
-    --accent: #16a34a;
-    /* Fresh Green */
-    --bg-light: #fffcf9;
-    /* Off-white */
-    --text-main: #1e293b;
-    --text-muted: #64748b;
-    --bg-dark: #0f172a;
-    /* Slate 900 */
-    --text-light: #f1f5f9;
+    --primary: #F47C25;
+    /* Indian Saffron */
+    --primary-dark: #D66010;
+    --accent: #138808;
+    /* India Green */
+    --bg-light: #FFFBF5;
+    /* Creamy Off-white */
+    --text-main: #372F2A;
+    --text-muted: #70655F;
+    --bg-dark: #1C1917;
+    /* Warm Black */
+    --text-light: #FDE8D8;
 }
 
 * {
@@ -37,9 +37,11 @@ body.dark {
     color: var(--text-light);
 
     /* VITAL: Redefine variables for dark mode so inline styles update automatically */
-    --text-muted: #cbd5e1;
-    /* Slate 300 - Much lighter/readable */
-    --text-main: #f1f5f9;
+    --text-muted: #A8A29E;
+    /* Warm Gray */
+    --text-main: #FDE8D8;
+    --bg-light: #1C1917;
+    /* Map light bg to dark for inversions if needed */
 }
 
 /* Explicit text color for headings/paragraphs in dark mode */

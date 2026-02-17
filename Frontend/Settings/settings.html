@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - QuadStock</title>
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- CSS -->
+    <link rel="stylesheet" href="settings.css">
+    <link rel="stylesheet" href="../Shared/notification_badge.css">
+</head>
+
+<body data-theme="light">
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fa-solid fa-layer-group"></i>
+                    <span>QuadStock</span>
+                </div>
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="../Ownerdashboard/dashboard.html" class="nav-item">
+                    <i class="fa-solid fa-house"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <div class="nav-divider"></div>
+
+                <a href="#" class="nav-item active">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button id="logout-btn" class="logout-btn">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <h1 class="page-title">Settings</h1>
+                <div class="header-actions">
+                    <button id="theme-toggle" class="theme-btn" title="Toggle Theme">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+                </div>
+            </header>
+
+            <div class="settings-grid">
+
+                <!-- Profile Section -->
+                <section class="settings-card">
+                    <div class="card-header">
+                        <div class="icon-box orange"><i class="fa-solid fa-store"></i></div>
+                        <h3>Profile & Business</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Shop Name</label>
+                            <div class="input-with-icon">
+                                <i class="fa-solid fa-shop"></i>
+                                <input type="text" id="shop-name" placeholder="Enter Shop Name">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Owner Name</label>
+                            <div class="input-with-icon">
+                                <i class="fa-solid fa-user-tie"></i>
+                                <input type="text" id="owner-name" placeholder="Enter Owner Name">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Contact Number</label>
+                            <div class="input-with-icon">
+                                <i class="fa-solid fa-phone"></i>
+                                <input type="text" id="contact-info" placeholder="+91 XXXXX XXXXX">
+                            </div>
+                        </div>
+                        <button class="btn-save" onclick="saveProfile()">Save Profile</button>
+                    </div>
+                </section>
+
+                <!-- Business Preferences -->
+                <section class="settings-card">
+                    <div class="card-header">
+                        <div class="icon-box blue"><i class="fa-solid fa-sliders"></i></div>
+                        <h3>Preferences</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Low Stock Threshold (Qty)</label>
+                            <div class="input-with-icon">
+                                <i class="fa-solid fa-arrow-turn-down"></i>
+                                <input type="number" id="low-stock-limit" value="10" min="1">
+                            </div>
+                            <small>Products below this quantity will be flagged red.</small>
+                        </div>
+                        <div class="form-group">
+                            <label>Default Tax / GST (%)</label>
+                            <div class="input-with-icon">
+                                <i class="fa-solid fa-percent"></i>
+                                <input type="number" id="default-tax" value="18" min="0">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Currency Symbol</label>
+                            <div class="input-with-icon">
+                                <i class="fa-solid fa-indian-rupee-sign"></i>
+                                <input type="text" value="₹" disabled style="background:#f1f5f9; cursor:not-allowed;">
+                            </div>
+                        </div>
+                        <button class="btn-save" onclick="savePreferences()">Update Preferences</button>
+                    </div>
+                </section>
+
+                <!-- Notifications -->
+                <section class="settings-card">
+                    <div class="card-header">
+                        <div class="icon-box green"><i class="fa-solid fa-bell"></i></div>
+                        <h3>Notifications</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="toggle-group">
+                            <div class="toggle-info">
+                                <h4>Low Stock Alerts</h4>
+                                <p>Get notified on dashboard when stock is low.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="notif-lowstock" checked>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-group">
+                            <div class="toggle-info">
+                                <h4>Udhaar Overdue Alerts</h4>
+                                <p>Highlight overdue payments in red.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="notif-udhaar" checked>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-group">
+                            <div class="toggle-info">
+                                <h4>Payment Reminders (Mock)</h4>
+                                <p>Auto-send reminders via simple implementation.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="notif-reminders">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <button class="btn-save" onclick="saveNotifications()">Save Settings</button>
+                    </div>
+                </section>
+
+                <!-- Language & Region -->
+                <section class="settings-card">
+                    <div class="card-header">
+                        <div class="icon-box blue"><i class="fa-solid fa-language"></i></div>
+                        <h3>Language & Region</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>App Language</label>
+                            <select id="app-language"
+                                style="width:100%; padding:0.75rem; border:1px solid var(--border-color); border-radius:0.5rem; background:var(--bg-body); color:var(--text-primary); outline:none;">
+                                <option value="en">English (Default)</option>
+                                <option value="hi">Hindi (Coming Soon)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Date Format</label>
+                            <select id="date-format"
+                                style="width:100%; padding:0.75rem; border:1px solid var(--border-color); border-radius:0.5rem; background:var(--bg-body); color:var(--text-primary); outline:none;">
+                                <option value="dd-mm-yyyy">DD-MM-YYYY</option>
+                                <option value="mm-dd-yyyy">MM-DD-YYYY</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Time Format</label>
+                            <select id="time-format"
+                                style="width:100%; padding:0.75rem; border:1px solid var(--border-color); border-radius:0.5rem; background:var(--bg-body); color:var(--text-primary); outline:none;">
+                                <option value="12">12-Hour (AM/PM)</option>
+                                <option value="24">24-Hour</option>
+                            </select>
+                        </div>
+                        <button class="btn-save" onclick="saveRegionSettings()">Save Preferences</button>
+                    </div>
+                </section>
+
+                <!-- Support & Help -->
+                <section class="settings-card">
+                    <div class="card-header">
+                        <div class="icon-box green"><i class="fa-solid fa-headset"></i></div>
+                        <h3>Support & Help</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="action-row">
+                            <button class="btn-outline"
+                                style="border-color:var(--primary-blue); color:var(--primary-blue);"
+                                onclick="window.open('mailto:support@quadstock.com')">
+                                <i class="fa-solid fa-envelope"></i> Email Support
+                            </button>
+                        </div>
+                        <div class="action-row">
+                            <button class="btn-outline"
+                                style="border-color:var(--primary-green); color:var(--primary-green);"
+                                onclick="window.open('https://wa.me/919876543210')">
+                                <i class="fa-brands fa-whatsapp"></i> Chat on WhatsApp
+                            </button>
+                        </div>
+                        <p style="font-size:0.85rem; color:var(--text-secondary); margin-top:1rem; text-align:center;">
+                            Our team is available 10 AM - 7 PM (Mon-Sat).
+                        </p>
+                    </div>
+                </section>
+
+                <!-- Change Password -->
+                <section class="settings-card">
+                    <div class="card-header">
+                        <div class="icon-box blue"><i class="fa-solid fa-lock"></i></div>
+                        <h3>Change Password</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Current Password</label>
+                            <div class="password-wrapper">
+                                <input type="password" id="current-password" placeholder="Enter current password">
+                                <i class="fa-solid fa-eye toggle-password"
+                                    onclick="togglePassword('current-password', this)"></i>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>New Password</label>
+                            <div class="password-wrapper">
+                                <input type="password" id="new-password" placeholder="Enter new password">
+                                <i class="fa-solid fa-eye toggle-password"
+                                    onclick="togglePassword('new-password', this)"></i>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Confirm New Password</label>
+                            <div class="password-wrapper">
+                                <input type="password" id="confirm-password" placeholder="Confirm new password">
+                                <i class="fa-solid fa-eye toggle-password"
+                                    onclick="togglePassword('confirm-password', this)"></i>
+                            </div>
+                        </div>
+                        <button class="btn-save" onclick="changePassword()">Update Password</button>
+                    </div>
+                </section>
+
+                <!-- Data Management (Owner Only) -->
+                <section class="settings-card danger-zone" id="data-mgmt-section">
+                    <div class="card-header">
+                        <div class="icon-box red"><i class="fa-solid fa-database"></i></div>
+                        <h3>Data Management</h3>
+                    </div>
+                    <div class="card-body">
+                        <p class="warning-text">
+                            <i class="fa-solid fa-circle-exclamation"></i>
+                            Sensitive actions. Proceed with caution.
+                        </p>
+                        <div class="action-row">
+                            <button class="btn-outline" onclick="exportData()">
+                                <i class="fa-solid fa-download"></i> Export Data (JSON)
+                            </button>
+                        </div>
+                        <div class="action-row">
+                            <button class="btn-danger" onclick="clearData()">
+                                <i class="fa-solid fa-trash"></i> Reset All Data
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- About -->
+                <section class="settings-card" style="grid-column: 1 / -1;">
+                    <div class="card-body" style="text-align:center; color:var(--text-secondary);">
+                        <p><strong>QuadStock</strong> v1.0.0</p>
+                        <p style="font-size:0.9rem;">Developed with <i class="fa-solid fa-heart"
+                                style="color:#ef4444;"></i> for Business Growth.</p>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Custom Modal Container -->
+    <div id="custom-modal-overlay" class="modal-overlay">
+        <div class="custom-modal">
+            <div id="modal-icon" class="modal-icon"><i class="fa-solid fa-circle-check"></i></div>
+            <h3 id="modal-title" class="modal-title">Success</h3>
+            <p id="modal-message" class="modal-message">Operation completed successfully.</p>
+            <div id="modal-actions" class="modal-actions">
+                <button class="modal-btn btn-confirm" onclick="closeModal()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script -->
+    <script src="settings.js"></script>
+</body>
+
+</html>

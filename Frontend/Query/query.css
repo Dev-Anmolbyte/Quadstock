@@ -2,11 +2,11 @@
 
 .main-content {
     background-image:
-        linear-gradient(rgba(9, 151, 124, 0.12) 1.5px, transparent 1.5px),
-        linear-gradient(90deg, rgba(9, 151, 124, 0.12) 1.5px, transparent 1.5px),
-        radial-gradient(rgba(9, 151, 124, 0.25) 2px, transparent 2px),
-        radial-gradient(circle at 100% 0%, rgba(9, 151, 124, 0.2) 0%, transparent 40%),
-        radial-gradient(circle at 0% 100%, rgba(20, 184, 166, 0.2) 0%, transparent 40%);
+        linear-gradient(rgba(19, 136, 8, 0.12) 1.5px, transparent 1.5px),
+        linear-gradient(90deg, rgba(19, 136, 8, 0.12) 1.5px, transparent 1.5px),
+        radial-gradient(rgba(19, 136, 8, 0.25) 2px, transparent 2px),
+        radial-gradient(circle at 100% 0%, rgba(19, 136, 8, 0.2) 0%, transparent 40%),
+        radial-gradient(circle at 0% 100%, rgba(46, 125, 50, 0.2) 0%, transparent 40%);
     background-size: 60px 60px, 60px 60px, 30px 30px, 100% 100%, 100% 100%;
     background-attachment: fixed;
     background-color: var(--bg-body);
@@ -26,7 +26,7 @@
     background-image:
         linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
         linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-        radial-gradient(rgba(9, 151, 124, 0.15) 2px, transparent 2px);
+        radial-gradient(rgba(19, 136, 8, 0.15) 2px, transparent 2px);
 }
 
 .query-section {
@@ -45,7 +45,7 @@
 
 .query-header h1 {
     font-size: 1.8rem;
-    background: linear-gradient(135deg, #0d9488 0%, #10b981 100%);
+    background: linear-gradient(135deg, #138808 0%, #2E7D32 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -53,7 +53,7 @@
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+    background: linear-gradient(135deg, #138808 0%, #1B5E20 100%);
     color: white;
     border: none;
     padding: 0.85rem 1.75rem;
@@ -63,13 +63,13 @@
     display: flex;
     align-items: center;
     gap: 0.6rem;
-    box-shadow: 0 4px 15px rgba(13, 148, 136, 0.4);
+    box-shadow: 0 4px 15px rgba(19, 136, 8, 0.4);
     transition: all 0.3s ease;
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(13, 148, 136, 0.6);
+    box-shadow: 0 6px 20px rgba(19, 136, 8, 0.6);
 }
 
 .queries-list {
@@ -112,7 +112,7 @@
 }
 
 .query-card.status-open::before {
-    background: #10b981;
+    background: #2E7D32;
 }
 
 .query-card.status-closed::before {
@@ -141,8 +141,8 @@
     width: 48px;
     height: 48px;
     border-radius: 12px;
-    background: linear-gradient(135deg, #ccfbf1 0%, #99f6e4 100%);
-    color: #0d9488;
+    background: linear-gradient(135deg, #E8F5E9 0%, #A5D6A7 100%);
+    color: #138808;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -265,7 +265,7 @@
     border-radius: 2rem;
     font-size: 0.8rem;
     font-weight: 700;
-    color: #0d9488;
+    color: #138808;
     cursor: pointer;
     margin: -0.75rem 0 1rem 0;
     display: flex;
@@ -278,8 +278,8 @@
 
 .show-more-replies:hover {
     transform: translateY(-1px);
-    box-shadow: 0 6px 12px -2px rgba(13, 148, 136, 0.2);
-    background: #f0fdfa;
+    box-shadow: 0 6px 12px -2px rgba(19, 136, 8, 0.2);
+    background: #F1F8E9;
 }
 
 .reply-item {
@@ -307,7 +307,7 @@
 }
 
 .reply-item.owner-reply .reply-avatar {
-    background: #0d9488;
+    background: #138808;
     color: white;
 }
 
@@ -322,12 +322,12 @@
 }
 
 .reply-item.owner-reply .reply-bubble {
-    background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+    background: linear-gradient(135deg, #138808 0%, #1B5E20 100%);
     color: white;
     border: none;
     border-radius: 1rem;
     border-top-right-radius: 0;
-    box-shadow: 0 4px 15px rgba(13, 148, 136, 0.2);
+    box-shadow: 0 4px 15px rgba(19, 136, 8, 0.2);
 }
 
 .reply-author-name {
@@ -374,9 +374,9 @@
 }
 
 .quick-pill:hover {
-    background: #ccfbf1;
-    color: #0d9488;
-    border-color: #0d9488;
+    background: #E8F5E9;
+    color: #138808;
+    border-color: #138808;
 }
 
 .quick-pill i {
@@ -402,15 +402,15 @@
 
 .main-input:focus {
     outline: none;
-    border-color: #0d9488;
-    box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+    border-color: #138808;
+    box-shadow: 0 0 0 3px rgba(19, 136, 8, 0.1);
 }
 
 .btn-send-reply {
     width: 48px;
     height: 48px;
     border-radius: 0.75rem;
-    background: #0d9488;
+    background: #138808;
     color: white;
     border: none;
     cursor: pointer;
@@ -422,7 +422,7 @@
 }
 
 .btn-send-reply:hover {
-    background: #0f766e;
+    background: #1B5E20;
     transform: scale(1.05);
 }
 
@@ -450,12 +450,12 @@
 }
 
 .btn-action-outline.success {
-    color: #0d9488;
-    border-color: #ccfbf1;
+    color: #138808;
+    border-color: #E8F5E9;
 }
 
 .btn-action-outline.success:hover {
-    background: #ccfbf1;
+    background: #E8F5E9;
 }
 
 /* Modal Base Styles */
@@ -540,9 +540,9 @@
 .form-group select:focus,
 .form-group textarea:focus {
     outline: none;
-    border-color: #0d9488;
+    border-color: #138808;
     background: var(--bg-white);
-    box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.1);
+    box-shadow: 0 0 0 4px rgba(19, 136, 8, 0.1);
 }
 
 .modal-actions {
@@ -568,19 +568,19 @@
 }
 
 .btn-submit {
-    background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+    background: linear-gradient(135deg, #138808 0%, #1B5E20 100%);
     color: white;
     border: none;
     padding: 0.85rem 2rem;
     border-radius: 1rem;
     font-weight: 700;
     cursor: pointer;
-    box-shadow: 0 10px 15px -3px rgba(13, 148, 136, 0.4);
+    box-shadow: 0 10px 15px -3px rgba(19, 136, 8, 0.4);
 }
 
 .btn-submit:hover {
     transform: translateY(-2px);
-    box-shadow: 0 15px 20px -5px rgba(13, 148, 136, 0.5);
+    box-shadow: 0 15px 20px -5px rgba(19, 136, 8, 0.5);
 }
 
 .closed-overlay {
@@ -626,9 +626,9 @@
 }
 
 .btn-upload:hover {
-    border-color: #0d9488;
-    color: #0d9488;
-    background-color: #f0fdfa;
+    border-color: #138808;
+    color: #138808;
+    background-color: #F1F8E9;
 }
 
 .upload-btn-wrapper input[type=file] {
@@ -731,8 +731,8 @@
 }
 
 .mini-upload-btn:hover {
-    border-color: #0d9488;
-    color: #0d9488;
+    border-color: #138808;
+    color: #138808;
 }
 
 .reply-images {

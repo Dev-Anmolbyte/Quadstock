@@ -1,0 +1,281 @@
+/* Udhaar Specific Styles (Extending dashboard.css) */
+
+:root {
+    --primary-color: #F47C25;
+    --primary-hover: #D66010;
+    --success-green: #22c55e;
+    --danger-red: #ef4444;
+}
+
+.subtitle {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+}
+
+/* Stats Row Adjustments for Button */
+.stats-row {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    align-items: stretch;
+}
+
+.stat-card {
+    flex: 1;
+    min-width: 200px;
+}
+
+.btn-add-udhaar {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0 2rem;
+    border-radius: 1rem;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    box-shadow: 0 4px 15px rgba(244, 124, 37, 0.3);
+    transition: all 0.3s ease;
+    height: auto;
+    /* Match card height */
+    min-height: 100px;
+}
+
+.btn-add-udhaar:hover {
+    background: var(--primary-hover);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(244, 124, 37, 0.4);
+}
+
+/* Table Search */
+.search-box {
+    display: flex;
+    align-items: center;
+    background: #f9fafb;
+    border: 1px solid var(--border-color);
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    width: 300px;
+    gap: 0.5rem;
+}
+
+[data-theme="dark"] .search-box {
+    background: #0f172a;
+    border-color: #334155;
+}
+
+.search-box input {
+    border: none;
+    background: transparent;
+    outline: none;
+    width: 100%;
+    color: var(--text-primary);
+}
+
+.search-box i {
+    color: var(--text-secondary);
+}
+
+.udhaar-table th {
+    background: #f8fafc;
+    padding: 1rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+[data-theme="dark"] .udhaar-table th {
+    background: #1e293b;
+}
+
+.udhaar-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.9rem;
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 2rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-badge.pending {
+    background: #fff7ed;
+    color: #f97316;
+}
+
+.status-badge.overdue {
+    background: #fee2e2;
+    color: #ef4444;
+}
+
+[data-theme="dark"] .status-badge.pending {
+    background: rgba(249, 115, 22, 0.2);
+}
+
+[data-theme="dark"] .status-badge.overdue {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+.status-badge.paid {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+[data-theme="dark"] .status-badge.paid {
+    background: rgba(22, 163, 74, 0.2);
+}
+
+
+/* Action Buttons in Table */
+.action-btn {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0.4rem;
+    transition: color 0.2s;
+    margin-right: 0.25rem;
+}
+
+.action-btn.delete {
+    color: #ef4444;
+}
+
+.action-btn.delete:hover {
+    color: #b91c1c;
+}
+
+.action-btn.mark-paid {
+    color: #22c55e;
+}
+
+.action-btn.mark-paid:hover {
+    color: #15803d;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background: var(--bg-white);
+    padding: 2rem;
+    border-radius: 1rem;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.modal-header h2 {
+    font-size: 1.25rem;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+}
+
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    background: var(--bg-body);
+    color: var(--text-primary);
+    font-family: inherit;
+    outline: none;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(244, 124, 37, 0.1);
+}
+
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+}
+
+.btn-cancel {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    padding: 0.6rem 1.2rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.btn-submit {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.6rem 1.5rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn-submit:hover {
+    background: var(--primary-hover);
+}
+
+/* History Modal Text Colors */
+.text-red {
+    color: #ef4444;
+}
+
+.text-green {
+    color: #22c55e;
+}
