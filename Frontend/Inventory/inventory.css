@@ -84,103 +84,204 @@ body {
     width: 100%;
 }
 
-/* Sidebar (Copied styles for consistency) */
+/* Sidebar */
 .sidebar {
     width: 250px;
     background: var(--bg-white);
-    border-right: 1px solid var(--border-color);
+    border-radius: 1.5rem;
     display: flex;
     flex-direction: column;
-    padding: 1.5rem;
-    transition: transform 0.3s ease;
-    z-index: 50;
+    padding: 2rem 1.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+    /* Elastic ease-out */
+    overflow-y: auto;
+    overflow-x: hidden;
     flex-shrink: 0;
+    scrollbar-width: none;
+}
+
+.sidebar::-webkit-scrollbar {
+    display: none;
+    /* For Chrome, Safari and Opera */
 }
 
 .brand {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 2rem;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+    flex-shrink: 0;
+}
+
+.brand h2 {
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    white-space: nowrap;
 }
 
 .brand-text {
-    font-size: 1.25rem;
-    font-weight: 800;
-    color: var(--text-primary);
-}
-
-.sidebar-toggle {
-    background: none;
-    border: none;
-    font-size: 1.25rem;
-    color: var(--text-secondary);
-    cursor: pointer;
-    display: flex;
-    /* Visible always */
-    align-items: center;
-    justify-content: center;
-}
-
-/* Desktop Collapsed State */
-@media (min-width: 769px) {
-    .sidebar {
-        transition: width 0.3s ease;
-    }
-
-    .sidebar.collapsed {
-        width: 80px;
-        padding: 1.5rem 0.75rem;
-    }
-
-    .sidebar.collapsed .brand-text,
-    .sidebar.collapsed .menu-item span {
-        display: none;
-    }
-
-    .sidebar.collapsed .brand {
-        justify-content: center;
-        margin-bottom: 2rem;
-    }
-
-    .sidebar.collapsed .menu-item {
-        justify-content: center;
-        padding: 0.75rem;
-    }
-
-    .sidebar.collapsed .menu-item i {
-        font-size: 1.25rem;
-        margin: 0;
-    }
+    /* Ensure this matches brand h2 if needed or used for hiding */
 }
 
 .sidebar-menu {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: auto;
 }
 
 .menu-item {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
-    border-radius: 0.5rem;
+    justify-content: center;
     text-decoration: none;
     color: var(--text-secondary);
-    font-weight: 500;
+    padding: 1rem 0.5rem;
+    border-radius: 1rem;
     transition: all 0.2s;
-}
-
-.menu-item:hover,
-.menu-item.active {
-    background-color: var(--bg-body);
-    color: var(--primary-color);
+    gap: 0.5rem;
 }
 
 .menu-item i {
-    width: 20px;
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+}
+
+.menu-item span {
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.menu-item:hover {
+    background: #f9fafb;
+    color: var(--text-primary);
+}
+
+.menu-item.active {
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+.menu-item.active i {
+    color: #6366f1;
+}
+
+/* Support Card Sidebar */
+.sidebar-footer-card {
+    background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+    border-radius: 1rem;
+    padding: 1.5rem 1rem;
     text-align: center;
+    position: relative;
+    margin-top: 1rem;
+    flex-shrink: 0;
+}
+
+.support-illustration {
+    margin-bottom: 1rem;
+}
+
+.illus-svg {
+    width: 60px;
+    height: 60px;
+}
+
+.btn-support {
+    background: #6366f1;
+    color: white;
+    border: none;
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+}
+
+[data-theme="dark"] .sidebar-footer-card {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .btn-support {
+    background: var(--primary-color);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+}
+
+/* Sidebar Toggle Button */
+.sidebar-toggle {
+    background: var(--c-blue-bg);
+    border: none;
+    font-size: 1rem;
+    color: var(--c-blue-text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.sidebar-toggle:hover {
+    background: var(--c-blue-text);
+    color: white;
+}
+
+/* Sidebar Collapsed (Mini) State */
+.layout-container.sidebar-collapsed .sidebar {
+    width: 80px !important;
+    padding: 1.5rem 0.5rem !important;
+}
+
+.layout-container.sidebar-collapsed .brand-text,
+.layout-container.sidebar-collapsed .menu-item span,
+.layout-container.sidebar-collapsed .sidebar-footer-card {
+    display: none;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.menu-item span,
+.brand-text {
+    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+    white-space: nowrap;
+}
+
+.layout-container.sidebar-collapsed .sidebar-menu {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+}
+
+.layout-container.sidebar-collapsed .brand {
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.layout-container.sidebar-collapsed .sidebar-toggle {
+    margin-right: 0;
+}
+
+.layout-container.sidebar-collapsed .menu-item {
+    padding: 0.8rem 0;
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+.layout-container.sidebar-collapsed .menu-item i {
+    font-size: 1.4rem;
+    margin: 0;
+}
+
+.layout-container.sidebar-collapsed .menu-item:hover {
+    background: var(--c-purple-bg);
+    color: var(--c-purple-text);
 }
 
 /* Main Content */
@@ -832,15 +933,7 @@ body {
         flex-direction: column;
     }
 
-    .sidebar {
-        position: fixed;
-        height: 100%;
-        transform: translateX(-100%);
-    }
 
-    .sidebar.active {
-        transform: translateX(0);
-    }
 
     .control-bar-top {
         flex-direction: column;
@@ -1223,4 +1316,70 @@ input:checked+.slider:before {
     color: var(--text-secondary);
     margin-bottom: 0.5rem;
     font-style: italic;
+}
+
+/* Mobile Layout - Dashboard Style */
+@media (max-width: 768px) {
+    .layout-container {
+        flex-direction: column;
+        height: auto;
+        overflow-y: auto;
+    }
+
+    .sidebar {
+        width: 100% !important;
+        /* Force override */
+        height: auto;
+        flex-direction: row;
+        align-items: center;
+        padding: 1rem;
+        overflow-y: hidden;
+        overflow-x: auto;
+        margin-bottom: 0.5rem;
+        flex-shrink: 0;
+    }
+
+    /* Reset collapsed state on mobile */
+    .layout-container.sidebar-collapsed .sidebar {
+        width: 100% !important;
+        padding: 1rem !important;
+    }
+
+    .layout-container.sidebar-collapsed .menu-item span,
+    .layout-container.sidebar-collapsed .brand h2,
+    .layout-container.sidebar-collapsed .brand-text {
+        opacity: 1 !important;
+        width: auto !important;
+        height: auto !important;
+        overflow: visible !important;
+        transform: none !important;
+        display: inline-block !important;
+        visibility: visible !important;
+    }
+
+    .sidebar-menu {
+        display: flex;
+        flex-direction: row;
+        gap: 1rem;
+        margin-bottom: 0;
+    }
+
+    .menu-item {
+        white-space: nowrap;
+        padding: 0.5rem 1rem;
+        min-width: fit-content;
+    }
+
+    .brand {
+        margin-bottom: 0;
+        margin-right: 1.5rem;
+    }
+
+    .sidebar-footer-card {
+        display: none;
+    }
+
+    .sidebar-toggle {
+        display: none;
+    }
 }

@@ -147,8 +147,15 @@ document.addEventListener('DOMContentLoaded', () => {
     btnSplitBatch.addEventListener('click', () => {
         if (productForm.checkValidity()) {
             saveProduct(false);
+
+            // Essential: Reset editing state so next save creates new item
+            isEditing = false;
+            currentEditId = null;
+
+            // Clear Batch & Qty fields
             inputBatch.value = generateBatchNumber();
             inputQty.value = '';
+
             // Reset fields based on type
             if (inputType.value === 'Clothes') {
                 inputSize.value = '';
@@ -159,7 +166,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 expiryHint.textContent = 'Select date to see alert status';
                 expiryHint.style.color = 'var(--text-secondary)';
             }
-            alert('Batch saved! Enter details for the next batch.');
+
+            // UI Feedback
+            const originalText = btnSplitBatch.innerHTML;
+            btnSplitBatch.innerHTML = '<i class="fa-solid fa-check"></i> Added! Next...';
+            setTimeout(() => { btnSplitBatch.innerHTML = originalText; }, 1000);
         } else {
             productForm.reportValidity();
         }
@@ -530,7 +541,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Persist
-        localStorage.setItem('inventory', JSON.stringify(inventory));
+        try {
+            localStorage.setItem('inventory', JSON.stringify(inventory));
+        } catch (e) {
+            alert('Storage Full! Could not save product. Please clear old data or compress images.');
+            console.error('LocalStorage Save Error:', e);
+            // Revert changes in memory if save failed? 
+            // Ideally yes, but for now just warn.
+        }
 
         // Update UI
         calculateDashboardStats();
@@ -554,12 +572,15 @@ document.addEventListener('DOMContentLoaded', () => {
         let totalVal = 0;
         let expiringCount = 0;
         let lowStockCount = 0;
+        let outOfStockCount = 0;
         const today = new Date();
 
         inventory.forEach(item => {
             totalVal += (item.cp || 0) * (item.quantity || 0);
 
-            if (item.quantity <= (item.reorderPoint || 10)) {
+            if (item.quantity === 0) {
+                outOfStockCount++;
+            } else if (item.quantity <= (item.reorderPoint || 10)) {
                 lowStockCount++;
             }
 
@@ -577,12 +598,8 @@ document.addEventListener('DOMContentLoaded', () => {
         valExpiringSoon.textContent = expiringCount;
         valLowStock.textContent = lowStockCount;
 
-        const catCounts = {};
-        inventory.forEach(i => {
-            catCounts[i.category] = (catCounts[i.category] || 0) + 1;
-        });
-        const sortedCats = Object.entries(catCounts).sort((a, b) => b[1] - a[1]);
-        valFastMover.textContent = sortedCats.length > 0 ? sortedCats[0][0] : '-';
+        const valOutOfStock = document.getElementById('val-out-of-stock');
+        if (valOutOfStock) valOutOfStock.textContent = outOfStockCount;
     }
 
     function formatCurrency(val) {
@@ -684,7 +701,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </td>
             <td>
                 <div style="font-weight: 700;">${item.quantity} ${item.unit}</div>
-                ${item.quantity <= (item.reorderPoint || 10) ? '<span style="color:red; font-size:0.7em;">Low</span>' : ''}
+                ${item.quantity === 0 ? '<span style="color:var(--c-red-text); font-size:0.75em; font-weight:bold;">Out of Stock</span>' : (item.quantity <= (item.reorderPoint || 10) ? '<span style="color:var(--c-orange-text); font-size:0.75em;">Low Stock</span>' : '')}
             </td>
             <td>
                 ${item.pp ? `<div class="text-sm" style="opacity:0.7;">PP: ₹${item.pp.toFixed(2)}</div>` : ''}
@@ -814,7 +831,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </td>
                 <td>
                     <div style="font-weight: 600;">${item.quantity} ${item.unit}</div>
-                    ${item.quantity <= (item.reorderPoint || 10) ? '<span style="color:red; font-size:0.7em;">Low</span>' : ''}
+                    ${item.quantity === 0 ? '<span style="color:var(--c-red-text); font-size:0.75em; font-weight:bold;">Out of Stock</span>' : (item.quantity <= (item.reorderPoint || 10) ? '<span style="color:var(--c-orange-text); font-size:0.75em;">Low Stock</span>' : '')}
                 </td>
                 <td>
                     ${item.pp ? `<div class="text-sm" style="opacity:0.7;">PP: ₹${item.pp.toFixed(2)}</div>` : ''}
@@ -966,86 +983,37 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Split Batch Logic ---
-    // btnSplitBatch already defined at top scope
-    if (btnSplitBatch) {
-        btnSplitBatch.addEventListener('click', () => {
-            if (!inputBatch.value || !inputQty.value) { alert('Please fill Batch & Quantity'); return; }
-            // "Split Batch" means: Save the current batch entry (partially) and reset batch fields
-            // BUT, our system design saves the whole Product (and all variants) at once.
-            // If we are in "Add Product" mode: 
-            // - If Variant Mode is OFF: It's just adding another batch of same product? 
-            //   - Ideally, this should switch to Variant Mode? No, if it's identical product, just different batch.
-            //   - We can just treat it as a new "variant" in the matrix (even if attributes are same, batch differs).
-            //   - OR, if standard mode, we can just save `newItem` to inventory immediately and clear fields?
-            // - If Variant Mode is ON:
-            //   - Validating current batch inputs.
-            //   - Save this specific batch to the inventory array? 
-            //   - Wait, `saveProduct` creates the item.
-            //   - Let's call `saveProduct(false)` (don't close modal).
 
-            // To support the user's request: "save the stock for the currently selected variant... clear... select next"
-            // We should use `saveProduct(false)` loop.
-
-            // BUT `saveProduct` validates everything.
-            // If Variant Mode is ON, `saveProduct` iterates `tempVariants` and creates items.
-            // This logic is tricky because `tempVariants` defines TYPES (SKU/CP).
-            // The Stock Section defines ONE BATCH for ONE Type.
-            // If I click Split Batch, I want to commit that ONE BATCH.
-
-            // Refactored approach:
-            // calling `saveProduct(true)` saves EVERYTHING and closes.
-            // calling `saveProduct(false)` saves EVERYTHING and keeps open?
-            // NOT QUITE. `saveProduct` reads the ONE batch from inputs and saves likely just that + variants.
-            // If I have 3 items in matrix. And I fill batch for Item 1.
-            // `saveProduct` logic needs to be checked.
-
-            // Let's assume `saveProduct` handles the current inputs.
-            // I will call `saveProduct(false)`. 
-            // Then manually clear the Stock Inputs.
-
-            saveProduct(false); // Helper to save current state
-
-            // FIX: Turn off editing mode so the NEXT batch creates a new row instead of overwriting
-            isEditing = false;
-            currentEditId = null;
-
-            // Clear Stock Fields
-            inputBatch.value = generateBatchNumber();
-            inputQty.value = '';
-            inputMfd.value = '';
-            inputExp.value = '';
-
-            // If Variant Mode, clear selection or move to next?
-            if (toggleVariants.checked) {
-                selectStockVariant.value = ""; // Force user to choose next
-                inputBatch.focus();
-            }
-
-            // Feedback
-            const originalText = btnSplitBatch.innerHTML;
-            btnSplitBatch.innerHTML = '<i class="fa-solid fa-check"></i> Added!';
-            setTimeout(() => { btnSplitBatch.innerHTML = originalText; }, 1000);
-        });
-    }
 
     function setupSidebar() {
-        // Internal Sidebar Toggle (Visible mostly on Desktop, but also Mobile "Close" button)
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const container = document.querySelector('.layout-container');
+        const mobileBtn = document.getElementById('mobile-sidebar-toggle');
+
+        // Desktop Toggle
         if (sidebarToggle) {
-            sidebarToggle.addEventListener('click', (e) => {
+            // Remove any existing listeners by cloning (optional but safer not to stack)
+            const newToggle = sidebarToggle.cloneNode(true);
+            sidebarToggle.parentNode.replaceChild(newToggle, sidebarToggle);
+
+            newToggle.addEventListener('click', (e) => {
                 e.stopPropagation();
-                if (window.innerWidth <= 768) {
-                    sidebar.classList.toggle('active');
+                if (window.innerWidth > 768) {
+                    if (container) container.classList.toggle('sidebar-collapsed');
                 } else {
-                    sidebar.classList.toggle('collapsed');
+                    // On mobile, if this button is visible (it shouldn't be), just toggle active
+                    sidebar.classList.toggle('active');
                 }
             });
         }
 
-        // Mobile Header Toggle (Opening from Main Content)
-        const mobileBtn = document.getElementById('mobile-sidebar-toggle');
+        // Mobile Header Toggle
         if (mobileBtn) {
-            mobileBtn.addEventListener('click', (e) => {
+            // Clone to remove old listeners
+            const newMobileBtn = mobileBtn.cloneNode(true);
+            mobileBtn.parentNode.replaceChild(newMobileBtn, mobileBtn);
+
+            newMobileBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 sidebar.classList.toggle('active');
             });
@@ -1056,22 +1024,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (window.innerWidth <= 768 &&
                 sidebar.classList.contains('active') &&
                 !sidebar.contains(e.target) &&
-                e.target !== mobileBtn &&
-                !mobileBtn.contains(e.target)) {
+                e.target.id !== 'mobile-sidebar-toggle') {
                 sidebar.classList.remove('active');
             }
         });
-
-        // Close Sidebar on Mobile when a link is clicked
-        const menuItems = document.querySelectorAll('.menu-item');
-        menuItems.forEach(item => {
-            item.addEventListener('click', () => {
-                if (window.innerWidth <= 768) {
-                    sidebar.classList.remove('active');
-                }
-            });
-        });
     }
+
+
 
     setupSidebar();
 });

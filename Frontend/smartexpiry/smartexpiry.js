@@ -17,78 +17,90 @@ document.addEventListener('DOMContentLoaded', function () {
         const role = new URLSearchParams(window.location.search).get('role') || localStorage.getItem('userRole') || 'owner';
         const sidebarTarget = document.getElementById('sidebar-target');
 
-        // Define common toggle handler for re-attachment
+        // Logic to toggle sidebar
         const attachToggle = () => {
             const toggle = document.getElementById('sidebar-toggle');
             const container = document.querySelector('.dashboard-container');
+
             if (toggle && container) {
-                toggle.addEventListener('click', () => {
+                // Clone to ensure clean listener
+                const newToggle = toggle.cloneNode(true);
+                toggle.parentNode.replaceChild(newToggle, toggle);
+
+                newToggle.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    // Always toggle on container for desktop view
                     container.classList.toggle('sidebar-collapsed');
                 });
             }
         };
 
         if (role === 'manager') {
+            // Manager Sidebar - Adapted to grid style for consistency or keep sections?
+            // User requested "Same design". Inventory uses grid.
+            // Converting Manager to Flat Grid to match design exactly.
             sidebarTarget.innerHTML = `
                 <div class="brand">
-                    <button id="sidebar-toggle" style="width: 40px; height: 40px; background: #003f3f; border: none; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer;">
+                    <button id="sidebar-toggle" class="sidebar-toggle">
                         <i class="fa-solid fa-bars"></i>
                     </button>
-                    <h2 class="brand-text" style="font-size: 1.5rem; font-weight: 800; margin-left:1rem;">QuadStock</h2>
+                    <h2 class="brand-text">QuadStock</h2>
                 </div>
                 
-                <div class="nav-section">
-                    <h3 class="section-title">Main Menu</h3>
-                    <nav class="nav-menu">
-                        <a href="../Managerdashboard/manager_dashboard.html" class="nav-item">
-                            <i class="fa-solid fa-house-chimney"></i>
-                            <span>Dashboard</span>
-                        </a>
-                        <a href="../Analytics/analytics.html?role=manager" class="nav-item">
-                            <i class="fa-solid fa-chart-simple"></i>
-                            <span>Analytics</span>
-                        </a>
-                        <a href="../Query/query.html?role=manager" class="nav-item">
-                            <i class="fa-solid fa-clipboard-question"></i>
-                            <span>Query</span>
-                        </a>
-                    </nav>
-                </div>
+                <nav class="sidebar-menu">
+                    <a href="../Managerdashboard/manager_dashboard.html" class="menu-item" title="Dashboard">
+                        <i class="fa-solid fa-house-chimney"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="../Analytics/analytics.html?role=manager" class="menu-item" title="Analytics">
+                        <i class="fa-solid fa-chart-simple"></i>
+                        <span>Analytics</span>
+                    </a>
+                    <a href="../Query/query.html?role=manager" class="menu-item" title="Query">
+                        <i class="fa-solid fa-clipboard-question"></i>
+                        <span>Query</span>
+                    </a>
+                    <a href="#" class="menu-item" title="Inventory">
+                        <i class="fa-solid fa-boxes-stacked"></i>
+                        <span>Inventory</span>
+                    </a>
+                    <a href="smartexpiry.html" class="menu-item active" title="Smart Expiry">
+                        <i class="fa-solid fa-hourglass-end"></i>
+                        <span>Smart Expiry</span>
+                    </a>
+                    <a href="#" class="menu-item" title="Employees">
+                        <i class="fa-solid fa-users-gear"></i>
+                        <span>Employees</span>
+                    </a>
+                    <a href="../Complain/complain.html?role=manager" class="menu-item" title="Complain">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span>Complain</span>
+                    </a>
+                    <a href="#" class="menu-item" title="Pending Payments">
+                        <i class="fa-solid fa-file-invoice-dollar"></i>
+                        <span>Pending Payments</span>
+                    </a>
+                    <a href="#" class="menu-item" title="Settings">
+                        <i class="fa-solid fa-gear"></i>
+                        <span>Settings</span>
+                    </a>
+                    <a href="../landing/landing.html" class="menu-item" title="Logout">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span>Logout</span>
+                    </a>
+                </nav>
 
-                <div class="nav-section">
-                    <h3 class="section-title">Stock & Staff</h3>
-                    <nav class="nav-menu">
-                        <a href="#" class="nav-item">
-                            <i class="fa-solid fa-boxes-stacked"></i>
-                            <span>Inventory</span>
-                        </a>
-                        <a href="#" class="nav-item active">
-                            <i class="fa-solid fa-hourglass-end"></i>
-                            <span>Smart Expiry</span>
-                        </a>
-                        <a href="#" class="nav-item">
-                            <i class="fa-solid fa-users-gear"></i>
-                            <span>Employees</span>
-                        </a>
-                    </nav>
-                </div>
-
-                <div class="nav-section">
-                    <h3 class="section-title">Business</h3>
-                    <nav class="nav-menu">
-                        <a href="../Complain/complain.html?role=manager" class="nav-item">
-                            <i class="fa-solid fa-triangle-exclamation"></i>
-                            <span>Complain</span>
-                        </a>
-                        <a href="#" class="nav-item">
-                            <i class="fa-solid fa-file-invoice-dollar"></i>
-                            <span>Pending Payments</span>
-                        </a>
-                        <a href="#" class="nav-item">
-                            <i class="fa-solid fa-gear"></i>
-                            <span>Settings</span>
-                        </a>
-                    </nav>
+                <div class="sidebar-footer-card">
+                    <div class="support-illustration">
+                        <svg viewBox="0 0 100 100" class="illus-svg">
+                            <circle cx="50" cy="35" r="15" fill="#333" />
+                            <path d="M20,80 Q50,70 80,80 V100 H20 Z" fill="#333" />
+                            <rect x="15" y="45" width="25" height="15" rx="2" fill="#555" transform="rotate(-15 27 52)" />
+                        </svg>
+                    </div>
+                    <a href="../Footer/contact.html" class="btn-support" style="text-decoration: none; display: inline-block; text-align: center;">
+                        <i class="fa-regular fa-life-ring"></i> Support
+                    </a>
                 </div>
             `;
 
@@ -102,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 `;
             }
         } else {
-            // Owner Sidebar (Default)
+            // Owner Sidebar (Default) - Matches Inventory.html structure
             sidebarTarget.innerHTML = `
                 <div class="brand">
                     <button id="sidebar-toggle" class="sidebar-toggle">
@@ -128,7 +140,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <i class="fa-solid fa-boxes-stacked"></i>
                         <span>Inventory</span>
                     </a>
-                    <a href="#" class="menu-item active" title="Smart Expiry">
+                    <a href="smartexpiry.html" class="menu-item active" title="Smart Expiry">
                         <i class="fa-solid fa-hourglass-end"></i>
                         <span>Smart Expiry</span>
                     </a>
@@ -147,6 +159,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     <a href="#" class="menu-item" title="Settings">
                         <i class="fa-solid fa-gear"></i>
                         <span>Settings</span>
+                    </a>
+                    <a href="../landing/landing.html" class="menu-item" title="Logout">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span>Logout</span>
                     </a>
                 </nav>
 

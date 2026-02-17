@@ -136,6 +136,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         <i class="fa-solid fa-gear"></i>
                         <span>Settings</span>
                     </a>
+                    <a href="../landing/landing.html" class="menu-item" title="Logout">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span>Logout</span>
+                    </a>
                 </nav>
                 <div class="sidebar-footer-card">
                     <div class="support-illustration">

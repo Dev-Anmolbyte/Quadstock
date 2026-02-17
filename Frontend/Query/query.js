@@ -136,6 +136,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         <i class="fa-solid fa-gear"></i>
                         <span>Settings</span>
                     </a>
+                    <a href="../landing/landing.html" class="menu-item" title="Logout">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span>Logout</span>
+                    </a>
                 </nav>
                 <div class="sidebar-footer-card">
                     <div class="support-illustration">
@@ -226,6 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let queries = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
     let uploadedImages = []; // Temp storage for modal
     let tempReplyImages = {}; // Temp storage for replies by id: []
+    let expandedQueryIds = new Set(); // Track expanded states
 
     function getCurrentUser() {
         const ownerEl = document.querySelector('.user-profile .user-name');
@@ -434,8 +439,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const hasManyReplies = q.replies.length > 2;
-            const chatListClass = hasManyReplies ? 'reply-list collapsed' : 'reply-list';
-            const showMoreBtn = hasManyReplies ? `<button class="show-more-replies" onclick="toggleChat(this)"><i class="fa-solid fa-angles-down"></i> Show all ${q.replies.length} messages</button>` : '';
+            const isExpanded = expandedQueryIds.has(q.id);
+            const shouldCollapse = !isExpanded && hasManyReplies;
+
+            const chatListClass = shouldCollapse ? 'reply-list collapsed' : 'reply-list';
+            const btnText = shouldCollapse
+                ? `<i class="fa-solid fa-angles-down"></i> Show all ${q.replies.length} messages`
+                : `<i class="fa-solid fa-angles-up"></i> Show less`;
+
+            const showMoreBtn = hasManyReplies
+                ? `<button class="show-more-replies" onclick="toggleChat(this, '${q.id}')">${btnText}</button>`
+                : '';
 
             card.innerHTML = `
                 <div class="card-top-content">
@@ -468,15 +482,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    window.toggleChat = function (btn) {
+    window.toggleChat = function (btn, id) {
         const list = btn.previousElementSibling;
         const isCollapsed = list.classList.toggle('collapsed');
         const count = list.children.length;
 
         if (isCollapsed) {
+            expandedQueryIds.delete(id);
             btn.innerHTML = `<i class="fa-solid fa-angles-down"></i> Show all ${count} messages`;
             list.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         } else {
+            expandedQueryIds.add(id);
             btn.innerHTML = `<i class="fa-solid fa-angles-up"></i> Show less`;
         }
     };
@@ -500,6 +516,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 images: [...imgs]
             });
             tempReplyImages[id] = [];
+            expandedQueryIds.add(id); // Auto-expand when replying
             saveQueries();
             renderQueries();
         }
