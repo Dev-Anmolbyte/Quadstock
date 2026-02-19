@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Mock Validation
         const users = JSON.parse(localStorage.getItem('quadstock_users') || '[]');
-        const user = users.find(u => u.uniqueId === ownerId && u.email.toLowerCase() === email.toLowerCase());
+        const user = users.find(u => u.ownerId === ownerId && u.email.toLowerCase() === email.toLowerCase());
 
         if (user) {
             validatedUser = user;
@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Update User Data
             const users = JSON.parse(localStorage.getItem('quadstock_users') || '[]');
-            const userIndex = users.findIndex(u => u.uniqueId === validatedUser.uniqueId);
+            const userIndex = users.findIndex(u => u.ownerId === validatedUser.ownerId);
 
             if (userIndex !== -1) {
                 // Update specific user

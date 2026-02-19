@@ -9,6 +9,10 @@ export function initInteractiveBackground(containerId, options = {}) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
+    // Check for Reduced Motion Preference
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) return; // Exit early if user prefers reduced motion
+
     const orbCount = options.orbCount || 4;
     const orbs = [];
     const mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2, isActive: false };

@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <i class="fa-solid fa-clipboard-question"></i>
                         <span>Query</span>
                     </a>
-                    <a href="#" class="menu-item" title="Inventory">
+                    <a href="../Inventory/inventory.html" class="menu-item" title="Inventory">
                         <i class="fa-solid fa-boxes-stacked"></i>
                         <span>Inventory</span>
                     </a>
@@ -68,19 +68,16 @@ document.addEventListener('DOMContentLoaded', function () {
                         <i class="fa-solid fa-hourglass-end"></i>
                         <span>Smart Expiry</span>
                     </a>
-                    <a href="#" class="menu-item" title="Employees">
-                        <i class="fa-solid fa-users-gear"></i>
-                        <span>Employees</span>
-                    </a>
+
                     <a href="../Complain/complain.html?role=manager" class="menu-item" title="Complain">
                         <i class="fa-solid fa-triangle-exclamation"></i>
                         <span>Complain</span>
                     </a>
-                    <a href="#" class="menu-item" title="Pending Payments">
-                        <i class="fa-solid fa-file-invoice-dollar"></i>
-                        <span>Pending Payments</span>
+                    <a href="../Udhaar/udhaar.html" class="menu-item" title="Pending Payments">
+                        <i class="fa-solid fa-indian-rupee-sign"></i>
+                        <span>Udhaar/Pending</span>
                     </a>
-                    <a href="#" class="menu-item" title="Settings">
+                    <a href="../Settings/settings.html" class="menu-item" title="Settings">
                         <i class="fa-solid fa-gear"></i>
                         <span>Settings</span>
                     </a>
@@ -136,7 +133,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <i class="fa-solid fa-clipboard-question"></i>
                         <span>Query</span>
                     </a>
-                    <a href="#" class="menu-item" title="Inventory">
+                    <a href="../Inventory/inventory.html" class="menu-item" title="Inventory">
                         <i class="fa-solid fa-boxes-stacked"></i>
                         <span>Inventory</span>
                     </a>
@@ -144,19 +141,16 @@ document.addEventListener('DOMContentLoaded', function () {
                         <i class="fa-solid fa-hourglass-end"></i>
                         <span>Smart Expiry</span>
                     </a>
-                    <a href="#" class="menu-item" title="Employees">
-                        <i class="fa-solid fa-users-gear"></i>
-                        <span>Employees</span>
-                    </a>
+
                     <a href="../Complain/complain.html?role=owner" class="menu-item" title="Complain">
                         <i class="fa-solid fa-triangle-exclamation"></i>
                         <span>Complain</span>
                     </a>
-                    <a href="#" class="menu-item" title="Pending Payments">
+                    <a href="../Udhaar/udhaar.html" class="menu-item" title="Pending Payments">
                         <i class="fa-solid fa-indian-rupee-sign"></i>
-                        <span>Pending Payments</span>
+                        <span>Udhaar/Pending</span>
                     </a>
-                    <a href="#" class="menu-item" title="Settings">
+                    <a href="../Settings/settings.html" class="menu-item" title="Settings">
                         <i class="fa-solid fa-gear"></i>
                         <span>Settings</span>
                     </a>
@@ -187,7 +181,8 @@ document.addEventListener('DOMContentLoaded', function () {
     setupSidebar();
 
     // --- Logic: Calculate Days Remaining & FEFO ---
-    const today = new Date(); // Current date: 2026-02-08 (Set by system time in prompt)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
     // IMPORTANT: In production, use server time. Here we use new Date() which relies on system time.
 
     // Enrich data

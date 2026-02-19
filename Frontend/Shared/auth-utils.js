@@ -13,11 +13,13 @@ export function togglePasswordVisibility(btn) {
             icon.classList.remove('fa-eye');
             icon.classList.add('fa-eye-slash');
             btn.setAttribute('aria-label', 'Hide password');
+            btn.setAttribute('aria-expanded', 'true');
         } else {
             input.type = 'password';
             icon.classList.remove('fa-eye-slash');
             icon.classList.add('fa-eye');
             btn.setAttribute('aria-label', 'Show password');
+            btn.setAttribute('aria-expanded', 'false');
         }
     }
 }

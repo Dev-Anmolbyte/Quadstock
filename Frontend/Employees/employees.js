@@ -1,467 +1,543 @@
 
 document.addEventListener('DOMContentLoaded', () => {
-    // --- RBAC & Initialization ---
-    const currentUser = JSON.parse(localStorage.getItem('currentUser')); // Owner
-    const currentEmployee = JSON.parse(localStorage.getItem('currentEmployee')); // Manager/Staff
 
-    let userRole = 'staff';
-    if (currentUser) userRole = 'owner';
-    else if (currentEmployee && currentEmployee.role === 'manager') userRole = 'manager';
+    // --- 1. Authentication & Context ---
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    const currentEmployee = JSON.parse(localStorage.getItem('currentEmployee'));
 
-    // Redirect if staff tries to access this page
-    if (userRole === 'staff') {
-        alert('Access Denied. Redirecting to Staff Dashboard.');
-        window.location.href = 'staff_dashboard.html';
+    let userRole = 'guest';
+    let currentOwnerId = null;
+    let addedByRole = null;
+
+    if (currentUser && currentUser.ownerId) {
+        userRole = 'owner';
+        currentOwnerId = currentUser.ownerId;
+        addedByRole = 'owner';
+    } else if (currentEmployee && currentEmployee.ownerId) {
+        // Fix #3: Secure role fallback - don't promote to manager by default
+        userRole = currentEmployee.role || 'staff';
+        currentOwnerId = currentEmployee.ownerId;
+        addedByRole = 'manager';
+    }
+
+    // Fix #2: Stricter access check
+    if (!currentOwnerId) {
+        QuadModals.alert("Access Denied", "Please login to access the employee management system.", "error")
+            .then(() => {
+                window.location.href = '../Authentication/employee_login.html';
+            });
         return;
     }
 
-    // --- Mock Data Initialization (If empty) ---
-    let employees = JSON.parse(localStorage.getItem('quadstock_employees') || '[]');
-    if (employees.length === 0) {
-        // Seed some data for demo
-        employees = [
-            { empId: 'EMP-1001', name: 'Ramesh Kumar', role: 'manager', shiftStart: '09:00', shiftEnd: '18:00', status: 'active', salary: 25000, phone: '9876543210', email: 'ramesh@shop.com', password: 'password123' },
-            { empId: 'EMP-1002', name: 'Suresh Singh', role: 'staff', shiftStart: '10:00', shiftEnd: '19:00', status: 'offline', salary: 15000, phone: '8765432109', email: 'suresh@shop.com', password: 'password123' },
-            { empId: 'EMP-1003', name: 'Anita Desai', role: 'staff', shiftStart: '09:00', shiftEnd: '18:00', status: 'pending', salary: 18000, phone: '7654321098', email: 'anita@shop.com', password: 'password123' },
-            { empId: 'EMP-1004', name: 'Vikram Malhotra', role: 'staff', shiftStart: '14:00', shiftEnd: '22:00', status: 'pending', salary: 16000, phone: '6543210987', email: 'vikram@shop.com', password: 'password123' }
-        ];
-        localStorage.setItem('quadstock_employees', JSON.stringify(employees));
+    // --- 2. Sidebar & Layout Setup ---
+    function renderSidebar(role) {
+        const target = document.getElementById('sidebar-target');
+        if (!target) return;
+
+        if (role === 'owner') {
+            target.innerHTML = `
+                <div class="brand">
+                    <button id="sidebar-toggle" class="sidebar-toggle" style="background:none; border:none; color:inherit; cursor:pointer;">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <h2 class="brand-text">QuadStock</h2>
+                </div>
+                <nav class="sidebar-menu">
+                    <a href="../Ownerdashboard/dashboard.html" class="menu-item" title="Dashboard">
+                        <i class="fa-solid fa-house"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="../Analytics/analytics.html" class="menu-item" title="Analytics">
+                        <i class="fa-solid fa-chart-simple"></i>
+                        <span>Analytics</span>
+                    </a>
+                    <a href="../Query/query.html?role=owner" class="menu-item" title="Query">
+                        <i class="fa-solid fa-clipboard-question"></i>
+                        <span>Query</span>
+                    </a>
+                    <a href="../Inventory/inventory.html" class="menu-item" title="Inventory">
+                        <i class="fa-solid fa-boxes-stacked"></i>
+                        <span>Inventory</span>
+                    </a>
+                    <a href="employees.html" class="menu-item active" title="Employees">
+                        <i class="fa-solid fa-users"></i>
+                        <span>Employees</span>
+                    </a>
+                    <a href="../smartexpiry/smartexpiry.html" class="menu-item" title="Smart Expiry">
+                        <i class="fa-solid fa-hourglass-end"></i>
+                        <span>Smart Expiry</span>
+                    </a>
+                    <a href="../Complain/complain.html?role=owner" class="menu-item" title="Complain">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span>Complain</span>
+                    </a>
+                    <a href="../Udhaar/udhaar.html" class="menu-item" title="Pending Payments">
+                        <i class="fa-solid fa-indian-rupee-sign"></i>
+                        <span>Udhaar/Pending</span>
+                    </a>
+                    <a href="../Settings/settings.html" class="menu-item" title="Settings">
+                        <i class="fa-solid fa-gear"></i>
+                        <span>Settings</span>
+                    </a>
+                    <a href="../landing/landing.html" class="menu-item" title="Logout">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span>Logout</span>
+                    </a>
+                </nav>
+                <div class="sidebar-footer-card">
+                    <div class="support-illustration">
+                        <svg viewBox="0 0 100 100" class="illus-svg">
+                            <circle cx="50" cy="35" r="15" fill="#333" />
+                            <path d="M20,80 Q50,70 80,80 V100 H20 Z" fill="#333" />
+                            <rect x="15" y="45" width="25" height="15" rx="2" fill="#555" transform="rotate(-15 27 52)" />
+                        </svg>
+                    </div>
+                    <a href="../Footer/contact.html" class="btn-support" style="text-decoration: none; display: inline-block; text-align: center;">
+                        <i class="fa-regular fa-life-ring"></i> Support
+                    </a>
+                </div>
+            `;
+        } else {
+            target.innerHTML = `
+                <div class="brand">
+                    <button id="sidebar-toggle" class="sidebar-toggle" style="background:none; border:none; color:inherit; cursor:pointer;">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <h2 class="brand-text">QuadStock</h2>
+                </div>
+                <div class="nav-section">
+                    <h3 class="section-title">Main Menu</h3>
+                    <nav class="nav-menu">
+                        <a href="../Managerdashboard/manager_dashboard.html" class="nav-item">
+                            <i class="fa-solid fa-house-chimney"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        <a href="../Analytics/analytics.html?role=manager" class="nav-item">
+                            <i class="fa-solid fa-chart-simple"></i>
+                            <span>Analytics</span>
+                        </a>
+                        <a href="../Query/query.html?role=manager" class="nav-item">
+                            <i class="fa-solid fa-clipboard-question"></i>
+                            <span>Query</span>
+                        </a>
+                    </nav>
+                </div>
+                <div class="nav-section">
+                    <h3 class="section-title">Stock & Staff</h3>
+                    <nav class="nav-menu">
+                        <a href="../Inventory/inventory.html" class="nav-item">
+                            <i class="fa-solid fa-boxes-stacked"></i>
+                            <span>Inventory</span>
+                        </a>
+                        <a href="employees.html" class="nav-item active">
+                            <i class="fa-solid fa-users"></i>
+                            <span>Employees</span>
+                        </a>
+                        <a href="../smartexpiry/smartexpiry.html?role=manager" class="nav-item">
+                            <i class="fa-solid fa-hourglass-end"></i>
+                            <span>Smart Expiry</span>
+                        </a>
+                    </nav>
+                </div>
+                <div class="nav-section">
+                    <h3 class="section-title">Business</h3>
+                    <nav class="nav-menu">
+                        <a href="../Complain/complain.html?role=manager" class="nav-item">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <span>Complain</span>
+                        </a>
+                        <a href="../Udhaar/udhaar.html" class="nav-item">
+                            <i class="fa-solid fa-indian-rupee-sign"></i>
+                            <span>Udhaar/Pending</span>
+                        </a>
+                        <a href="../Settings/settings.html" class="nav-item">
+                            <i class="fa-solid fa-gear"></i>
+                            <span>Settings</span>
+                        </a>
+                        <a href="../landing/landing.html" class="nav-item" title="Logout">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                            <span>Logout</span>
+                        </a>
+                    </nav>
+                </div>
+            `;
+        }
     }
 
-    // --- Module 2: The Employee Directory ---
-    renderPendingAlert(employees, userRole);
-    renderEmployeeTable(employees, userRole);
+    renderSidebar(userRole);
 
-    // --- Event Listeners ---
-    document.getElementById('add-employee-btn').addEventListener('click', openAddEmployeeModal);
-    document.querySelector('.close-drawer').addEventListener('click', closeAddEmployeeModal);
-    document.querySelector('.close-profile').addEventListener('click', closeProfileModal);
-
-    // Form Submission
-    document.getElementById('add-employee-form').addEventListener('submit', handleAddEmployee);
-
-    // Sidebar Toggle (Mobile)
-    // Sidebar Toggle (Match Dashboard Logic)
-    const sidebarToggle = document.getElementById('sidebar-toggle');
-    const dashboardContainer = document.querySelector('.dashboard-container');
-
-    if (sidebarToggle && dashboardContainer) {
-        sidebarToggle.addEventListener('click', () => {
-            document.getElementById('sidebar').classList.toggle('active'); // Mobile specific
-            dashboardContainer.classList.toggle('sidebar-collapsed'); // Desktop specific
+    // Toggle Logic
+    const toggle = document.getElementById('sidebar-toggle');
+    const container = document.querySelector('.layout-container');
+    if (toggle && container) {
+        toggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            container.classList.toggle('sidebar-collapsed');
         });
     }
-});
 
-// --- Render Functions ---
+    // --- Theme Logic ---
+    const themeBtn = document.getElementById('theme-toggle');
+    const body = document.body;
+    const savedTheme = localStorage.getItem('theme') || 'light';
 
-function renderPendingAlert(employees, userRole) {
-    const alertContainer = document.getElementById('pending-alert-container');
-    if (userRole !== 'owner') {
-        alertContainer.style.display = 'none';
-        return;
-    }
-
-    const pendingCount = employees.filter(e => e.status === 'pending').length;
-    if (pendingCount > 0) {
-        alertContainer.innerHTML = `
-            <div class="pending-alert">
-                <i class="fa-solid fa-circle-exclamation"></i>
-                <span><strong>⚠️ Action Required:</strong> You have ${pendingCount} new employees pending approval.</span>
-                <button class="btn-warning alert-btn" onclick="filterPending()">Review Now</button>
-            </div>
-        `;
-        alertContainer.style.display = 'block';
+    // Initial Apply
+    if (savedTheme === 'dark') {
+        body.setAttribute('data-theme', 'dark');
+        if (themeBtn) themeBtn.innerHTML = '<i class="fa-solid fa-sun"></i>';
     } else {
-        alertContainer.style.display = 'none';
+        body.setAttribute('data-theme', 'light');
+        if (themeBtn) themeBtn.innerHTML = '<i class="fa-solid fa-moon"></i>';
     }
-}
 
-function renderEmployeeTable(employees, userRole) {
-    const tableBody = document.getElementById('employee-table-body');
-    tableBody.innerHTML = '';
+    if (themeBtn) {
+        themeBtn.addEventListener('click', () => {
+            const currentTheme = body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
 
-    employees.forEach(emp => {
-        const isOnline = emp.status === 'active';
-        const statusClass = isOnline ? 'status-active' : (emp.status === 'pending' ? 'status-pending' : 'status-offline');
-        const statusColor = isOnline ? '#22c55e' : (emp.status === 'pending' ? '#eab308' : '#cbd5e1'); // Green, Yellow, Gray
+            body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            themeBtn.innerHTML = newTheme === 'dark' ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
+        });
+    }
 
-        // Actions
-        let actions = `
-            <button class="action-btn" onclick="viewProfile('${emp.empId}')" title="View Profile"><i class="fa-regular fa-eye"></i></button>
-        `;
+    // --- 3. Data Handling ---
+    let employees = JSON.parse(localStorage.getItem('quadstock_employees')) || [];
 
-        // Edit Button Logic
-        if (userRole === 'owner' || (userRole === 'manager' && emp.role === 'staff')) {
-            actions += `<button class="action-btn" onclick="editEmployee('${emp.empId}')" title="Edit"><i class="fa-regular fa-pen-to-square"></i></button>`;
+    // Filter employees for THIS owner
+    // Note: If employees don't have ownerId (legacy), we might show them if we can infer, 
+    // but strict requirement says "Every employee MUST include ownerId".
+    // We will filter by ownerId.
+    let ownerEmployees = employees.filter(e => e.ownerId === currentOwnerId);
+
+    const grid = document.getElementById('employee-grid');
+
+    function updateStats() {
+        const total = ownerEmployees.length;
+        // Logic: 
+        // Present = status 'active' or 'working' (if we add that later)
+        // Break = status 'break'
+        // Absent = status 'offline' or 'leave'
+        // Pending = status 'pending' (count as absent for now or ignore? Let's count as absent from work)
+
+        const present = ownerEmployees.filter(e => e.status === 'active' || e.status === 'working').length;
+        const onBreak = ownerEmployees.filter(e => e.status === 'break').length;
+        const absent = total - present - onBreak;
+
+        document.getElementById('stat-total').textContent = total;
+        document.getElementById('stat-present').textContent = present;
+        document.getElementById('stat-absent').textContent = absent;
+        document.getElementById('stat-break').textContent = onBreak;
+    }
+
+    function renderEmployees() {
+        grid.innerHTML = '';
+        ownerEmployees = employees.filter(e => e.ownerId === currentOwnerId);
+        updateStats();
+
+        if (ownerEmployees.length === 0) {
+            grid.innerHTML = `<div class="p-8 text-center text-muted col-span-full">No employees found. Add one to get started.</div>`;
+            return;
         }
 
-        // Approve Button (Owner Only for Pending)
-        if (userRole === 'owner' && emp.status === 'pending') {
-            actions += `<button class="action-btn" style="color:#16a34a; border-color:#16a34a;" onclick="approveEmployee('${emp.empId}')" title="Approve"><i class="fa-solid fa-check"></i></button>`;
-        }
+        ownerEmployees.forEach(emp => {
+            const card = document.createElement('div');
+            card.className = 'employee-card';
+            card.dataset.id = emp.empId;
 
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td><span style="font-family:monospace; font-weight:600; color:#475569;">${emp.empId}</span></td>
-            <td>
-                <div style="display:flex; align-items:center;">
-                    <span class="status-dot" style="background:${statusColor}; box-shadow: ${isOnline ? '0 0 0 2px rgba(34, 197, 94, 0.2)' : 'none'}"></span>
-                    <span style="font-weight:500;">${emp.name}</span>
+            // Status Logic (Fix #10: Colors)
+            let statusClass = 'status-offline';
+            let statusText = (emp.status || 'offline').toLowerCase();
+
+            if (statusText === 'active' || statusText === 'working' || statusText === 'present') {
+                statusClass = 'status-active'; // Green
+            } else if (statusText === 'break') {
+                statusClass = 'status-break'; // Yellow
+            } else if (statusText === 'holiday' || statusText === 'leave') {
+                statusClass = 'status-holiday'; // Blue
+            } else if (statusText === 'absent' || statusText === 'offline') {
+                statusClass = 'status-absent'; // Red
+            } else if (statusText === 'pending') {
+                statusClass = 'status-pending'; // Orange
+            }
+
+            const avatarHtml = emp.photo
+                ? `<img src="${emp.photo}" class="avatar-img" style="width: 48px; height: 48px; border-radius: 12px; object-fit: cover;">`
+                : `<div class="avatar">${emp.name.charAt(0).toUpperCase()}</div>`;
+
+            card.innerHTML = `
+                <div class="card-header">
+                    ${avatarHtml}
+                    <div class="emp-info">
+                        <h3>${emp.name}</h3>
+                        <span class="emp-role">${emp.role}</span>
+                    </div>
                 </div>
-            </td>
-            <td><span class="badge ${emp.role}">${emp.role.charAt(0).toUpperCase() + emp.role.slice(1)}</span></td>
-            <td>${emp.shiftStart} - ${emp.shiftEnd}</td>
-            <td>${actions}</td>
-        `;
-        tableBody.appendChild(row);
-    });
-}
+                
+                <div class="emp-details">
+                    <div class="detail-row">
+                        <span class="detail-label">ID</span>
+                        <span>${emp.empId}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Phone</span>
+                        <span>${emp.phone}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Status</span>
+                        <span class="status-badge ${statusClass}">${statusText}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Password</span>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span class="text-sm text-muted">Password Set ✔</span>
+                            <button class="action-btn-sm" onclick="promptChangePassword('${emp.empId}')" title="Reset Password">
+                                <i class="fa-solid fa-key"></i> Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
-// --- Modal Functions ---
+                <div class="card-actions">
+                    ${(userRole === 'owner' && emp.status === 'pending') ? `
+                        <button class="action-btn btn-approve" title="Approve Employee"><i class="fa-solid fa-check"></i></button>
+                    ` : ''}
+                    <button class="action-btn btn-change-pass" style="background: var(--bg-light); color: var(--text-dark);" title="Change Password"><i class="fa-solid fa-key"></i></button>
+                    <button class="action-btn btn-view-profile" style="background: var(--bg-light); color: var(--primary);" title="View Staff 360"><i class="fa-solid fa-id-card"></i></button>
+                    ${userRole === 'owner' ? `
+                        <button class="action-btn btn-delete" title="Remove Employee"><i class="fa-solid fa-trash"></i></button>
+                    ` : ''}
+                </div>
+            `;
 
-function openAddEmployeeModal() {
-    document.getElementById('add-modal-overlay').classList.add('active');
+            // Event Listeners (Fix #7 & #1)
+            card.querySelector('.btn-change-pass').addEventListener('click', () => promptChangePassword(emp.empId));
+            card.querySelector('.btn-view-profile').addEventListener('click', () => openStaffDetail(emp.empId));
+            card.querySelector('.toggle-pass-btn').addEventListener('click', (e) => togglePasswordDisplay(emp.empId, e.currentTarget));
 
-    // Generate Next ID
-    const employees = JSON.parse(localStorage.getItem('quadstock_employees') || '[]');
-    const lastId = employees.length > 0 ? parseInt(employees[employees.length - 1].empId.split('-')[1]) : 1000;
-    document.getElementById('new-emp-id').value = `EMP-${lastId + 1}`;
+            const btnApprove = card.querySelector('.btn-approve');
+            if (btnApprove) btnApprove.addEventListener('click', () => approveEmployee(emp.empId));
 
-    // Check Role for Privacy Section visibility
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    const privacySection = document.getElementById('privacy-section');
-    if (!currentUser) {
-        // Manager
-        if (privacySection) privacySection.style.display = 'none';
-        // Restrict Role to Staff only
-        const roleSelect = document.getElementById('new-role');
-        if (roleSelect) {
-            roleSelect.value = 'staff';
-            roleSelect.disabled = true; // Manager can only add Staff
+            const btnDel = card.querySelector('.btn-delete');
+            if (btnDel) btnDel.addEventListener('click', () => deleteEmployee(emp.empId));
+
+            grid.appendChild(card);
+        });
+    }
+
+    // --- 4. Add Employee Logic ---
+    const modal = document.getElementById('modal-overlay');
+    const btnAdd = document.getElementById('btn-add-employee');
+    const btnCancel = document.getElementById('btn-cancel');
+    const form = document.getElementById('add-employee-form');
+
+    // Auto-calculate Hours
+    const tStart = document.getElementById('emp-shift-start');
+    const tEnd = document.getElementById('emp-shift-end');
+    const amStart = document.getElementById('emp-audit-start');
+    const amEnd = document.getElementById('emp-audit-end');
+    const tHours = document.getElementById('emp-hours');
+
+    function calcHours() {
+        if (tStart.value && tEnd.value) {
+            // Function to convert 12h time string + AM/PM to Hours (float 0-24)
+            const getHours = (timeStr, ampm) => {
+                let [h, m] = timeStr.split(':').map(Number);
+                if (ampm === 'PM' && h < 12) h += 12;
+                if (ampm === 'AM' && h === 12) h = 0;
+                return h + (m / 60);
+            };
+
+            const startH = getHours(tStart.value, amStart.value);
+            const endH = getHours(tEnd.value, amEnd.value);
+
+            let diff = endH - startH;
+            if (diff < 0) diff += 24;
+
+            tHours.value = diff.toFixed(1);
         }
-    } else {
-        // Owner
-        if (privacySection) privacySection.style.display = 'block';
-        const roleSelect = document.getElementById('new-role');
-        if (roleSelect) roleSelect.disabled = false;
-    }
-}
-
-function closeAddEmployeeModal() {
-    document.getElementById('add-modal-overlay').classList.remove('active');
-}
-
-function handleAddEmployee(e) {
-    e.preventDefault();
-
-    const empId = document.getElementById('new-emp-id').value;
-    const name = document.getElementById('new-name').value;
-    const email = document.getElementById('new-email').value;
-    const phone = document.getElementById('new-phone').value;
-
-    let roleElement = document.getElementById('new-role');
-    let role = roleElement.value;
-
-    const salary = document.getElementById('new-salary').value;
-    const shiftStart = document.getElementById('new-shift-start').value;
-    const shiftEnd = document.getElementById('new-shift-end').value;
-
-    const address = document.getElementById('new-address').value; // Module 3
-    const targetHours = document.getElementById('new-target-hours').value || 8; // Module 3
-
-    // Module 3: Privacy
-    const privacyCheckbox = document.getElementById('allow-manager-view');
-    const privacyAllowed = privacyCheckbox ? privacyCheckbox.checked : true;
-
-    // Determine Status
-    const currentUser = JSON.parse(localStorage.getItem('currentUser')); // Owner exists?
-    const status = currentUser ? 'offline' : 'pending'; // Owner -> Approved (offline), Manager -> Pending
-
-    if (!currentUser) {
-        role = 'staff'; // Enforce
     }
 
-    const newEmp = {
-        empId, name, email, phone, role, salary, shiftStart, shiftEnd,
-        address, targetHours, privacyAllowed,
-        status: status,
-        password: 'password123', // Default password
-        joinedDate: new Date().toISOString().split('T')[0]
+    if (tStart && tEnd) {
+        tStart.addEventListener('change', calcHours);
+        tEnd.addEventListener('change', calcHours);
+        amStart.addEventListener('change', calcHours);
+        amEnd.addEventListener('change', calcHours);
+    }
+
+    btnAdd.addEventListener('click', () => {
+        modal.classList.add('active');
+    });
+
+    btnCancel.addEventListener('click', () => {
+        modal.classList.remove('active');
+    });
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const name = document.getElementById('emp-name').value;
+        const photoInput = document.getElementById('emp-photo');
+        const aadhaar = document.getElementById('emp-aadhaar').value;
+        const address = document.getElementById('emp-address').value;
+
+        const phone = document.getElementById('emp-phone').value;
+        const email = document.getElementById('emp-email').value;
+        const emergency = document.getElementById('emp-emergency').value;
+
+        const role = document.getElementById('emp-role').value;
+        const salary = document.getElementById('emp-salary').value;
+
+        const shiftStart = document.getElementById('emp-shift-start').value;
+        const shiftEnd = document.getElementById('emp-shift-end').value;
+        const targetHours = document.getElementById('emp-hours').value;
+
+        const passwordInput = document.getElementById('emp-password').value.trim();
+        let finalPassword = passwordInput || "123456";
+        const isDefaultPassword = !passwordInput;
+
+        // Process Photo
+        let photoData = null;
+        if (photoInput.files && photoInput.files[0]) {
+            photoData = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (ev) => resolve(ev.target.result);
+                reader.readAsDataURL(photoInput.files[0]);
+            });
+        }
+
+        // 1. Generate ID (Verified Unique)
+        let empId;
+        let idCounter = ownerEmployees.length + 1;
+        let loopSafety = 0;
+        const ownerPrefix = currentOwnerId || 'UNKNOWN';
+
+        do {
+            empId = `EMP-${ownerPrefix}-${String(idCounter).padStart(3, '0')}`;
+            idCounter++;
+            loopSafety++;
+            if (loopSafety > 200) { alert('Error generating unique ID. Please contact support.'); return; }
+        } while (employees.some(e => e.empId === empId));
+
+        // 2. Determine Status
+        const initialStatus = (userRole === 'owner') ? 'offline' : 'pending';
+
+        // 3. Create Object
+        const newEmployee = {
+            empId: empId,
+            ownerId: currentOwnerId,
+            name: name,
+            photo: photoData,
+            aadhaar: aadhaar,
+            address: address,
+
+            phone: phone,
+            email: email,
+            emergency: emergency,
+
+            // Fix #15: Store password as base64 but keep it protected
+            password: btoa(finalPassword),
+            requiresPasswordChange: isDefaultPassword,
+
+            role: role,
+            salary: salary,
+            shiftStart: `${shiftStart} ${document.getElementById('emp-audit-start').value}`,
+            shiftEnd: `${shiftEnd} ${document.getElementById('emp-audit-end').value}`,
+            targetHours: targetHours,
+
+            status: initialStatus,
+            addedBy: addedByRole,
+            joinedDate: new Date().toISOString()
+        };
+
+        // 4. Save
+        employees.push(newEmployee);
+        localStorage.setItem('quadstock_employees', JSON.stringify(employees));
+
+        // 5. Reset & Render
+        form.reset();
+        modal.classList.remove('active');
+        renderEmployees();
+
+        QuadModals.showToast(`Employee Added! ID: ${empId}`, 'success');
+    });
+
+    // --- 5. Global Actions (Approve/Delete) ---
+    // Attach to window for onclick access
+    window.approveEmployee = (id) => {
+        const emp = employees.find(e => e.empId === id);
+        if (emp && emp.ownerId === currentOwnerId) {
+            emp.status = 'offline'; // Approved!
+            localStorage.setItem('quadstock_employees', JSON.stringify(employees));
+            renderEmployees();
+            QuadModals.showToast(`Employee ${emp.name} Approved!`, 'success');
+        }
     };
 
-    const employees = JSON.parse(localStorage.getItem('quadstock_employees') || '[]');
-    employees.push(newEmp);
-    localStorage.setItem('quadstock_employees', JSON.stringify(employees));
+    window.deleteEmployee = async (id) => {
+        const confirmed = await QuadModals.confirm(
+            "Remove Employee",
+            "Are you sure you want to remove this employee? This action cannot be undone.",
+            { isDanger: true, confirmText: 'Remove' }
+        );
 
-    alert(currentUser ? 'Employee Added Successfully!' : 'Employee added and sent for Owner Approval.');
-    closeAddEmployeeModal();
+        if (!confirmed) return;
 
-    // Re-render (pass role)
-    const renderRole = currentUser ? 'owner' : 'manager';
-    renderEmployeeTable(employees, renderRole);
-    renderPendingAlert(employees, renderRole);
-}
+        // Secure Delete: Only remove if ID matches AND belongs to current owner
+        employees = employees.filter(e => !(e.empId === id && e.ownerId === currentOwnerId));
 
-// --- 360 Profile Logic ---
+        localStorage.setItem('quadstock_employees', JSON.stringify(employees));
+        renderEmployees();
+        QuadModals.showToast("Employee removed successfully", 'info');
+    };
 
-window.viewProfile = function (empId) {
-    const employees = JSON.parse(localStorage.getItem('quadstock_employees') || '[]');
-    const emp = employees.find(e => e.empId === empId);
+    // (Password display logic removed for security)
 
-    if (!emp) return;
+    window.promptChangePassword = async (id) => {
+        const newPass = await QuadModals.prompt(
+            "Change Password",
+            "Enter new login password for this employee:"
+        );
 
-    // Populate Data
-    document.getElementById('profile-emp-id').innerText = emp.empId;
-    document.getElementById('profile-name').innerText = emp.name;
-    document.getElementById('profile-role').innerText = emp.role.toUpperCase();
-
-    // Show Modal
-    // Show Modal
-    document.getElementById('profile-modal-overlay').classList.add('active');
-
-    // Tab 1: Profile & Identity (RBAC Padlock)
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    const isOwner = !!currentUser;
-    const canViewSensitive = isOwner || emp.privacyAllowed;
-
-    // Module 4: Change Role Button (Defect 4.2)
-    const actionContainer = document.getElementById('role-action-container');
-    if (actionContainer) {
-        if (isOwner && emp.role !== 'owner') {
-            const actionText = emp.role === 'manager' ? 'Demote to Staff' : 'Promote to Manager';
-            const btnClass = emp.role === 'manager' ? 'btn-danger' : 'btn-success';
-            const btnStyle = emp.role === 'manager' ? 'background:#ef4444; color:white;' : 'background:#16a34a; color:white;';
-
-            actionContainer.innerHTML = `<button onclick="toggleRole('${emp.empId}')" style="margin-top:1rem; padding:0.5rem 1rem; border:none; border-radius:0.5rem; cursor:pointer; font-size:0.85rem; ${btnStyle}">${actionText}</button>`;
-        } else {
-            actionContainer.innerHTML = '';
-        }
-    }
-
-
-
-    const sensitiveFieldStyle = canViewSensitive ? '' : 'filter: blur(6px); user-select: none; pointer-events: none; opacity: 0.6;';
-    const lockIcon = canViewSensitive ? '' : '<i class="fa-solid fa-lock" style="color:#64748b; margin-left:8px;" title="Restricted Access"></i>';
-
-    const emailEl = document.getElementById('view-email');
-    emailEl.innerHTML = canViewSensitive ? `<span>${emp.email}</span>` : `<span>****@****.com</span> ${lockIcon}`;
-    emailEl.style = 'font-weight:600;';
-
-    const phoneEl = document.getElementById('view-phone');
-    phoneEl.innerHTML = canViewSensitive ? `<span>${emp.phone}</span>` : `<span>+91 **********</span> ${lockIcon}`;
-    phoneEl.style = 'font-weight:600;';
-
-    const salaryEl = document.getElementById('view-salary');
-    salaryEl.innerHTML = canViewSensitive ? `<span>₹ ${emp.salary}</span>` : `<span>₹ *****</span> ${lockIcon}`;
-    salaryEl.style = canViewSensitive ? 'font-weight:600; color:#16a34a;' : 'font-weight:600; color:#64748b;';
-
-    // Module 4: Render Tabs
-    renderTimesheet(emp);
-    renderSales(emp);
-
-    // Activate Tab 1 by default
-    switchTab('tab-1');
-};
-
-// --- Module 4: Timesheet Engine ---
-// --- Module 4: Timesheet Engine (Updated for v2 Multi-Punch) ---
-function renderTimesheet(emp) {
-    const tableBody = document.getElementById('timesheet-body');
-    tableBody.innerHTML = '';
-
-    const attendance = JSON.parse(localStorage.getItem('quadstock_attendance_v2') || '[]');
-    // Sort desc by date
-    const empRecords = attendance.filter(r => r.empId === emp.empId).sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    if (empRecords.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:1rem; color:#94a3b8;">No attendance records found.</td></tr>';
-        return;
-    }
-
-    const target = emp.targetHours || 8;
-
-    empRecords.forEach(record => {
-        const sessions = record.sessions || [];
-
-        // Calculate Total Duration
-        let totalMs = 0;
-        let firstIn = '-';
-        let lastOut = '-';
-
-        if (sessions.length > 0) {
-            firstIn = new Date(sessions[0].in).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-            sessions.forEach(s => {
-                if (s.out && s.in) totalMs += (s.out - s.in);
-            });
-
-            const lastSession = sessions[sessions.length - 1];
-            if (lastSession.out) {
-                lastOut = new Date(lastSession.out).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            } else {
-                lastOut = '<span style="color:#eab308">Active</span>';
+        if (newPass) {
+            const emp = employees.find(e => e.empId === id && e.ownerId === currentOwnerId);
+            if (emp) {
+                emp.password = btoa(newPass);
+                emp.requiresPasswordChange = false;
+                localStorage.setItem('quadstock_employees', JSON.stringify(employees));
+                renderEmployees();
+                QuadModals.showToast("Password updated successfully!", 'success');
             }
         }
+    };
 
-        const durationHrs = (totalMs / (1000 * 60 * 60));
-        const hrs = Math.floor(durationHrs);
-        const mins = Math.round((durationHrs - hrs) * 60);
-        const hoursDisplay = `${hrs}h ${mins}m`;
+    // Init
+    renderEmployees();
 
-        // Smart Badge
-        let statusBadge = '<span class="badge" style="background:#f1f5f9; color:#64748b;">Ongoing</span>';
-        if (sessions.length > 0 && sessions[sessions.length - 1].out) {
-            if (durationHrs >= target) {
-                statusBadge = '<span class="badge" style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0;">Goal Met</span>';
-            } else {
-                statusBadge = '<span class="badge" style="background:#fef2f2; color:#ef4444; border:1px solid #fecaca;">Short</span>';
-            }
+    // --- 6. Secure Data Handler (Real Architecture) ---
+    const handleStaffUpdate = (updatedEmp) => {
+        // Find in GLOBAL list using ID + Owner Check for safety
+        const globalIndex = employees.findIndex(e => e.empId === updatedEmp.empId && e.ownerId === currentOwnerId);
+
+        if (globalIndex === -1) {
+            QuadModals.showToast("Error: Employee record not found in global database.", 'error');
+            return;
         }
 
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td style="padding:0.75rem; border-bottom:1px solid #f1f5f9; font-size:0.9rem;">${record.date}</td>
-            <td style="padding:0.75rem; border-bottom:1px solid #f1f5f9; font-family:monospace;">${firstIn}</td>
-            <td style="padding:0.75rem; border-bottom:1px solid #f1f5f9; font-family:monospace;">${lastOut}</td>
-            <td style="padding:0.75rem; border-bottom:1px solid #f1f5f9; font-weight:600;">${hoursDisplay}</td>
-            <td style="padding:0.75rem; border-bottom:1px solid #f1f5f9;">${statusBadge}</td>
-        `;
-        tableBody.appendChild(row);
-    });
-}
+        // Merge updates securely
+        employees[globalIndex] = { ...employees[globalIndex], ...updatedEmp };
 
-function formatTimeForDisplay(val) {
-    if (!val) return { display: '-', raw: null };
-    // If it's a number (timestamp)
-    if (typeof val === 'number') {
-        return { display: new Date(val).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), raw: val };
-    }
-    // If it's a legacy string (Module 5 migration fallback)
-    return { display: val, raw: null };
-}
-
-// --- Module 4: Sales Performance (Mock) ---
-function renderSales(emp) {
-    const tableBody = document.getElementById('sales-body');
-    const revEl = document.getElementById('sales-revenue');
-    const countEl = document.getElementById('sales-count');
-
-    // Mock Data Generator
-    // logic: randomly generate 2-3 sales for demo
-    tableBody.innerHTML = '';
-
-    // Check if sales data exists (Mocking for now as no quadstock_sales required in prompt)
-    // We will simulate data based on EmpID
-    const seed = emp.empId.charCodeAt(emp.empId.length - 1);
-    const isSalesRole = true;
-
-    if (!isSalesRole) {
-        tableBody.innerHTML = '<tr><td colspan="2" style="text-align:center;">No sales data.</td></tr>';
-        return;
-    }
-
-    const items = [
-        { name: 'Wireless Mouse', price: 450 },
-        { name: 'Mechanical Keyboard', price: 2500 },
-        { name: 'USB-C Hub', price: 1200 },
-        { name: 'Monitor Stand', price: 800 }
-    ];
-
-    let totalRev = 0;
-    let totalItems = 0;
-
-    // Generate 3 random sales
-    for (let i = 0; i < 3; i++) {
-        const item = items[(seed + i) % items.length];
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td style="padding:0.75rem; border-bottom:1px solid #f1f5f9; font-size:0.9rem;">
-                <div style="font-weight:500; color:#334155;">${item.name}</div>
-                <div style="font-size:0.75rem; color:#94a3b8;">INV-${1000 + i}</div>
-            </td>
-            <td style="padding:0.75rem; border-bottom:1px solid #f1f5f9; text-align:right; font-weight:600; color:#0f172a;">₹ ${item.price}</td>
-        `;
-        tableBody.appendChild(row);
-        totalRev += item.price;
-        totalItems++;
-    }
-
-    revEl.innerText = `₹ ${totalRev}`;
-    countEl.innerText = totalItems;
-
-
-
-}
-
-window.closeProfileModal = function () {
-    document.getElementById('profile-modal-overlay').classList.remove('active');
-};
-
-window.switchTab = function (tabId) {
-    // Hide all
-    document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
-    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-
-    // Show selected
-    document.getElementById(tabId).style.display = 'block';
-
-    // Find button
-    const btn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick').includes(tabId));
-    if (btn) btn.classList.add('active');
-};
-
-// Expose filter pending for button
-window.filterPending = function () {
-    // Simple alert for now
-    alert("Filtering pending employees... (Implementation note: This would update the table filter)");
-};
-
-window.approveEmployee = function (empId) {
-    const employees = JSON.parse(localStorage.getItem('quadstock_employees') || '[]');
-    const empIndex = employees.findIndex(e => e.empId === empId);
-    if (empIndex > -1) {
-        employees[empIndex].status = 'offline'; // Approved (but offline initially)
-        localStorage.setItem('quadstock_employees', JSON.stringify(employees));
-        renderEmployeeTable(employees, 'owner');
-        renderPendingAlert(employees, 'owner');
-    }
-}
-
-window.toggleRole = function (empId) {
-    const employees = JSON.parse(localStorage.getItem('quadstock_employees') || '[]');
-    const index = employees.findIndex(e => e.empId === empId);
-    if (index > -1) {
-        // Toggle Role
-        const currentRole = employees[index].role;
-        const newRole = currentRole === 'manager' ? 'staff' : 'manager';
-
-        employees[index].role = newRole;
+        // Save Global
         localStorage.setItem('quadstock_employees', JSON.stringify(employees));
 
-        // Update UI
-        document.getElementById('profile-role').innerText = newRole.toUpperCase();
-        viewProfile(empId); // Refresh modal logic
+        // Refresh UI
+        renderEmployees();
+        QuadModals.showToast("Employee details updated successfully!", 'success');
+    };
 
-        // Refresh Table logic behind modal
-        renderEmployeeTable(employees, 'owner');
-
-        alert(`Role updated to ${newRole.toUpperCase()}`);
+    // Initialize Staff 360 Detail Logic (Securely)
+    if (typeof initStaffDetails === 'function') {
+        // Fix: Pass as a getter function so reference stays fresh
+        initStaffDetails(() => ownerEmployees, currentOwnerId, handleStaffUpdate);
     }
-};
-
-window.logout = function () {
-    const currentUser = localStorage.getItem('currentUser');
-    const currentEmployee = localStorage.getItem('currentEmployee');
-
-    // Clear Session
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('currentEmployee');
-
-    // Redirect
-    if (currentUser) {
-        window.location.href = '../Authentication/owner_login.html';
-    } else {
-        window.location.href = '../Authentication/employee_login.html';
-    }
-};
+});

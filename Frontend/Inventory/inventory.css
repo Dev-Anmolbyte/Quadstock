@@ -285,15 +285,16 @@ body {
 }
 
 /* Main Content */
+/* Main Content */
 .main-content {
     flex: 1;
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    /* Lock main scroll */
     position: relative;
     padding: 1.5rem;
-    overflow-y: auto;
-    /* Enable scrolling for main content */
+    /* Removed overflow-y: auto to enforce table scrolling instead */
 }
 
 /* Top Bar */
@@ -564,14 +565,21 @@ body {
     border: 1px solid var(--border-color);
     box-shadow: var(--card-shadow);
     overflow: hidden;
-    flex: 1;
+    /* Flex grow */
     display: flex;
     flex-direction: column;
+    /* IMPORTANT: Allow it to shrink/grow in the flex container */
+    flex: 1;
+    min-height: 0;
 }
 
 .table-responsive {
     overflow-x: auto;
     overflow-y: auto;
+    height: 100%;
+    /* Fill the card */
+    flex: 1;
+    /* Grow to fill card */
 }
 
 .inventory-table {
@@ -597,7 +605,8 @@ body {
     color: var(--text-secondary);
     position: sticky;
     top: 0;
-    z-index: 10;
+    z-index: 20;
+    /* Ensure header stays on top */
 }
 
 .inventory-table tbody tr:hover {
@@ -736,6 +745,28 @@ body {
     justify-content: space-between;
     align-items: center;
     background: var(--bg-body);
+}
+
+.close-modal {
+    background: transparent;
+    border: none;
+    font-size: 2rem;
+    line-height: 1;
+    color: var(--text-secondary);
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.close-modal:hover {
+    background: var(--c-red-bg);
+    color: var(--c-red-text);
+    transform: rotate(90deg);
 }
 
 .modal-body {
@@ -1322,64 +1353,216 @@ input:checked+.slider:before {
 @media (max-width: 768px) {
     .layout-container {
         flex-direction: column;
-        height: auto;
-        overflow-y: auto;
+        height: 100vh;
+        overflow: hidden;
     }
 
+    .main-content {
+        padding: 1rem;
+        height: 100dvh;
+        /* Use dynamic viewport height */
+        overflow-y: auto;
+        padding-bottom: 90px;
+        /* Extra padding for bottom sidebar */
+    }
+
+    /* Bottom Navigation Sidebar */
     .sidebar {
         width: 100% !important;
-        /* Force override */
         height: auto;
         flex-direction: row;
         align-items: center;
-        padding: 1rem;
+        padding: 0.5rem 1rem;
         overflow-y: hidden;
         overflow-x: auto;
-        margin-bottom: 0.5rem;
-        flex-shrink: 0;
-    }
-
-    /* Reset collapsed state on mobile */
-    .layout-container.sidebar-collapsed .sidebar {
-        width: 100% !important;
-        padding: 1rem !important;
-    }
-
-    .layout-container.sidebar-collapsed .menu-item span,
-    .layout-container.sidebar-collapsed .brand h2,
-    .layout-container.sidebar-collapsed .brand-text {
-        opacity: 1 !important;
-        width: auto !important;
-        height: auto !important;
-        overflow: visible !important;
-        transform: none !important;
-        display: inline-block !important;
-        visibility: visible !important;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        z-index: 100;
+        background: var(--bg-white);
+        border-top: 1px solid var(--border-color);
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+        justify-content: space-around;
+        border-radius: 0;
+        margin: 0;
     }
 
     .sidebar-menu {
         display: flex;
         flex-direction: row;
-        gap: 1rem;
-        margin-bottom: 0;
+        gap: 0;
+        width: 100%;
+        justify-content: space-between;
+        margin: 0;
     }
 
     .menu-item {
-        white-space: nowrap;
-        padding: 0.5rem 1rem;
-        min-width: fit-content;
+        flex-direction: column;
+        padding: 0.5rem;
+        font-size: 0.7rem;
+        gap: 0.25rem;
+        border-radius: 0.5rem;
+        min-width: 60px;
     }
 
-    .brand {
-        margin-bottom: 0;
-        margin-right: 1.5rem;
+    .menu-item i {
+        font-size: 1.2rem;
+        margin: 0;
     }
 
-    .sidebar-footer-card {
-        display: none;
+    .menu-item span {
+        font-size: 0.65rem;
+        display: block !important;
+        /* Force show text */
+        opacity: 1 !important;
+        visibility: visible !important;
     }
 
+    /* Hide non-essential mobile elements */
+    .brand,
+    .sidebar-footer-card,
     .sidebar-toggle {
+        display: none !important;
+    }
+
+    /* Summary Deck */
+    .summary-deck {
+        grid-template-columns: 1fr 1fr;
+        /* 2 columns on mobile */
+        gap: 0.75rem;
+    }
+
+    .summary-card {
+        padding: 0.75rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .card-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
+    }
+
+    .card-value {
+        font-size: 1.25rem;
+    }
+
+    /* Control Bar */
+    .control-bar-container {
+        padding: 0.75rem;
+        gap: 0.75rem;
+    }
+
+    .control-bar-top {
+        /* Stack items */
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .search-box,
+    .action-buttons {
+        width: 100%;
+    }
+
+    .action-buttons {
+        justify-content: space-between;
+    }
+
+    .action-buttons button {
+        flex: 1;
+        justify-content: center;
+        font-size: 0.8rem;
+        padding: 0.6rem;
+    }
+
+    /* Filters */
+    .control-bar-filters {
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Table Adjustments */
+    .card {
+        flex: 1;
+        /* Take remaining space */
+        min-height: 400px;
+        /* Ensure minimum height */
+        display: flex;
+        flex-direction: column;
+    }
+
+    .table-responsive {
+        height: auto;
+        /* Let flex handle it */
+        flex: 1;
+    }
+
+    /* Hide specific columns on mobile to fit screen */
+    .inventory-table th:nth-child(4),
+    .inventory-table td:nth-child(4),
+    /* Batch Info */
+    .inventory-table th:nth-child(6),
+    .inventory-table td:nth-child(6) {
+        /* Expiry */
         display: none;
     }
+
+    .inventory-table {
+        min-width: 100%;
+        /* Allow shrinking */
+    }
+
+    .inventory-table th,
+    .inventory-table td {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.8rem;
+    }
+
+    /* Adjust Modal for Mobile */
+    .large-modal {
+        width: 100%;
+        height: 100%;
+        max-height: 100%;
+        border-radius: 0;
+    }
+
+    .modal-content {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .modal-body {
+        flex: 1;
+    }
+}
+
+/* Full Table View Mode */
+body.full-table-view .sidebar,
+body.full-table-view .summary-deck,
+body.full-table-view .top-bar {
+    display: none !important;
+}
+
+body.full-table-view .main-content {
+    padding: 0;
+    height: 100vh;
+}
+
+body.full-table-view .control-bar-container {
+    border-radius: 0;
+    border: none;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 0;
+    padding: 0.75rem 1rem;
+}
+
+body.full-table-view .card {
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
 }

@@ -2,7 +2,7 @@ import { updateDashboardStats, resetNotification } from '../Shared/dashboard_sta
 
 // --- Authentication Check (Start of file) ---
 if (!localStorage.getItem('currentEmployee')) {
-    window.location.href = '../EmployeeLogin/employee_login.html';
+    window.location.href = '../Authentication/employee_login.html';
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function () {
         logoutBtn.addEventListener('click', (e) => {
             e.preventDefault();
             localStorage.removeItem('currentEmployee');
-            window.location.replace('../EmployeeLogin/employee_login.html');
+            window.location.replace('../Authentication/employee_login.html');
         });
     }
 

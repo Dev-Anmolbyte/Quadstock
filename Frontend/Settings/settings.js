@@ -49,9 +49,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Logout Logic ---
     document.getElementById('logout-btn').addEventListener('click', () => {
         showModal('warning', 'Logout', 'Are you sure you want to logout?', () => {
-            sessionStorage.removeItem('activeUser');
-            sessionStorage.removeItem('activeRole');
-            window.location.href = '../Ownerlogin/login.html';
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('currentEmployee');
+            window.location.href = '../landing/landing.html';
         });
     });
 
@@ -151,7 +151,8 @@ function handleRoleAccess() {
     const roleParam = urlParams.get('role');
 
     // Or check localStorage auth
-    const userRole = roleParam || (localStorage.getItem('currentEmployee') ? 'manager' : 'owner');
+    const currentEmployee = JSON.parse(localStorage.getItem('currentEmployee'));
+    const userRole = roleParam || (currentEmployee ? (currentEmployee.role || 'staff') : 'owner');
 
     if (userRole === 'manager') {
         const dataSection = document.getElementById('data-mgmt-section');
@@ -164,6 +165,27 @@ function handleRoleAccess() {
         if (dashLink) {
             dashLink.href = '../Managerdashboard/manager_dashboard.html';
             dashLink.innerHTML = '<i class="fa-solid fa-house"></i><span>Manager Dashboard</span>';
+        }
+    } else if (userRole === 'inventory_manager') {
+        const dataSection = document.getElementById('data-mgmt-section');
+        if (dataSection) {
+            dataSection.style.display = 'none';
+        }
+
+        // Sidebar Injection for Settings Page
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) {
+            sidebar.innerHTML = `
+                <div class="sidebar-header">
+                    <h3>QuadStock</h3>
+                     <button id="sidebar-toggle-btn" class="sidebar-toggle"><i class="fa-solid fa-bars"></i></button>
+                </div>
+                <ul class="nav-links">
+                    <li><a href="../Inventory/inventory.html"><i class="fa-solid fa-boxes-stacked"></i> Inventory</a></li>
+                    <li><a href="../Settings/settings.html" class="active"><i class="fa-solid fa-gear"></i> Settings</a></li>
+                    <li><a href="../landing/landing.html"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
+                </ul>
+            `;
         }
     }
 }
@@ -218,17 +240,19 @@ function changePassword() {
         return;
     }
 
-    const activeUser = sessionStorage.getItem('activeUser');
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    const currentEmployee = JSON.parse(localStorage.getItem('currentEmployee'));
+    const activeUser = currentUser ? (currentUser.username || currentUser.email) : (currentEmployee ? currentEmployee.empId : null);
 
     if (!activeUser) {
         showModal('error', 'Session Expired', 'Please login again.', () => {
-            window.location.href = '../Ownerlogin/login.html';
+            window.location.href = '../landing/landing.html';
         });
         return;
     }
 
     // Role check for data source
-    const role = sessionStorage.getItem('activeRole');
+    const role = currentUser ? 'owner' : (currentEmployee ? currentEmployee.role : 'owner');
     let users = [];
     let storageKey = '';
 
@@ -236,8 +260,8 @@ function changePassword() {
         users = JSON.parse(localStorage.getItem('quadstock_users')) || [];
         storageKey = 'quadstock_users';
     } else {
-        users = JSON.parse(localStorage.getItem('employees')) || [];
-        storageKey = 'employees';
+        users = JSON.parse(localStorage.getItem('quadstock_employees')) || [];
+        storageKey = 'quadstock_employees';
     }
 
     // Find user (checking both username and email to be safe as per login systems)

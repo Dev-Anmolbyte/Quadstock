@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QuadStock | Smart Kirana & Clothing Inventory</title>
+    <link rel="stylesheet" href="../Shared/global.css">
     <link rel="stylesheet" href="landing.css">
     <!-- script src="../Authentication/script.js" removed to avoid conflicts -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -25,12 +26,11 @@
 </head>
 
 <body class="bg-orange-50/30 dark:bg-slate-950 transition-colors duration-300">
-    <!-- Top Indian Flag Accent -->
-    <div class="india-accent fixed top-0 left-0 z-[60]"></div>
-
     <!-- Navigation -->
-    <nav class="fixed top-1 w-full z-50 glass border-b border-orange-200/50 dark:border-gray-800">
-        <div class="w-full px-8 lg:px-12">
+    <nav class="fixed top-0 w-full z-[100] glass border-b border-orange-200/50 dark:border-gray-800">
+        <!-- Top Indian Flag Accent -->
+        <div class="india-accent absolute top-0 left-0"></div>
+        <div class="w-full px-8 lg:px-12 pt-1">
             <div class="flex justify-between h-20 items-center">
                 <div class="flex items-center gap-3">
                     <div class="bg-primary p-1.5 rounded-lg shadow-lg">
@@ -60,7 +60,7 @@
                     <a href="../Authentication/signup.html"
                         class="bg-white hover:bg-gray-50 text-slate-800 border border-gray-200 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide transition shadow-sm">Register
                         Store</a>
-                    <a href="../EmployeeLogin/employee_login.html"
+                    <a href="../Authentication/employee_login.html"
                         class="bg-accent hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide transition shadow-md shadow-green-500/20">Employee
                         Login</a>
                     <button id="theme-toggle"
@@ -569,6 +569,7 @@
         </div>
     </footer>
 
+    <script src="../Shared/offline.js"></script>
     <script src="landing.js"></script>
 </body>
 

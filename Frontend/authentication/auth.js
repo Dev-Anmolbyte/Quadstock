@@ -101,6 +101,19 @@ document.addEventListener('DOMContentLoaded', () => {
     if (signupForm) {
         signupForm.addEventListener('submit', (e) => {
             e.preventDefault();
+            const submitBtn = signupForm.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.dataset.originalText = submitBtn.innerText;
+                submitBtn.innerText = 'Creating Account...';
+            }
+
+            const restoreBtn = () => {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = submitBtn.dataset.originalText || 'Register Shop';
+                }
+            };
 
             const email = document.getElementById('email').value;
             const password = document.getElementById('signup-password').value;
@@ -133,29 +146,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 clearError(document.getElementById('phone'));
             }
 
-            if (!isValid) return;
+            if (!isValid) { restoreBtn(); return; }
 
             // Check if user exists
             const users = getUsers();
             if (users.find(u => u.email === email)) {
                 showError(document.getElementById('email'), 'User already exists with this email. Please Login.');
                 // setTimeout(() => window.location.href = 'login.html', 2000); // Optional auto-redirect
+                restoreBtn();
                 return;
             } else {
                 clearError(document.getElementById('email'));
             }
 
-            // Generate Unique ID
-            const uniqueId = 'QS-' + Math.floor(10000 + Math.random() * 90000);
+            // Generate Owner ID
+            const ownerId = 'QS-' + Math.floor(10000 + Math.random() * 90000);
 
             // Register User
             const newUser = {
                 email,
-                password, // In real app, hash this!
+                password: btoa(password), // Storing Base64 encoded password for basic obfuscation
                 ownerName,
                 shopName,
                 phone,
-                uniqueId: uniqueId
+                ownerId: ownerId
             };
 
             saveUser(newUser);
@@ -165,14 +179,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const ownerIdDisplay = document.getElementById('generated-owner-id');
             const copyBtn = document.getElementById('copy-id-btn');
 
+            restoreBtn(); // Done processing
+
             if (modal && ownerIdDisplay) {
-                ownerIdDisplay.textContent = uniqueId;
+                ownerIdDisplay.textContent = ownerId;
                 modal.classList.add('active');
 
                 // Copy Functionality
                 if (copyBtn) {
                     copyBtn.onclick = () => { // Use onclick to avoid multiple bindings if re-run
-                        navigator.clipboard.writeText(uniqueId).then(() => {
+                        navigator.clipboard.writeText(ownerId).then(() => {
                             const originalIcon = '<i class="fa-regular fa-copy"></i>';
                             copyBtn.innerHTML = '<i class="fa-solid fa-check"></i>';
                             copyBtn.style.color = 'var(--primary-green)';
@@ -184,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             console.error('Failed to copy: ', err);
                             // Fallback for non-secure contexts
                             const textArea = document.createElement("textarea");
-                            textArea.value = uniqueId;
+                            textArea.value = ownerId;
                             document.body.appendChild(textArea);
                             textArea.select();
                             try {
@@ -205,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } else {
                 // Fallback if modal elements missing
-                alert(`Registration Successful! Your Owner ID is: ${uniqueId}`);
+                alert(`Registration Successful! Your Owner ID is: ${ownerId}`);
                 window.location.href = 'login.html';
             }
         });
@@ -226,6 +242,19 @@ document.addEventListener('DOMContentLoaded', () => {
         loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
 
+            const submitBtn = loginForm.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.dataset.originalText = submitBtn.innerText;
+                submitBtn.innerText = 'Loggin in...';
+            }
+            const restoreBtn = () => {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = submitBtn.dataset.originalText || 'Login';
+                }
+            };
+
             const emailOrId = document.getElementById('login-id').value.trim();
             const password = document.getElementById('password').value.trim();
 
@@ -234,6 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     loginError.style.display = 'block';
                     loginError.textContent = 'Please enter your details.';
                 }
+                restoreBtn();
                 return;
             }
 
@@ -241,12 +271,24 @@ document.addEventListener('DOMContentLoaded', () => {
             const user = users.find(u =>
                 (u.email && u.email.toLowerCase() === emailOrId.toLowerCase()) ||
                 (u.phone && u.phone === emailOrId) ||
-                (u.uniqueId && u.uniqueId.toUpperCase() === emailOrId.toUpperCase())
+                (u.ownerId && u.ownerId.toUpperCase() === emailOrId.toUpperCase())
             );
 
             if (user) {
                 // Owner Found
+                let isPasswordValid = false;
+
                 if (user.password === password) {
+                    // Plain text match - Upgrade to Base64
+                    user.password = btoa(password);
+                    localStorage.setItem('quadstock_users', JSON.stringify(users));
+                    isPasswordValid = true;
+                } else if (user.password === btoa(password)) {
+                    // Base64 match
+                    isPasswordValid = true;
+                }
+
+                if (isPasswordValid) {
                     localStorage.setItem('currentUser', JSON.stringify(user));
                     window.location.href = '../Ownerdashboard/dashboard.html';
                 } else {
@@ -254,6 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         loginError.style.display = 'block';
                         loginError.textContent = 'Invalid credentials. Please try again.';
                     }
+                    restoreBtn();
                 }
             } else {
                 // Not Owner. Check if Employee Credentials.
@@ -275,7 +318,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     setTimeout(() => {
                         window.location.href = 'employee_login.html';
                     }, 3000);
-                    return;
+                    return; // Don't restore button here to prevent double clicks during redirect wait
                 }
 
                 // Not found anywhere

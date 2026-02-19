@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const owners = JSON.parse(localStorage.getItem('quadstock_users') || '[]');
                 const owner = owners.find(o =>
                     (o.email && o.email.toLowerCase() === empId.toLowerCase()) ||
-                    (o.uniqueId && o.uniqueId.toUpperCase() === empId.toUpperCase())
+                    (o.ownerId && o.ownerId.toUpperCase() === empId.toUpperCase())
                 );
 
                 // Note: We don't check owner password here strictly for redirection hint, 
@@ -78,18 +78,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // 2. Check Employee Credentials
                 const employees = JSON.parse(localStorage.getItem('quadstock_employees') || '[]');
-                const employee = employees.find(e => e.empId === empId && e.password === password);
+                let employee = employees.find(e => e.empId === empId);
+
+                // Verify Password and Migrate if needed
+                if (employee) {
+                    if (employee.password === password) {
+                        // Plain text match - Upgrade to Base64 (simple obfuscation)
+                        employee.password = btoa(password);
+                        localStorage.setItem('quadstock_employees', JSON.stringify(employees));
+                    } else if (employee.password !== btoa(password)) {
+                        // Password mismatch (and not upgraded match)
+                        employee = null; // Invalid credentials
+                    }
+                }
 
                 if (employee) {
                     // Success
+                    if (employee.status === 'pending' || employee.status === 'blocked' || employee.status === 'offline') {
+                        showError(loginBtn, 'Account Access Restricted. Contact Administrator.');
+                        loginBtn.innerHTML = originalContent;
+                        loginBtn.disabled = false;
+                        return;
+                    }
+
                     localStorage.setItem('currentEmployee', JSON.stringify(employee));
 
                     loginBtn.innerHTML = '<i class="fa-solid fa-check"></i> Success!';
                     loginBtn.style.background = '#22c55e'; // Green
 
-                    setTimeout(() => {
-                        window.location.href = '../Employees/staff_dashboard.html'; // Or dashboard based on role
-                    }, 500);
+                    if (employee.role === 'manager') {
+                        window.location.href = '../Managerdashboard/manager_dashboard.html';
+                    } else if (employee.role === 'inventory_manager') {
+                        window.location.href = '../Inventory/inventory.html';
+                    } else {
+                        // Staff
+                        window.location.href = '../StaffDashboard/staff_dashboard.html';
+                    }
                 } else {
                     // Fail
                     showError(loginBtn, 'Invalid Employee ID or Password.');

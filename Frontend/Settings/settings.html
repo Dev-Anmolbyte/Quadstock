@@ -10,8 +10,10 @@
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- CSS -->
+    <link rel="stylesheet" href="../Shared/global.css">
     <link rel="stylesheet" href="settings.css">
     <link rel="stylesheet" href="../Shared/notification_badge.css">
+    <script src="../Shared/offline.js"></script>
 </head>
 
 <body data-theme="light">
@@ -30,14 +32,41 @@
             </div>
 
             <nav class="nav-menu">
-                <a href="../Ownerdashboard/dashboard.html" class="nav-item">
+                <a href="../Ownerdashboard/dashboard.html" class="nav-item" title="Dashboard">
                     <i class="fa-solid fa-house"></i>
                     <span>Dashboard</span>
                 </a>
+                <a href="../Analytics/analytics.html" class="nav-item" title="Analytics">
+                    <i class="fa-solid fa-chart-simple"></i>
+                    <span>Analytics</span>
+                </a>
+                <a href="../Query/query.html" class="nav-item" title="Query">
+                    <i class="fa-solid fa-clipboard-question"></i>
+                    <span>Query</span>
+                </a>
+                <a href="../Inventory/inventory.html" class="nav-item" title="Inventory">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                    <span>Inventory</span>
+                </a>
+                <a href="../Employees/employees.html" class="nav-item" title="Employees">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Employees</span>
+                </a>
+                <a href="../smartexpiry/smartexpiry.html" class="nav-item" title="Smart Expiry">
+                    <i class="fa-solid fa-hourglass-end"></i>
+                    <span>Smart Expiry</span>
+                </a>
 
+                <a href="../Complain/complain.html" class="nav-item" title="Complain">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span>Complain</span>
+                </a>
+                <a href="../Udhaar/udhaar.html" class="nav-item" title="Pending Payments">
+                    <i class="fa-solid fa-indian-rupee-sign"></i>
+                    <span>Udhaar/Pending</span>
+                </a>
                 <div class="nav-divider"></div>
-
-                <a href="#" class="nav-item active">
+                <a href="settings.html" class="nav-item active" title="Settings">
                     <i class="fa-solid fa-gear"></i>
                     <span>Settings</span>
                 </a>
@@ -317,7 +346,40 @@
     </div>
 
     <!-- Script -->
+    <script src="../Shared/offline.js"></script>
+    <script src="../Shared/rbac.js"></script>
     <script src="settings.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const role = urlParams.get('role') || 'owner';
+
+            // Update Dashboard Link
+            const dashboardLink = document.querySelector('a[title="Dashboard"]');
+            if (dashboardLink) {
+                if (role === 'manager') {
+                    dashboardLink.href = "../Managerdashboard/manager_dashboard.html";
+                } else {
+                    dashboardLink.href = "../Ownerdashboard/dashboard.html";
+                }
+            }
+
+            // Update All Role-Dependent Links
+            const modules = ['analytics', 'query', 'inventory', 'smartexpiry', 'employees', 'complain', 'udhaar', 'settings'];
+            modules.forEach(mod => {
+                const link = document.querySelector(`a[href*="${mod}.html"]`);
+                if (link) {
+                    const currentHref = link.getAttribute('href');
+                    if (currentHref.includes('?')) {
+                        if (!currentHref.includes('role=')) link.setAttribute('href', `${currentHref}&role=${role}`);
+                        else link.setAttribute('href', currentHref.replace(/role=[^&]*/, `role=${role}`));
+                    } else {
+                        link.setAttribute('href', `${currentHref}?role=${role}`);
+                    }
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>

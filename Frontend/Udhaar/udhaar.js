@@ -88,6 +88,21 @@ document.addEventListener('DOMContentLoaded', () => {
         dateInput.valueAsDate = new Date();
     }
 
+    // Contact Number Restriction (Only Numbers, Max 10)
+    const contactInput = document.getElementById('u-contact');
+    if (contactInput) {
+        contactInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
+        });
+
+        // Also validate on blur for user feedback
+        contactInput.addEventListener('blur', (e) => {
+            if (e.target.value.length > 0 && e.target.value.length < 10) {
+                alert('Contact number must be exactly 10 digits.');
+            }
+        });
+    }
+
     // Initial Render
     renderTable();
     updateStats();
@@ -120,14 +135,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const initialAmount = parseFloat(document.getElementById('u-amount').value);
         const date = document.getElementById('u-date').value;
+        const dueDate = document.getElementById('u-due-date').value;
         const note = document.getElementById('u-desc').value;
+        const contact = document.getElementById('u-contact').value;
+
+        // Validation
+        if (!dueDate) {
+            alert('Please select an Expected Payment Date.');
+            return;
+        }
+
+        if (contact && contact.length !== 10) {
+            alert('Contact number must be exactly 10 digits.');
+            return;
+        }
 
         const newRecord = {
             id: Date.now().toString(),
             date: date,
-            dueDate: document.getElementById('u-due-date').value,
+            dueDate: dueDate,
             name: document.getElementById('u-name').value,
-            contact: document.getElementById('u-contact').value,
+            contact: contact,
             totalAmount: initialAmount,
             balance: initialAmount,
             status: 'pending',

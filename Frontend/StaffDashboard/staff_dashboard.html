@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuadStock - Staff Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../Shared/global.css">
+    <style>
+        body {
+            padding: 2rem;
+            background: var(--bg-light);
+            color: var(--text-dark);
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .btn-punch {
+            background: var(--primary);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        [data-theme='dark'] .card {
+            background: #1e293b;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard-header">
+        <div>
+            <h1 class="text-2xl font-bold">Staff Dashboard</h1>
+            <p class="text-muted">Welcome back, <span id="staff-name">User</span></p>
+        </div>
+        <button class="action-btn" onclick="logout()">Logout</button>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <h3 class="font-bold mb-2">Attendance</h3>
+            <p class="text-sm text-muted mb-4">Mark your attendance for today.</p>
+            <button class="btn-punch" id="btn-punch">Punch In</button>
+            <div id="punch-status" class="mt-2 text-sm font-bold text-accent"></div>
+        </div>
+
+        <div class="card">
+            <h3 class="font-bold mb-2">My Tasks</h3>
+            <p class="text-sm text-muted">No pending tasks assigned.</p>
+        </div>
+
+        <div class="card">
+            <h3 class="font-bold mb-2">Selling</h3>
+            <p class="text-sm text-muted">Point of Sale system coming soon.</p>
+            <button class="action-btn mt-2" onclick="window.location.href='../Sales/sales.html'">Open POS</button>
+        </div>
+    </div>
+
+    <script>
+        const emp = JSON.parse(localStorage.getItem('currentEmployee'));
+        if (!emp) window.location.href = '../Authentication/employee_login.html';
+
+        document.getElementById('staff-name').textContent = emp.name;
+
+        // Simple Punch Logic
+        const btnPunch = document.getElementById('btn-punch');
+        const statusDiv = document.getElementById('punch-status');
+        let punchedIn = false;
+
+        btnPunch.addEventListener('click', () => {
+            punchedIn = !punchedIn;
+            btnPunch.textContent = punchedIn ? 'Punch Out' : 'Punch In';
+            btnPunch.style.background = punchedIn ? '#ef4444' : 'var(--primary)';
+            statusDiv.textContent = punchedIn ? 'Clocked In at ' + new Date().toLocaleTimeString() : '';
+        });
+
+        window.logout = () => {
+            localStorage.removeItem('currentEmployee');
+            window.location.href = '../Authentication/employee_login.html';
+        }
+    </script>
+</body>
+
+</html>

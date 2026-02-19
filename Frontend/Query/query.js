@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="nav-section">
                     <h3 class="section-title">Stock & Staff</h3>
                     <nav class="nav-menu">
-                        <a href="#" class="nav-item">
+                        <a href="../Inventory/inventory.html" class="nav-item">
                             <i class="fa-solid fa-boxes-stacked"></i>
                             <span>Inventory</span>
                         </a>
@@ -47,10 +47,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             <i class="fa-solid fa-hourglass-end"></i>
                             <span>Smart Expiry</span>
                         </a>
-                        <a href="#" class="nav-item">
-                            <i class="fa-solid fa-users-gear"></i>
+                        <a href="../Employees/employees.html" class="nav-item">
+                            <i class="fa-solid fa-users"></i>
                             <span>Employees</span>
                         </a>
+
                     </nav>
                 </div>
                 <div class="nav-section">
@@ -60,11 +61,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             <i class="fa-solid fa-triangle-exclamation"></i>
                             <span>Complain</span>
                         </a>
-                        <a href="#" class="nav-item">
-                            <i class="fa-solid fa-file-invoice-dollar"></i>
-                            <span>Pending Payments</span>
+                        <a href="../Udhaar/udhaar.html" class="nav-item">
+                            <i class="fa-solid fa-indian-rupee-sign"></i>
+                            <span>Udhaar/Pending</span>
                         </a>
-                        <a href="#" class="nav-item">
+                        <a href="../Settings/settings.html" class="nav-item">
                             <i class="fa-solid fa-gear"></i>
                             <span>Settings</span>
                         </a>
@@ -112,27 +113,28 @@ document.addEventListener('DOMContentLoaded', () => {
                         <i class="fa-solid fa-clipboard-question"></i>
                         <span>Query</span>
                     </a>
-                    <a href="#" class="menu-item" title="Inventory">
+                    <a href="../Inventory/inventory.html" class="menu-item" title="Inventory">
                         <i class="fa-solid fa-boxes-stacked"></i>
                         <span>Inventory</span>
+                    </a>
+                    <a href="../Employees/employees.html" class="menu-item" title="Employees">
+                        <i class="fa-solid fa-users"></i>
+                        <span>Employees</span>
                     </a>
                     <a href="../smartexpiry/smartexpiry.html" class="menu-item" title="Smart Expiry">
                         <i class="fa-solid fa-hourglass-end"></i>
                         <span>Smart Expiry</span>
                     </a>
-                    <a href="#" class="menu-item" title="Employees">
-                        <i class="fa-solid fa-users-gear"></i>
-                        <span>Employees</span>
-                    </a>
+
                     <a href="../Complain/complain.html?role=owner" class="menu-item" title="Complain">
                         <i class="fa-solid fa-triangle-exclamation"></i>
                         <span>Complain</span>
                     </a>
-                    <a href="#" class="menu-item" title="Pending Payments">
+                    <a href="../Udhaar/udhaar.html" class="menu-item" title="Pending Payments">
                         <i class="fa-solid fa-indian-rupee-sign"></i>
-                        <span>Pending Payments</span>
+                        <span>Udhaar/Pending</span>
                     </a>
-                    <a href="#" class="menu-item" title="Settings">
+                    <a href="../Settings/settings.html" class="menu-item" title="Settings">
                         <i class="fa-solid fa-gear"></i>
                         <span>Settings</span>
                     </a>

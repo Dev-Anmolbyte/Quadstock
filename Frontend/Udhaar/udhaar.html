@@ -11,6 +11,7 @@
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- CSS -->
+    <link rel="stylesheet" href="../Shared/global.css">
     <link rel="stylesheet" href="../Ownerdashboard/dashboard.css">
     <link rel="stylesheet" href="udhaar.css">
 </head>
@@ -43,23 +44,24 @@
                     <i class="fa-solid fa-boxes-stacked"></i>
                     <span>Inventory</span>
                 </a>
+                <a href="../Employees/employees.html" class="menu-item" title="Employees">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Employees</span>
+                </a>
                 <a href="../smartexpiry/smartexpiry.html" class="menu-item" title="Smart Expiry">
                     <i class="fa-solid fa-hourglass-end"></i>
                     <span>Smart Expiry</span>
                 </a>
-                <a href="#" class="menu-item" title="Employees">
-                    <i class="fa-solid fa-users-gear"></i>
-                    <span>Employees</span>
-                </a>
+
                 <a href="../Complain/complain.html" class="menu-item" title="Complain">
                     <i class="fa-solid fa-triangle-exclamation"></i>
                     <span>Complain</span>
                 </a>
-                <a href="#" class="menu-item active" title="Pending Payments">
+                <a href="udhaar.html" class="menu-item active" title="Pending Payments">
                     <i class="fa-solid fa-indian-rupee-sign"></i>
                     <span>Udhaar/Pending</span>
                 </a>
-                <a href="#" class="menu-item" title="Settings">
+                <a href="../Settings/settings.html" class="menu-item" title="Settings">
                     <i class="fa-solid fa-gear"></i>
                     <span>Settings</span>
                 </a>
@@ -168,7 +170,7 @@
                 </div>
                 <div class="form-group">
                     <label for="u-due-date">Expected Payment Date</label>
-                    <input type="date" id="u-due-date">
+                    <input type="date" id="u-due-date" required>
                 </div>
                 <div class="form-group">
                     <label for="u-name">Customer Name</label>
@@ -176,7 +178,7 @@
                 </div>
                 <div class="form-group">
                     <label for="u-contact">Contact Number</label>
-                    <input type="tel" id="u-contact" placeholder="Enter phone number">
+                    <input type="tel" id="u-contact" placeholder="Enter phone number" maxlength="10">
                 </div>
                 <div class="form-group">
                     <label for="u-amount">Amount (₹)</label>
@@ -194,7 +196,49 @@
         </div>
     </div>
 
+    <script src="../Shared/offline.js"></script>
     <script src="udhaar.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const role = urlParams.get('role') || 'owner';
+
+            // Update Dashboard Link
+            const dashboardLink = document.querySelector('a[title="Dashboard"]');
+            if (dashboardLink) {
+                if (role === 'manager') {
+                    dashboardLink.href = "../Managerdashboard/manager_dashboard.html";
+                } else {
+                    dashboardLink.href = "../Ownerdashboard/dashboard.html";
+                }
+            }
+
+            // Update All Role-Dependent Links
+            const modules = ['analytics', 'query', 'inventory', 'smartexpiry', 'employees', 'complain', 'udhaar', 'settings'];
+            modules.forEach(mod => {
+                const link = document.querySelector(`a[href*="${mod}.html"]`);
+                if (link) {
+                    const currentHref = link.getAttribute('href');
+                    if (currentHref.includes('?')) {
+                        if (!currentHref.includes('role=')) link.setAttribute('href', `${currentHref}&role=${role}`);
+                        else link.setAttribute('href', currentHref.replace(/role=[^&]*/, `role=${role}`));
+                    } else {
+                        link.setAttribute('href', `${currentHref}?role=${role}`);
+                    }
+                }
+            });
+
+            if (role === 'manager') {
+                // Update Profile Info
+                const userName = document.querySelector('.user-profile .user-name');
+                if (userName) {
+                    userName.textContent = "Manager";
+                }
+                const userImg = document.querySelector('.user-profile img');
+                if (userImg) userImg.src = "https://ui-avatars.com/api/?name=Manager&background=003f3f&color=fff";
+            }
+        });
+    </script>
 </body>
 
 </html>

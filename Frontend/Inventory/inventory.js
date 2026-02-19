@@ -18,6 +18,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let isEditing = false;
     let currentEditId = null;
     let cameraStream = null;
+    let productToDeleteId = null;
+    const deleteModal = document.getElementById('delete-modal');
+    const btnConfirmDelete = document.getElementById('confirm-delete-btn');
+    const btnCloseDeleteModal = document.querySelectorAll('.close-delete-modal');
 
     // Filters State
     let filters = {
@@ -120,9 +124,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const sectionStock = document.getElementById('section-stock');
     const sectionPricing = document.getElementById('section-pricing');
 
-    inputPP.addEventListener('input', calculateMargin);
-    inputCP.addEventListener('input', calculateMargin);
-    inputSP.addEventListener('input', calculateMargin);
+    if (inputPP) inputPP.addEventListener('input', calculateMargin);
+    if (inputCP) inputCP.addEventListener('input', calculateMargin);
+    if (inputSP) inputSP.addEventListener('input', calculateMargin);
 
 
 
@@ -133,6 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 3. Initialization ---
     initTheme();
+    loadSidebar();
     setupSidebar();
     populateSelects();
     updateBrandList();
@@ -140,26 +145,58 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTable(); // Initial Render
 
     // --- 4. Event Listeners ---
+    // Safe Event Listener Helper
+    const safeListener = (el, event, handler) => {
+        if (el) el.addEventListener(event, handler);
+    };
+
+    // Debounce Helper
+    const debounce = (func, delay) => {
+        let timeout;
+        return (...args) => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func(...args), delay);
+        };
+    };
 
     // Input Events for Filters
-    searchInput.addEventListener('input', (e) => { filters.search = e.target.value.toLowerCase(); renderTable(); });
-    filterCategory.addEventListener('change', (e) => { filters.category = e.target.value; renderTable(); });
-    filterBrand.addEventListener('change', (e) => { filters.brand = e.target.value; renderTable(); });
-    filterStock.addEventListener('change', (e) => { filters.stock = e.target.value; renderTable(); });
-    filterExpiry.addEventListener('change', (e) => { filters.expiry = e.target.value; renderTable(); });
+    safeListener(searchInput, 'input', debounce((e) => {
+        filters.search = e.target.value.toLowerCase();
+        renderTable();
+    }, 300));
+    safeListener(filterCategory, 'change', (e) => { filters.category = e.target.value; renderTable(); });
+    safeListener(filterBrand, 'change', (e) => { filters.brand = e.target.value; renderTable(); });
+    safeListener(filterStock, 'change', (e) => { filters.stock = e.target.value; renderTable(); });
+    safeListener(filterExpiry, 'change', (e) => { filters.expiry = e.target.value; renderTable(); });
+
+    // View Toggle
+    const btnToggleView = document.getElementById('toggle-view-btn');
+    if (btnToggleView) {
+        btnToggleView.addEventListener('click', () => {
+            document.body.classList.toggle('full-table-view');
+            const icon = btnToggleView.querySelector('i');
+            if (document.body.classList.contains('full-table-view')) {
+                icon.classList.replace('fa-expand', 'fa-compress');
+                btnToggleView.title = "Exit Full View";
+            } else {
+                icon.classList.replace('fa-compress', 'fa-expand');
+                btnToggleView.title = "Maximize Table";
+            }
+        });
+    }
 
     // Modal Events
-    btnAddProduct.addEventListener('click', () => openModal());
-    btnCloseModal.forEach(btn => btn.addEventListener('click', closeModal));
-    window.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+    safeListener(btnAddProduct, 'click', () => openModal());
+    if (btnCloseModal) btnCloseModal.forEach(btn => btn.addEventListener('click', closeModal));
+    // window.addEventListener('click', (e) => { if (e.target === modal) closeModal(); }); // Disabled to prevent accidental closure on window focus
 
     // Form Logic
-    productForm.addEventListener('submit', handleFormSubmit);
-    btnGenBatch.addEventListener('click', () => { inputBatch.value = generateBatchNumber(); });
+    safeListener(productForm, 'submit', handleFormSubmit);
+    safeListener(btnGenBatch, 'click', () => { if (inputBatch) inputBatch.value = generateBatchNumber(); });
 
     // Split Batch
-    btnSplitBatch.addEventListener('click', () => {
-        if (productForm.checkValidity()) {
+    safeListener(btnSplitBatch, 'click', () => {
+        if (productForm && productForm.checkValidity()) {
             saveProduct(false);
 
             // Essential: Reset editing state so next save creates new item
@@ -167,76 +204,76 @@ document.addEventListener('DOMContentLoaded', () => {
             currentEditId = null;
 
             // Clear Batch & Qty fields
-            inputBatch.value = generateBatchNumber();
-            inputQty.value = '';
+            if (inputBatch) inputBatch.value = generateBatchNumber();
+            if (inputQty) inputQty.value = '';
 
             // Reset fields based on type
-            if (inputType.value === 'Clothes') {
-                inputSize.value = '';
-                inputColor.value = '';
+            if (inputType && inputType.value === 'Clothes') {
+                if (inputSize) inputSize.value = '';
+                if (inputColor) inputColor.value = '';
             } else {
-                inputExp.value = '';
-                inputMfd.value = '';
-                expiryHint.textContent = 'Select date to see alert status';
-                expiryHint.style.color = 'var(--text-secondary)';
+                if (inputExp) inputExp.value = '';
+                if (inputMfd) inputMfd.value = '';
+                if (expiryHint) {
+                    expiryHint.textContent = 'Select date to see alert status';
+                    expiryHint.style.color = 'var(--text-secondary)';
+                }
             }
 
             // UI Feedback
             const originalText = btnSplitBatch.innerHTML;
             btnSplitBatch.innerHTML = '<i class="fa-solid fa-check"></i> Added! Next...';
             setTimeout(() => { btnSplitBatch.innerHTML = originalText; }, 1000);
-        } else {
+        } else if (productForm) {
             productForm.reportValidity();
         }
     });
 
     // Dynamic Form Updates (Category Change)
-    inputType.addEventListener('change', (e) => {
+    safeListener(inputType, 'change', (e) => {
         const type = e.target.value;
         populateSubCategories(type);
         toggleAttributes(type);
-        inputCategory.value = ''; // Clear previous sub-category
+        if (inputCategory) inputCategory.value = ''; // Clear previous sub-category
     });
 
-    // Margin Calculator
-    [inputCP, inputSP].forEach(input => {
-        input.addEventListener('input', calculateMargin);
-    });
+    // Margin Calculator (Listeners already attached above)
 
-    inputExp.addEventListener('change', updateExpiryHint);
-    btnExport.addEventListener('click', exportToCSV);
+    safeListener(inputExp, 'change', updateExpiryHint);
+    safeListener(btnExport, 'click', exportToCSV);
 
     // --- Image Handling Listeners ---
 
     // 1. File Upload
-    inputImageFile.addEventListener('change', (e) => {
+    safeListener(inputImageFile, 'change', (e) => {
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
             reader.onload = (e) => {
                 showPreview(e.target.result);
-                inputImageURL.value = ''; // Clear URL if file selected
+                if (inputImageURL) inputImageURL.value = ''; // Clear URL if file selected
             };
             reader.readAsDataURL(file);
         }
     });
 
     // 2. Camera Start
-    btnCamera.addEventListener('click', async () => {
+    safeListener(btnCamera, 'click', async () => {
         try {
             cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-            videoEl.srcObject = cameraStream;
-            cameraInterface.style.display = 'block';
-            previewInterface.style.display = 'none';
+            if (videoEl) videoEl.srcObject = cameraStream;
+            if (cameraInterface) cameraInterface.style.display = 'block';
+            if (previewInterface) previewInterface.style.display = 'none';
             // Hide other inputs while camera is active
-            document.querySelector('.image-controls').style.display = 'none';
+            const controls = document.querySelector('.image-controls');
+            if (controls) controls.style.display = 'none';
         } catch (err) {
             alert('Could not access camera: ' + err.message);
         }
     });
 
     // 3. Capture Photo
-    btnCapture.addEventListener('click', () => {
+    safeListener(btnCapture, 'click', () => {
         const context = canvasEl.getContext('2d');
         canvasEl.width = videoEl.videoWidth;
         canvasEl.height = videoEl.videoHeight;
@@ -248,19 +285,20 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // 4. Stop Camera
-    btnStopCamera.addEventListener('click', stopCamera);
+    safeListener(btnStopCamera, 'click', stopCamera);
 
     // 5. Clear Image
-    btnClearImage.addEventListener('click', () => {
-        imgPreview.src = '';
-        previewInterface.style.display = 'none';
-        inputImageFile.value = '';
-        inputImageURL.value = '';
-        document.querySelector('.image-controls').style.display = 'flex';
+    safeListener(btnClearImage, 'click', () => {
+        if (imgPreview) imgPreview.src = '';
+        if (previewInterface) previewInterface.style.display = 'none';
+        if (inputImageFile) inputImageFile.value = '';
+        if (inputImageURL) inputImageURL.value = '';
+        const controls = document.querySelector('.image-controls');
+        if (controls) controls.style.display = 'flex';
     });
 
     // 6. URL Input (Show preview if valid URL)
-    inputImageURL.addEventListener('change', (e) => {
+    safeListener(inputImageURL, 'change', (e) => {
         if (e.target.value) showPreview(e.target.value);
     });
 
@@ -277,11 +315,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function calculateMargin() {
+        const pp = parseFloat(inputPP.value) || 0;
         const cp = parseFloat(inputCP.value) || 0;
         const sp = parseFloat(inputSP.value) || 0;
 
-        if (cp > 0 && sp > 0) {
-            const profit = sp - cp;
+        // Use PP as the cost basis (since CP is treated as MRP)
+        const effectiveCost = pp;
+
+        if (sp > 0) {
+            const profit = sp - effectiveCost;
+            // Margin = (Profit / Selling Price) * 100
             const margin = (profit / sp) * 100;
 
             profitVal.textContent = `₹${profit.toFixed(2)}`;
@@ -300,6 +343,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateExpiryHint() {
         if (!inputExp.value) return;
         const today = new Date();
+        today.setHours(0, 0, 0, 0); // Reset time to midnight for accurate day calculation
         const expDate = new Date(inputExp.value);
         const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
 
@@ -568,16 +612,71 @@ document.addEventListener('DOMContentLoaded', () => {
         calculateDashboardStats();
         renderTable();
 
+        // Scroll to top to show the newly added item (since we use unshift)
+        if (!isEditing) {
+            const tableCard = document.querySelector('.table-card');
+            // 1. Bring the table section into view (in case user was scrolled away)
+            if (tableCard) {
+                // Use a small timeout to let the modal close animation finish/start
+                setTimeout(() => {
+                    tableCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 300);
+            }
+
+            // 2. Reset internal table scroll to show the first item
+            const tableContainer = document.querySelector('.table-responsive');
+            if (tableContainer) {
+                tableContainer.scrollTop = 0;
+            }
+        }
+
         if (closeAfterSave) closeModal();
     }
 
     function deleteProduct(id) {
-        if (confirm('Delete this batch?')) {
-            inventory = inventory.filter(i => i.id !== id);
-            localStorage.setItem('inventory', JSON.stringify(inventory));
-            calculateDashboardStats();
-            renderTable();
+        productToDeleteId = id;
+        if (deleteModal) {
+            deleteModal.classList.add('show');
+            deleteModal.style.display = 'flex';
+        } else {
+            // Fallback if modal not in DOM for some reason
+            if (confirm('Delete this batch?')) {
+                executeDeletion(id);
+            }
         }
+    }
+
+    function executeDeletion(id) {
+        inventory = inventory.filter(i => i.id !== id);
+        localStorage.setItem('inventory', JSON.stringify(inventory));
+        calculateDashboardStats();
+        renderTable();
+    }
+
+    // Delete Modal Listeners
+    if (btnConfirmDelete) {
+        btnConfirmDelete.addEventListener('click', () => {
+            if (productToDeleteId) {
+                executeDeletion(productToDeleteId);
+                if (deleteModal) {
+                    deleteModal.classList.remove('show');
+                    setTimeout(() => { deleteModal.style.display = 'none'; }, 300);
+                }
+                productToDeleteId = null;
+            }
+        });
+    }
+
+    if (btnCloseDeleteModal) {
+        btnCloseDeleteModal.forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (deleteModal) {
+                    deleteModal.classList.remove('show');
+                    setTimeout(() => { deleteModal.style.display = 'none'; }, 300);
+                    productToDeleteId = null;
+                }
+            });
+        });
     }
 
     // --- 7. Dashboard Logic ---
@@ -588,6 +687,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let lowStockCount = 0;
         let outOfStockCount = 0;
         const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
         inventory.forEach(item => {
             totalVal += (item.cp || 0) * (item.quantity || 0);
@@ -608,12 +708,48 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        valTotalValue.textContent = formatCurrency(totalVal);
-        valExpiringSoon.textContent = expiringCount;
-        valLowStock.textContent = lowStockCount;
+
+
+        // Use helper to parse current value to animate from previous value
+        // Note: For simplicity in stateless update, we animate from 0 or we could store prev values.
+        // Requested: load the number from 0 to actual value.
+        animateValue(valTotalValue, 0, totalVal, 1000, formatCurrency);
+        animateValue(valExpiringSoon, 0, expiringCount, 800);
+        animateValue(valLowStock, 0, lowStockCount, 800);
 
         const valOutOfStock = document.getElementById('val-out-of-stock');
-        if (valOutOfStock) valOutOfStock.textContent = outOfStockCount;
+        if (valOutOfStock) animateValue(valOutOfStock, 0, outOfStockCount, 800);
+    }
+
+    function animateValue(obj, start, end, duration, formatFn = null) {
+        if (!obj) return;
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            // Ease-out effect
+            const easeProgress = 1 - Math.pow(1 - progress, 3);
+            const currentVal = Math.floor(progress * (end - start) + start);
+
+            // For currency or float, we might want smoothness, but let's stick to integers for counts.
+            // For totalVal (float), we should animate float.
+            let displayVal = currentVal;
+            if (formatFn) {
+                // For currency, animate the raw number then format
+                const currentFloat = easeProgress * (end - start) + start;
+                obj.textContent = formatFn(currentFloat);
+            } else {
+                obj.textContent = currentVal;
+            }
+
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            } else {
+                // Ensure final value is accurate
+                obj.textContent = formatFn ? formatFn(end) : end;
+            }
+        };
+        window.requestAnimationFrame(step);
     }
 
     function formatCurrency(val) {
@@ -648,6 +784,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let matchExp = true;
             if (filters.expiry && item.exp) {
                 const today = new Date();
+                today.setHours(0, 0, 0, 0);
                 const expDate = new Date(item.exp);
                 const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
 
@@ -718,9 +855,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${item.quantity === 0 ? '<span style="color:var(--c-red-text); font-size:0.75em; font-weight:bold;">Out of Stock</span>' : (item.quantity <= (item.reorderPoint || 10) ? '<span style="color:var(--c-orange-text); font-size:0.75em;">Low Stock</span>' : '')}
             </td>
             <td>
-                ${item.pp ? `<div class="text-sm" style="opacity:0.7;">PP: ₹${item.pp.toFixed(2)}</div>` : ''}
-                <div class="text-sm">CP: ₹${(item.cp || 0).toFixed(2)}</div>
-                <div style="font-weight: 600;">SP: ₹${(item.price || 0).toFixed(2)}</div>
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                    ${item.pp ? `<div style="font-weight:600; color:var(--text-primary);">PP: ₹${item.pp.toFixed(2)}</div>` : ''}
+                    <div style="font-weight:600; color:var(--text-primary);">CP: ₹${(item.cp || 0).toFixed(2)}</div>
+                    <div style="font-weight:700; color:var(--c-green-text); font-size:1.05em;">SP: ₹${(item.price || 0).toFixed(2)}</div>
+                </div>
             </td>
             <td>
                 <div style="font-weight: 600; ${status.expiryClass}">
@@ -848,9 +987,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${item.quantity === 0 ? '<span style="color:var(--c-red-text); font-size:0.75em; font-weight:bold;">Out of Stock</span>' : (item.quantity <= (item.reorderPoint || 10) ? '<span style="color:var(--c-orange-text); font-size:0.75em;">Low Stock</span>' : '')}
                 </td>
                 <td>
-                    ${item.pp ? `<div class="text-sm" style="opacity:0.7;">PP: ₹${item.pp.toFixed(2)}</div>` : ''}
-                    <div class="text-sm">CP: ₹${(item.cp || 0).toFixed(2)}</div>
-                    <div style="font-weight: 600;">SP: ₹${(item.price || 0).toFixed(2)}</div>
+                    <div style="display:flex; flex-direction:column; gap:4px;">
+                        ${item.pp ? `<div style="font-weight:600; color:var(--text-primary);">PP: ₹${item.pp.toFixed(2)}</div>` : ''}
+                        <div style="font-weight:600; color:var(--text-primary);">CP: ₹${(item.cp || 0).toFixed(2)}</div>
+                        <div style="font-weight:700; color:var(--c-green-text); font-size:1.05em;">SP: ₹${(item.price || 0).toFixed(2)}</div>
+                    </div>
                 </td>
                 <td>
                     <div style="font-size:0.9em; ${status.expiryClass}">
@@ -866,11 +1007,245 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function loadSidebar() {
+        const urlParams = new URLSearchParams(window.location.search);
+        let role = urlParams.get('role');
+        const sidebarTarget = document.getElementById('sidebar-target');
+        const mainContainer = document.getElementById('main-container');
+        const dashboardCss = document.getElementById('dashboard-css');
+
+        // Also check if logged in as employee and has inventory_manager role
+        if (!role) {
+            const currentEmployee = JSON.parse(localStorage.getItem('currentEmployee'));
+            if (currentEmployee && currentEmployee.role === 'inventory_manager') role = 'inventory_manager';
+        }
+
+        if (role === 'manager') {
+            if (dashboardCss) dashboardCss.href = '../Managerdashboard/manager_dashboard.css';
+            if (mainContainer) mainContainer.className = 'layout-container';
+
+            sidebarTarget.innerHTML = `
+                <div class="brand">
+                    <button id="sidebar-toggle" style="width: 40px; height: 40px; background: var(--primary); border: none; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer;">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <h2 class="brand-name">QuadStock</h2>
+                </div>
+                <div class="nav-section">
+                    <h3 class="section-title">Main Menu</h3>
+                    <nav class="nav-menu">
+                        <a href="../Managerdashboard/manager_dashboard.html" class="nav-item">
+                            <i class="fa-solid fa-house-chimney"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        <a href="../Analytics/analytics.html?role=manager" class="nav-item">
+                            <i class="fa-solid fa-chart-simple"></i>
+                            <span>Analytics</span>
+                        </a>
+                        <a href="../Query/query.html?role=manager" class="nav-item">
+                            <i class="fa-solid fa-clipboard-question"></i>
+                            <span>Query</span>
+                        </a>
+                    </nav>
+                </div>
+                <div class="nav-section">
+                    <h3 class="section-title">Stock & Staff</h3>
+                    <nav class="nav-menu">
+                        <a href="inventory.html" class="nav-item active">
+                            <i class="fa-solid fa-boxes-stacked"></i>
+                            <span>Inventory</span>
+                        </a>
+                         <a href="../Employees/employees.html" class="nav-item">
+                            <i class="fa-solid fa-users"></i>
+                            <span>Employees</span>
+                        </a>
+                        <a href="../smartexpiry/smartexpiry.html?role=manager" class="nav-item">
+                            <i class="fa-solid fa-hourglass-end"></i>
+                            <span>Smart Expiry</span>
+                        </a>
+                    </nav>
+                </div>
+                <div class="nav-section">
+                    <h3 class="section-title">Business</h3>
+                    <nav class="nav-menu">
+                        <a href="../Complain/complain.html?role=manager" class="nav-item">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <span>Complain</span>
+                        </a>
+                        <a href="../Udhaar/udhaar.html" class="nav-item">
+                            <i class="fa-solid fa-indian-rupee-sign"></i>
+                            <span>Udhaar/Pending</span>
+                        </a>
+                        <a href="../Settings/settings.html" class="nav-item">
+                            <i class="fa-solid fa-gear"></i>
+                            <span>Settings</span>
+                        </a>
+                        <a href="../landing/landing.html" class="nav-item" title="Logout">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                            <span>Logout</span>
+                        </a>
+                    </nav>
+                </div>
+            `;
+
+            // Topbar
+            const topbarTarget = document.getElementById('topbar-target');
+            if (topbarTarget) {
+                topbarTarget.innerHTML = `
+                <div id="digital-clock" class="digital-clock-container">00:00:00 AM</div>
+                <div class="user-actions">
+                    <button class="theme-toggle-btn" id="theme-toggle" style="background: var(--bg-white); border: none; padding: 0.5rem; border-radius: 50%; cursor: pointer; color: var(--text-muted); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+                    <div class="user-profile" style="background: var(--bg-white); padding: 0.5rem 1rem; border-radius: 3rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+                        <div class="user-info">
+                            <h5>Manager</h5>
+                            <p>Shift Manager</p>
+                        </div>
+                        <img src="https://ui-avatars.com/api/?name=Ma&background=003f3f&color=fff" alt="Avatar" class="user-avatar" style="width: 40px; height: 40px;">
+                    </div>
+                </div>
+            `;
+            }
+
+        } else if (role === 'inventory_manager') {
+            // Inventory Manager Sidebar (Restricted)
+            if (dashboardCss) dashboardCss.href = '../Managerdashboard/manager_dashboard.css'; // Use unified dashboard css for layout
+            if (mainContainer) mainContainer.className = 'layout-container';
+
+            sidebarTarget.innerHTML = `
+                 <div class="brand">
+                    <button id="sidebar-toggle" class="sidebar-toggle">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <h2 class="brand-text">QuadStock</h2>
+                </div>
+                
+                 <div class="nav-section">
+                    <h3 class="section-title">Stock Management</h3>
+                    <nav class="nav-menu">
+                         <a href="inventory.html" class="nav-item active">
+                            <i class="fa-solid fa-boxes-stacked"></i>
+                            <span>Inventory</span>
+                        </a>
+                    </nav>
+                </div>
+
+                 <div class="nav-section">
+                    <h3 class="section-title">System</h3>
+                    <nav class="nav-menu">
+                         <a href="../Settings/settings.html" class="nav-item">
+                            <i class="fa-solid fa-gear"></i>
+                            <span>Settings</span>
+                        </a>
+                        <a href="../landing/landing.html" class="nav-item" title="Logout">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                            <span>Logout</span>
+                        </a>
+                    </nav>
+                </div>
+            `;
+            // Topbar update for inventory manager...
+            const topbarTarget = document.getElementById('topbar-target');
+            if (topbarTarget) {
+                topbarTarget.innerHTML = `
+                <div id="digital-clock" class="digital-clock-container">00:00:00 AM</div>
+                <div class="user-actions">
+                    <button class="theme-toggle-btn" id="theme-toggle">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+                    <div class="user-profile">
+                        <div class="user-info">
+                            <h5>Inv. Manager</h5>
+                        </div>
+                         <img src="https://ui-avatars.com/api/?name=IM&background=003f3f&color=fff" alt="Avatar" class="user-avatar" style="width: 40px; height: 40px;">
+                    </div>
+                </div>
+            `;
+            }
+
+        } else {
+            // Owner Sidebar
+            sidebarTarget.innerHTML = `
+                <div class="brand">
+                    <button id="sidebar-toggle" class="sidebar-toggle">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <h2 class="brand-text">QuadStock</h2>
+                </div>
+                <nav class="sidebar-menu">
+                    <a href="../Ownerdashboard/dashboard.html" class="menu-item" title="Dashboard">
+                        <i class="fa-solid fa-house"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="../Analytics/analytics.html" class="menu-item" title="Analytics">
+                        <i class="fa-solid fa-chart-simple"></i>
+                        <span>Analytics</span>
+                    </a>
+                    <a href="../Query/query.html?role=owner" class="menu-item" title="Query">
+                        <i class="fa-solid fa-clipboard-question"></i>
+                        <span>Query</span>
+                    </a>
+                    <a href="inventory.html" class="menu-item active" title="Inventory">
+                        <i class="fa-solid fa-boxes-stacked"></i>
+                        <span>Inventory</span>
+                    </a>
+                     <a href="../Employees/employees.html" class="menu-item" title="Employees">
+                        <i class="fa-solid fa-users"></i>
+                        <span>Employees</span>
+                    </a>
+                    <a href="../smartexpiry/smartexpiry.html" class="menu-item" title="Smart Expiry">
+                        <i class="fa-solid fa-hourglass-end"></i>
+                        <span>Smart Expiry</span>
+                    </a>
+
+                    <a href="../Complain/complain.html?role=owner" class="menu-item" title="Complain">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span>Complain</span>
+                    </a>
+                    <a href="../Udhaar/udhaar.html" class="menu-item" title="Pending Payments">
+                        <i class="fa-solid fa-indian-rupee-sign"></i>
+                        <span>Udhaar/Pending</span>
+                    </a>
+                    <a href="../Settings/settings.html" class="menu-item" title="Settings">
+                        <i class="fa-solid fa-gear"></i>
+                        <span>Settings</span>
+                    </a>
+                    <a href="../landing/landing.html" class="menu-item" title="Logout">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span>Logout</span>
+                    </a>
+                </nav>
+                 <div class="sidebar-footer-card">
+                    <div class="support-illustration">
+                        <svg viewBox="0 0 100 100" class="illus-svg">
+                            <circle cx="50" cy="35" r="15" fill="#333" />
+                            <path d="M20,80 Q50,70 80,80 V100 H20 Z" fill="#333" />
+                            <rect x="15" y="45" width="25" height="15" rx="2" fill="#555" transform="rotate(-15 27 52)" />
+                        </svg>
+                    </div>
+                    <a href="../Footer/contact.html" class="btn-support" style="text-decoration: none; display: inline-block; text-align: center;">
+                        <i class="fa-regular fa-life-ring"></i> Support
+                    </a>
+                </div>
+            `;
+        }
+
+        // Attach toggle logic again since we overwrote HTML
+        const toggle = document.getElementById('sidebar-toggle');
+        const container = document.querySelector('.dashboard-container') || document.querySelector('.layout-container');
+        if (toggle && container) {
+            toggle.addEventListener('click', () => {
+                const isCollapsed = container.classList.toggle('sidebar-collapsed');
+            });
+        }
+    }
     function getStatus(item) {
         let statusClass = 'dot-green';
         let statusTitle = 'Healthy';
         let expiryClass = '';
         const today = new Date();
+        today.setHours(0, 0, 0, 0);
         let daysToExpiry = null;
 
         if (item.exp) {
@@ -915,11 +1290,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function exportToCSV() {
-        const headers = ['ID', 'Batch', 'SKU', 'Name', 'Brand', 'Category', 'Attributes', 'Quantity', 'Unit', 'PP', 'CP', 'SP', 'MFD', 'EXP'];
-        const rows = inventory.map(i => {
+        const headers = ['S. No.', 'Batch', 'SKU', 'Name', 'Brand', 'Category', 'Attributes', 'Quantity', 'Unit', 'PP', 'CP', 'SP', 'MFD', 'EXP'];
+        const rows = inventory.map((i, index) => {
             const attr = (i.size || i.weight || '') + (i.color ? ' - ' + i.color : '');
+
+            // Format dates to be Excel-friendly (YYYY-MM-DD is usually safe, or DD/MM/YYYY)
+            // Using a simple meaningful format. 
+            const mfd = i.mfd ? new Date(i.mfd).toLocaleDateString('en-GB') : '-';
+            const exp = i.exp ? new Date(i.exp).toLocaleDateString('en-GB') : '-';
+
             return [
-                i.id, i.batchNumber, i.sku || '', i.name, i.brand, i.category, attr, i.quantity, i.unit, i.pp || 0, i.cp || 0, i.price || 0, i.mfd || '-', i.exp || '-'
+                index + 1, // Serial Number (1, 2, 3...)
+                i.batchNumber, // Batch
+                i.sku || '-',
+                `"${i.name.replace(/"/g, '""')}"`, // Handle commas/quotes in Name
+                i.brand || '-',
+                i.category || '-',
+                attr || '-',
+                i.quantity,
+                i.unit,
+                i.pp || 0,
+                i.cp || 0,
+                i.price || 0,
+                mfd,
+                exp
             ];
         });
 
@@ -930,7 +1324,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "inventory_export.csv");
+        link.setAttribute("download", `QuadStock_Inventory_${new Date().toISOString().slice(0, 10)}.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
