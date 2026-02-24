@@ -6,14 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QuadStock - Inventory Command Center</title>
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet">
+    <link rel="stylesheet" href="../Shared/Vendor/google-fonts/plus-jakarta-sans.css">
     <!-- Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../Shared/Vendor/font-awesome/css/all.min.css">
     <!-- Global CSS -->
     <link rel="stylesheet" href="../Shared/global.css">
     <!-- CSS -->
     <link rel="stylesheet" href="inventory.css">
+    <script src="../Shared/Vendor/html5-qrcode.min.js"></script>
 </head>
 
 <body>
@@ -110,7 +110,9 @@
                         <i class="fa-solid fa-moon"></i>
                     </button>
                     <div class="user-profile">
-                        <img src="https://ui-avatars.com/api/?name=Admin+User&background=random" alt="User">
+                        <div
+                            style="width:32px; height:32px; border-radius:50%; background:var(--primary); color:white; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.8rem;">
+                            A</div>
                         <span class="user-name">Admin</span>
                     </div>
                 </div>
@@ -174,6 +176,10 @@
                         </button>
                         <button class="btn-secondary" id="export-btn">
                             <i class="fa-solid fa-file-export"></i> Export CSV
+                        </button>
+                        <input type="file" id="csv-import" style="display:none;" accept=".csv">
+                        <button class="btn-secondary" id="import-btn">
+                            <i class="fa-solid fa-file-import"></i> Import CSV
                         </button>
                         <button class="btn-primary" id="add-product-btn">
                             <i class="fa-solid fa-plus"></i> Add Product
@@ -358,9 +364,17 @@
                                     <label>Batch / Lot Number <span class="required">*</span></label>
                                     <div class="input-with-action">
                                         <input type="text" id="batch-number" required placeholder="BAT-001">
+                                        <button type="button" id="btn-scan-barcode" class="btn-icon"
+                                            title="Scan Barcode">
+                                            <i class="fa-solid fa-barcode"></i>
+                                        </button>
                                         <button type="button" id="btn-gen-batch" class="btn-icon"
                                             title="Generate Batch #"><i
                                                 class="fa-solid fa-wand-magic-sparkles"></i></button>
+                                    </div>
+                                    <!-- Barcode Scanner Container -->
+                                    <div id="barcode-reader"
+                                        style="width: 100%; display:none; margin-top:10px; border-radius:8px; overflow:hidden;">
                                     </div>
                                 </div>
                                 <div class="form-group">

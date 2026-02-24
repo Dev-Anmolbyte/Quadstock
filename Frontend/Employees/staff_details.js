@@ -1,7 +1,7 @@
 // staff_details.js - Staff 360 / Detail View Logic
 // FIX: Accept a getter function instead of a static array reference
 // This ensures we always access the latest 'ownerEmployees' even after re-renders
-function initStaffDetails(getSafeEmployees, currentOwnerId, onSave) {
+function initStaffDetails(getSafeEmployees, currentOwnerId, onSave, currentUserRole) {
     const modal = document.getElementById('details-modal-overlay');
     if (!modal) return;
 
@@ -16,6 +16,9 @@ function initStaffDetails(getSafeEmployees, currentOwnerId, onSave) {
     const btnUpdateRole = document.getElementById('btn-update-role-modal');
     const btnBlock = document.getElementById('btn-block-employee-modal');
     const btnDelete = document.getElementById('btn-delete-employee-modal');
+    const btnPayslip = document.getElementById('btn-generate-payslip');
+    const btnLeave = document.getElementById('btn-manage-leave');
+    const timelineContainer = document.getElementById('attendance-timeline');
 
     const tabs = modal.querySelectorAll('.section-tab-header');
     const sections = modal.querySelectorAll('.detail-section-col');
@@ -69,12 +72,16 @@ function initStaffDetails(getSafeEmployees, currentOwnerId, onSave) {
         calDaysContainer.innerHTML = '';
         const year = currentViewDate.getFullYear();
         const month = currentViewDate.getMonth();
+        const empId = activeEmpId;
 
         const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
         calMonthYear.textContent = `${monthNames[month]} ${year}`;
 
         const firstDay = new Date(year, month, 1).getDay();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        // Attendance Data
+        const attendance = JSON.parse(localStorage.getItem('quadstock_attendance')) || [];
 
         for (let i = 0; i < firstDay; i++) {
             const emptyDiv = document.createElement('div');
@@ -91,26 +98,27 @@ function initStaffDetails(getSafeEmployees, currentOwnerId, onSave) {
             dayDiv.textContent = day;
 
             const cellDate = new Date(year, month, day);
+            const dateStr = cellDate.toISOString().split('T')[0];
             const isFuture = cellDate > today;
 
             if (day === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
                 dayDiv.classList.add('today');
             }
 
-            if (!isFuture) {
+            // Real Data Check
+            const record = attendance.find(r => r.empId === empId && r.date === dateStr);
+
+            if (record && record.sessions && record.sessions.length > 0) {
+                dayDiv.classList.add('status-present');
+                stats.present++;
+            } else if (!isFuture) {
                 const dayOfWeek = cellDate.getDay();
                 if (dayOfWeek === 0) {
                     dayDiv.classList.add('status-holiday');
                     stats.holiday++;
-                } else if (day % 7 === 0) {
-                    dayDiv.classList.add('status-late');
-                    stats.late++;
-                } else if (day % 5 === 0) {
+                } else {
                     dayDiv.classList.add('status-absent');
                     stats.absent++;
-                } else {
-                    dayDiv.classList.add('status-present');
-                    stats.present++;
                 }
             } else if (cellDate.getDay() === 0) {
                 dayDiv.classList.add('status-holiday');
@@ -138,39 +146,82 @@ function initStaffDetails(getSafeEmployees, currentOwnerId, onSave) {
         if (selectedDayName) selectedDayName.textContent = dayNames[dateObj.getDay()];
         if (selectedDateFull) selectedDateFull.textContent = `${day} ${monthNames[month]} ${year}`;
 
-        renderDayDetails(day);
+        renderDayDetails(dateObj.toISOString().split('T')[0]);
     };
 
-    const renderDayDetails = (day) => {
+    const renderDayDetails = (dateStr) => {
         if (!dayStatsContent) return;
-        const isPresent = day % 3 !== 0;
-        if (!isPresent) {
+        const attendance = JSON.parse(localStorage.getItem('quadstock_attendance')) || [];
+        const record = attendance.find(r => r.empId === activeEmpId && r.date === dateStr);
+
+        if (!record || !record.sessions || record.sessions.length === 0) {
             dayStatsContent.innerHTML = `
                 <div class="placeholder-view" style="padding: 1rem;">
                     <i class="fa-solid fa-bed" style="font-size: 2rem;"></i>
-                    <h4 style="font-size: 0.9rem;">Absent / Leave</h4>
+                    <h4 style="font-size: 0.9rem;">No Activity</h4>
                     <p style="font-size: 0.8rem;">No punch logs found for this day.</p>
                 </div>
             `;
+            if (timelineContainer) timelineContainer.innerHTML = '<p class="empty-detail-msg" style="padding-top: 20px;">No activity to display</p>';
             return;
         }
 
-        dayStatsContent.innerHTML = `
-            <div class="punch-log-item">
-                <div class="punch-type-icon in"><i class="fa-solid fa-right-to-bracket"></i></div>
-                <div class="punch-time-info">
-                    <span class="punch-label">Punch In</span>
-                    <span class="punch-time">09:15 AM</span>
+        dayStatsContent.innerHTML = record.sessions.map((s, idx) => `
+            <div class="punch-group" style="margin-bottom: 1rem; border-bottom: 1px dashed var(--border-color); padding-bottom: 0.5rem;">
+                <p class="text-xs font-bold text-muted mb-2">Session ${idx + 1}</p>
+                <div class="punch-log-item">
+                    <div class="punch-type-icon in"><i class="fa-solid fa-right-to-bracket"></i></div>
+                    <div class="punch-time-info">
+                        <span class="punch-label">Punch In</span>
+                        <span class="punch-time">${new Date(s.in).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
                 </div>
+                ${s.out ? `
+                <div class="punch-log-item">
+                    <div class="punch-type-icon out"><i class="fa-solid fa-right-from-bracket"></i></div>
+                    <div class="punch-time-info">
+                        <span class="punch-label">Punch Out</span>
+                        <span class="punch-time">${new Date(s.out).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                </div>` : ''}
             </div>
-            <div class="punch-log-item">
-                <div class="punch-type-icon out"><i class="fa-solid fa-right-from-bracket"></i></div>
-                <div class="punch-time-info">
-                    <span class="punch-label">Punch Out</span>
-                    <span class="punch-time">06:30 PM</span>
-                </div>
-            </div>
-        `;
+        `).join('');
+
+        renderTimeline(record.sessions);
+    };
+
+    const renderTimeline = (sessions) => {
+        if (!timelineContainer) return;
+        timelineContainer.innerHTML = '';
+
+        // 9 AM to 9 PM (12 hours) range for visualization
+        const startHour = 9;
+        const endHour = 21;
+        const totalMinutes = (endHour - startHour) * 60;
+
+        sessions.forEach(s => {
+            const punchIn = new Date(s.in);
+            const punchOut = s.out ? new Date(s.out) : new Date();
+
+            const startMins = (punchIn.getHours() * 60 + punchIn.getMinutes()) - (startHour * 60);
+            const durationMins = ((punchOut.getHours() * 60 + punchOut.getMinutes()) - (punchIn.getHours() * 60 + punchIn.getMinutes()));
+
+            const left = (startMins / totalMinutes) * 100;
+            const width = (durationMins / totalMinutes) * 100;
+
+            if (left >= 0 && left <= 100) {
+                const block = document.createElement('div');
+                block.className = 'timeline-block';
+                block.style.position = 'absolute';
+                block.style.left = `${left}%`;
+                block.style.width = `${Math.max(width, 2)}%`;
+                block.style.height = '100%';
+                block.style.background = 'var(--primary)';
+                block.style.borderRadius = '4px';
+                block.title = `Working: ${punchIn.toLocaleTimeString()} - ${s.out ? punchOut.toLocaleTimeString() : 'Current'}`;
+                timelineContainer.appendChild(block);
+            }
+        });
     };
 
     // --- 3. Public API (Global Window) ---
@@ -213,7 +264,17 @@ function initStaffDetails(getSafeEmployees, currentOwnerId, onSave) {
         setVal('edit-aadhaar', emp.aadhaar);
         setVal('edit-address', emp.address);
         setVal('edit-role', emp.role);
-        setVal('edit-salary', emp.salary);
+
+        // --- Privacy Protection (Fix Task 4) ---
+        const salaryGroup = document.getElementById('edit-salary')?.parentElement;
+        if (currentUserRole === 'owner') {
+            setVal('edit-salary', emp.salary);
+            if (salaryGroup) salaryGroup.style.display = 'block';
+        } else {
+            setVal('edit-salary', '');
+            // Hide the salary group completely for non-owners
+            if (salaryGroup) salaryGroup.style.display = 'none';
+        }
 
         if (roleSelect) roleSelect.value = emp.role || 'staff';
         const blockText = btnBlock?.querySelector('span');
@@ -328,6 +389,54 @@ function initStaffDetails(getSafeEmployees, currentOwnerId, onSave) {
             if (!emp) return;
             QuadModals.confirm("Delete Employee", "Irreversible action.", { isDanger: true }).then(confirmed => {
                 if (confirmed && window.deleteEmployee) { window.deleteEmployee(emp.empId); closeModal(); }
+            });
+        };
+    }
+
+    if (btnPayslip) {
+        btnPayslip.onclick = () => {
+            const emp = getActiveEmp();
+            if (!emp) return;
+            QuadModals.confirm("Generate Payslip", `Generate and download payslip for ${emp.name}?`).then(confirmed => {
+                if (confirmed) {
+                    const payslipContent = `
+========================================
+             QUADSTOCK PAYSLIP
+========================================
+Employee: ${emp.name}
+EMP ID  : ${emp.empId}
+Role    : ${emp.role}
+Date    : ${new Date().toLocaleDateString('en-GB')}
+----------------------------------------
+EARNINGS:
+Basic Salary   : ₹${emp.salary || 0}
+Allowances     : ₹0.00
+----------------------------------------
+DEDUCTIONS:
+PF             : ₹0.00
+Tax            : ₹0.00
+----------------------------------------
+NET PAYABLE    : ₹${emp.salary || 0}
+========================================
+    Generated by QuadStock Management
+========================================`;
+                    const blob = new Blob([payslipContent], { type: 'text/plain' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = `Payslip_${emp.empId}_${new Date().toISOString().slice(0, 10)}.txt`;
+                    link.click();
+                    QuadModals.showToast("Payslip generated successfully!", "success");
+                }
+            });
+        };
+    }
+
+    if (btnLeave) {
+        btnLeave.onclick = () => {
+            QuadModals.prompt("Request Time Off", "Reason for leave:", "e.g. Medical emergency").then(reason => {
+                if (reason) {
+                    QuadModals.showToast("Leave request sent to management.", "info");
+                }
             });
         };
     }

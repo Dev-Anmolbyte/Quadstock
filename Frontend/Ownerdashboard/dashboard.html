@@ -9,18 +9,15 @@
     <link rel="stylesheet" href="../Shared/global.css">
     <link rel="stylesheet" href="dashboard.css">
     <link rel="stylesheet" href="../Shared/notification_badge.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
+    <link rel="stylesheet" href="../Shared/Vendor/google-fonts/plus-jakarta-sans.css">
     <!-- Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
-        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="../Shared/Vendor/font-awesome/css/all.min.css">
     <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js" crossorigin="anonymous"></script>
+    <script src="../Shared/Vendor/chartjs/chart.min.js"></script>
 </head>
 
 <body>
-    <div class="dashboard-container">
+    <div class="layout-container">
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="brand">
@@ -107,7 +104,9 @@
                     </button>
 
                     <div class="user-profile">
-                        <img src="https://ui-avatars.com/api/?name=Floyd+Miles&background=random" alt="User">
+                        <div
+                            style="width:32px; height:32px; border-radius:50%; background:var(--primary); color:white; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.8rem;">
+                            O</div>
                         <span class="user-name">Owner Admin</span>
                         <i class="fa-solid fa-chevron-down"></i>
                     </div>

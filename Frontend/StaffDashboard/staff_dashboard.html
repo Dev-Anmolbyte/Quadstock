@@ -50,61 +50,173 @@
             background: #1e293b;
             color: white;
         }
+
+        /* Utility Classes */
+        .flex {
+            display: flex;
+        }
+
+        .items-center {
+            align-items: center;
+        }
+
+        .justify-between {
+            justify-content: space-between;
+        }
+
+        .justify-center {
+            justify-content: center;
+        }
+
+        .gap-3 {
+            gap: 0.75rem;
+        }
+
+        .mt-2 {
+            margin-top: 0.5rem;
+        }
+
+        .mt-4 {
+            margin-top: 1rem;
+        }
+
+        .mb-1 {
+            margin-bottom: 0.25rem;
+        }
+
+        .mb-2 {
+            margin-bottom: 0.5rem;
+        }
+
+        .mb-4 {
+            margin-bottom: 1rem;
+        }
+
+        .text-xs {
+            font-size: 0.75rem;
+        }
+
+        .text-sm {
+            font-size: 0.875rem;
+        }
+
+        .text-2xl {
+            font-size: 1.5rem;
+        }
+
+        .font-bold {
+            font-weight: 700;
+        }
+
+        .font-semibold {
+            font-weight: 600;
+        }
+
+        .text-muted {
+            color: var(--text-muted);
+        }
+
+        .text-accent {
+            color: var(--accent);
+        }
+
+        .space-y-3>*+* {
+            margin-top: 0.75rem;
+        }
+
+        .bg-gray-50 {
+            background-color: #f9fafb;
+        }
+
+        [data-theme='dark'] .bg-gray-50 {
+            background-color: #334155;
+        }
+
+        .rounded-lg {
+            border-radius: 0.5rem;
+        }
+
+        .rounded-full {
+            border-radius: 9999px;
+        }
+
+        .w-8 {
+            width: 2rem;
+        }
+
+        .h-8 {
+            height: 2rem;
+        }
+
+        .p-2 {
+            padding: 0.5rem;
+        }
+
+        .bg-accent\/10 {
+            background-color: rgba(22, 163, 74, 0.1);
+        }
     </style>
 </head>
 
 <body>
-    <div class="dashboard-header">
-        <div>
-            <h1 class="text-2xl font-bold">Staff Dashboard</h1>
-            <p class="text-muted">Welcome back, <span id="staff-name">User</span></p>
-        </div>
-        <button class="action-btn" onclick="logout()">Logout</button>
+    <div class="layout-container">
+        <main class="main-content">
+            <div class="dashboard-header">
+                <div>
+                    <h1 class="text-2xl font-bold">Staff Dashboard</h1>
+                    <p class="text-muted">Welcome back, <span id="staff-name">User</span></p>
+                </div>
+                <button class="action-btn" onclick="logout()">Logout</button>
+            </div>
+
+            <div class="grid">
+                <div class="card">
+                    <h3 class="font-bold mb-2">Attendance</h3>
+                    <p class="text-sm text-muted mb-4">Mark your attendance for today.</p>
+                    <button class="btn-punch" id="btn-punch">Punch In</button>
+                    <div id="punch-status" class="mt-2 text-sm font-bold text-accent"></div>
+                </div>
+
+                <div class="card">
+                    <h3 class="font-bold mb-2">My Tasks</h3>
+                    <p class="text-sm text-muted">No pending tasks assigned.</p>
+                </div>
+
+                <div class="card">
+                    <h3 class="font-bold mb-2">Selling</h3>
+                    <p class="text-sm text-muted">Point of Sale system coming soon.</p>
+                    <button class="action-btn mt-2" onclick="window.location.href='../Sales/sales.html'">Open
+                        POS</button>
+                </div>
+
+                <div class="card">
+                    <h3 class="font-bold mb-2">Sales Target</h3>
+                    <div class="mt-2">
+                        <div class="flex justify-between text-xs mb-1">
+                            <span>Daily Progress</span>
+                            <span id="target-percent">0%</span>
+                        </div>
+                        <div style="height: 10px; background: var(--bg-light); border-radius: 5px; overflow: hidden;">
+                            <div id="target-progress-bar"
+                                style="height: 100%; width: 0%; background: var(--primary); transition: width 0.5s ease;">
+                            </div>
+                        </div>
+                        <p class="text-xs text-muted mt-2">Target: ₹10,000 | Current: <span id="current-sales">₹0</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card md:col-span-2">
+                    <h3 class="font-bold mb-2">Recent Activity</h3>
+                    <div id="activity-feed" class="space-y-3 mt-4">
+                        <p class="text-sm text-muted">No recent activity recorded.</p>
+                    </div>
+                </div>
+            </div>
+
+            <script src="staff_dashboard.js"></script>
+        </main>
     </div>
-
-    <div class="grid">
-        <div class="card">
-            <h3 class="font-bold mb-2">Attendance</h3>
-            <p class="text-sm text-muted mb-4">Mark your attendance for today.</p>
-            <button class="btn-punch" id="btn-punch">Punch In</button>
-            <div id="punch-status" class="mt-2 text-sm font-bold text-accent"></div>
-        </div>
-
-        <div class="card">
-            <h3 class="font-bold mb-2">My Tasks</h3>
-            <p class="text-sm text-muted">No pending tasks assigned.</p>
-        </div>
-
-        <div class="card">
-            <h3 class="font-bold mb-2">Selling</h3>
-            <p class="text-sm text-muted">Point of Sale system coming soon.</p>
-            <button class="action-btn mt-2" onclick="window.location.href='../Sales/sales.html'">Open POS</button>
-        </div>
-    </div>
-
-    <script>
-        const emp = JSON.parse(localStorage.getItem('currentEmployee'));
-        if (!emp) window.location.href = '../Authentication/employee_login.html';
-
-        document.getElementById('staff-name').textContent = emp.name;
-
-        // Simple Punch Logic
-        const btnPunch = document.getElementById('btn-punch');
-        const statusDiv = document.getElementById('punch-status');
-        let punchedIn = false;
-
-        btnPunch.addEventListener('click', () => {
-            punchedIn = !punchedIn;
-            btnPunch.textContent = punchedIn ? 'Punch Out' : 'Punch In';
-            btnPunch.style.background = punchedIn ? '#ef4444' : 'var(--primary)';
-            statusDiv.textContent = punchedIn ? 'Clocked In at ' + new Date().toLocaleTimeString() : '';
-        });
-
-        window.logout = () => {
-            localStorage.removeItem('currentEmployee');
-            window.location.href = '../Authentication/employee_login.html';
-        }
-    </script>
 </body>
 
 </html>

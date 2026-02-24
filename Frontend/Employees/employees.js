@@ -288,6 +288,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span class="status-badge ${statusClass}">${statusText}</span>
                     </div>
                     <div class="detail-row">
+                        <span class="detail-label">Salary</span>
+                        <span class="salary-display">
+                            ${userRole === 'owner' ? `₹ ${emp.salary || 0}` : `₹ **** <i class="fa-solid fa-lock" style="font-size:0.7rem; opacity:0.5;"></i>`}
+                        </span>
+                    </div>
+                    <div class="detail-row">
                         <span class="detail-label">Password</span>
                         <div style="display: flex; align-items: center; gap: 0.5rem;">
                             <span class="text-sm text-muted">Password Set ✔</span>
@@ -538,6 +544,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize Staff 360 Detail Logic (Securely)
     if (typeof initStaffDetails === 'function') {
         // Fix: Pass as a getter function so reference stays fresh
-        initStaffDetails(() => ownerEmployees, currentOwnerId, handleStaffUpdate);
+        initStaffDetails(() => ownerEmployees, currentOwnerId, handleStaffUpdate, userRole);
     }
 });

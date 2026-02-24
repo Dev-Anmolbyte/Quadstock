@@ -1,7 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- 0. RBAC Security Check ---
+    const activeRole = sessionStorage.getItem('activeRole') || localStorage.getItem('activeRole');
     const currentEmployee = JSON.parse(localStorage.getItem('currentEmployee'));
-    if (currentEmployee && currentEmployee.role === 'staff') {
+    const role = activeRole || (currentEmployee ? currentEmployee.role : 'owner');
+
+    if (role === 'staff') {
         // Hide Restricted Actions
         const btnAdd = document.getElementById('add-product-btn');
         if (btnAdd) btnAdd.style.display = 'none';
@@ -868,6 +871,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${status.daysToExpiry !== null ? `<div class="text-sm">${status.daysToExpiry < 0 ? 'Expired' : status.daysToExpiry + ' days left'}</div>` : ''}
             </td>
             <td>
+                ${(item.quantity <= (item.reorderPoint || 10)) ? `
+                    <button class="action-btn order-btn" data-id="${item.id}" title="Quick Order (WhatsApp)" 
+                            style="color: #25D366; background: rgba(37, 211, 102, 0.1);">
+                        <i class="fa-brands fa-whatsapp"></i>
+                    </button>
+                ` : ''}
                 <button class="action-btn edit-btn" data-id="${item.id}" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
                 <button class="action-btn delete-btn" data-id="${item.id}" title="Delete"><i class="fa-solid fa-trash"></i></button>
             </td>
@@ -999,6 +1008,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </td>
                 <td>
+                    ${(item.quantity <= (item.reorderPoint || 10)) ? `
+                        <button class="action-btn order-btn" data-id="${item.id}" title="Quick Order (WhatsApp)" 
+                                style="color: #25D366; background: rgba(37, 211, 102, 0.1);">
+                            <i class="fa-brands fa-whatsapp"></i>
+                        </button>
+                    ` : ''}
                     <button class="action-btn edit-btn" data-id="${item.id}" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
                     <button class="action-btn delete-btn" data-id="${item.id}" title="Delete"><i class="fa-solid fa-trash"></i></button>
                 </td>
@@ -1287,23 +1302,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 deleteProduct(id);
             })
         );
+
+        document.querySelectorAll('.order-btn').forEach(btn =>
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const id = e.target.closest('button').dataset.id;
+                const item = inventory.find(i => i.id === id);
+                if (item) {
+                    const message = `Hello, I need to order more of ${item.name} (${item.brand || 'No Brand'}). Current stock is ${item.quantity} ${item.unit}.`;
+                    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+                    window.open(whatsappUrl, '_blank');
+                }
+            })
+        );
     }
 
     function exportToCSV() {
         const headers = ['S. No.', 'Batch', 'SKU', 'Name', 'Brand', 'Category', 'Attributes', 'Quantity', 'Unit', 'PP', 'CP', 'SP', 'MFD', 'EXP'];
         const rows = inventory.map((i, index) => {
             const attr = (i.size || i.weight || '') + (i.color ? ' - ' + i.color : '');
-
-            // Format dates to be Excel-friendly (YYYY-MM-DD is usually safe, or DD/MM/YYYY)
-            // Using a simple meaningful format. 
             const mfd = i.mfd ? new Date(i.mfd).toLocaleDateString('en-GB') : '-';
             const exp = i.exp ? new Date(i.exp).toLocaleDateString('en-GB') : '-';
-
             return [
-                index + 1, // Serial Number (1, 2, 3...)
-                i.batchNumber, // Batch
+                index + 1,
+                i.batchNumber,
                 i.sku || '-',
-                `"${i.name.replace(/"/g, '""')}"`, // Handle commas/quotes in Name
+                `"${i.name.replace(/"/g, '""')}"`,
                 i.brand || '-',
                 i.category || '-',
                 attr || '-',
@@ -1328,6 +1352,95 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+    }
+
+    // --- 12. CSV Import (Fix Task 1 - New Feature) ---
+    const btnImport = document.getElementById('import-btn');
+    const inputImport = document.getElementById('csv-import');
+
+    if (btnImport) {
+        btnImport.addEventListener('click', () => inputImport.click());
+    }
+
+    if (inputImport) {
+        inputImport.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const text = event.target.result;
+                processCSV(text);
+            };
+            reader.readAsText(file);
+            inputImport.value = ''; // Reset for next time
+        });
+    }
+
+    function processCSV(text) {
+        const lines = text.split('\n').filter(line => line.trim().length > 0);
+        if (lines.length < 2) {
+            QuadModals.alert("Import Error", "CSV file is empty or missing headers.", "error");
+            return;
+        }
+
+        // Simple CSV Parser (doesn't handle all edge cases but good for standard export)
+        const parseLine = (line) => {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                if (char === '"' && line[i + 1] === '"') {
+                    current += '"'; i++;
+                } else if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current.trim());
+            return result;
+        };
+
+        const headers = parseLine(lines[0]);
+        const newItems = [];
+
+        for (let i = 1; i < lines.length; i++) {
+            const data = parseLine(lines[i]);
+            if (data.length < 5) continue; // Skip malformed lines
+
+            // Basic Mapping (Assumes export format headers)
+            // ['S. No.', 'Batch', 'SKU', 'Name', 'Brand', 'Category', 'Attributes', 'Quantity', 'Unit', 'PP', 'CP', 'SP', 'MFD', 'EXP']
+            const item = {
+                id: Date.now().toString() + '-' + i,
+                batchNumber: data[1] || 'BATCH-' + i,
+                sku: data[2] || '',
+                name: data[3] || 'Imported Product',
+                brand: data[4] || '',
+                category: data[5] || 'General',
+                quantity: parseInt(data[7]) || 0,
+                unit: data[8] || 'pcs',
+                pp: parseFloat(data[9]) || 0,
+                cp: parseFloat(data[10]) || 0,
+                price: parseFloat(data[11]) || 0,
+                mfd: null,
+                exp: null,
+                type: 'Kirana' // Default
+            };
+            newItems.push(item);
+        }
+
+        if (newItems.length > 0) {
+            inventory = [...inventory, ...newItems];
+            localStorage.setItem('inventory', JSON.stringify(inventory));
+            calculateDashboardStats();
+            renderTable();
+            QuadModals.alert("Success", `Imported ${newItems.length} products successfully!`, "success");
+        }
     }
 
     // --- 9. Helper: Sidebar & Theme (Standard) ---
@@ -1439,6 +1552,57 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
+
+    // --- 11. Barcode Scanner (Fix Task 1 - New Feature) ---
+    const btnScan = document.getElementById('btn-scan-barcode');
+    const scannerContainer = document.getElementById('barcode-reader');
+    let html5QrCode = null;
+
+    if (btnScan) {
+        btnScan.addEventListener('click', () => {
+            if (!html5QrCode) {
+                scannerContainer.style.display = 'block';
+                html5QrCode = new Html5Qrcode("barcode-reader");
+                const config = { fps: 10, qrbox: { width: 250, height: 150 } };
+
+                html5QrCode.start(
+                    { facingMode: "environment" },
+                    config,
+                    (decodedText) => {
+                        // Success
+                        document.getElementById('batch-number').value = decodedText;
+                        stopScanner();
+                        QuadModals.showToast("Barcode Scanned: " + decodedText, 'success');
+                    },
+                    (errorMessage) => {
+                        // Parse error, usually can be ignored
+                    }
+                ).catch(err => {
+                    console.error("Scanner Error:", err);
+                    scannerContainer.style.display = 'none';
+                    QuadModals.alert("Scanner Error", "Could not start camera. Please ensure permissions are granted.", "error");
+                    html5QrCode = null;
+                });
+            } else {
+                stopScanner();
+            }
+        });
+    }
+
+    function stopScanner() {
+        if (html5QrCode) {
+            html5QrCode.stop().then(() => {
+                html5QrCode = null;
+                scannerContainer.style.display = 'none';
+            }).catch(err => console.error("Error stopping scanner:", err));
+        }
+    }
+
+    // Stop scanner if modal is closed
+    const modalCloseBtns = document.querySelectorAll('.close-modal, .close-modal-btn');
+    modalCloseBtns.forEach(btn => {
+        btn.addEventListener('click', stopScanner);
+    });
 
     setupSidebar();
 });
