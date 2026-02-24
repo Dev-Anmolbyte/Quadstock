@@ -1,6 +1,6 @@
 
-import { initInteractiveBackground } from '../Shared/interactive-bg.js';
-import { togglePasswordVisibility, calculatePasswordStrength, validateEmail, validatePhone, showError, clearError } from '../Shared/auth-utils.js';
+import { initInteractiveBackground } from '../Shared/Components/interactive-bg.js';
+import { togglePasswordVisibility, calculatePasswordStrength, validateEmail, validatePhone, showError, clearError } from '../Shared/Auth/auth-utils.js';
 
 // --- Main Logic ---
 document.addEventListener('DOMContentLoaded', () => {

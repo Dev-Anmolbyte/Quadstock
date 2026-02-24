@@ -1,4 +1,4 @@
-import { updateDashboardStats, resetNotification } from '../Shared/dashboard_stats.js';
+import { updateDashboardStats, resetNotification } from '../Shared/Utils/dashboard_stats.js';
 
 // --- Authentication Check (Start of file) ---
 if (!localStorage.getItem('currentEmployee')) {

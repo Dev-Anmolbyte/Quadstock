@@ -1,6 +1,6 @@
 
-import { initInteractiveBackground } from '../Shared/interactive-bg.js';
-import { togglePasswordVisibility, showError, clearError } from '../Shared/auth-utils.js';
+import { initInteractiveBackground } from '../Shared/Components/interactive-bg.js';
+import { togglePasswordVisibility, showError, clearError } from '../Shared/Auth/auth-utils.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- Initialize Background ---

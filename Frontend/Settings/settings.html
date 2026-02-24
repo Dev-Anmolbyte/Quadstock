@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+    <script src="../Shared/Auth/guard.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Settings - QuadStock</title>
@@ -10,10 +11,10 @@
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- CSS -->
-    <link rel="stylesheet" href="../Shared/global.css">
+    <link rel="stylesheet" href="../Shared/Styles/global.css">
     <link rel="stylesheet" href="settings.css">
-    <link rel="stylesheet" href="../Shared/notification_badge.css">
-    <script src="../Shared/offline.js"></script>
+    <link rel="stylesheet" href="../Shared/Styles/notification_badge.css">
+    <script src="../Shared/Utils/offline.js"></script>
 </head>
 
 <body data-theme="light">
@@ -346,8 +347,8 @@
     </div>
 
     <!-- Script -->
-    <script src="../Shared/offline.js"></script>
-    <script src="../Shared/rbac.js"></script>
+    <script src="../Shared/Utils/offline.js"></script>
+    <script src="../Shared/Auth/rbac.js"></script>
     <script src="settings.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {

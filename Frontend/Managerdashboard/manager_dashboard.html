@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+    <script src="../Shared/Auth/guard.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QuadStock - Manager Dashboard</title>
@@ -10,7 +11,7 @@
     <link rel="stylesheet" href="../Shared/Vendor/font-awesome/css/all.min.css">
     <!-- CSS -->
     <link rel="stylesheet" href="manager_dashboard.css">
-    <link rel="stylesheet" href="../Shared/notification_badge.css">
+    <link rel="stylesheet" href="../Shared/Styles/notification_badge.css">
     <!-- Chart.js -->
     <script src="../Shared/Vendor/chartjs/chart.min.js"></script>
 </head>
@@ -396,8 +397,8 @@
         </main>
     </div>
 
-    <script src="../Shared/rbac.js"></script>
-    <script src="../Shared/offline.js"></script>
+    <script src="../Shared/Auth/rbac.js"></script>
+    <script src="../Shared/Utils/offline.js"></script>
     <script src="manager_dashboard.js" type="module"></script>
 </body>
 

@@ -1,5 +1,5 @@
 
-import { showError, clearError, togglePasswordVisibility, calculatePasswordStrength } from '../Shared/auth-utils.js';
+import { showError, clearError, togglePasswordVisibility, calculatePasswordStrength } from '../Shared/Auth/auth-utils.js';
 
 document.addEventListener('DOMContentLoaded', () => {
 
