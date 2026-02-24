@@ -3,7 +3,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const themeBtn = document.getElementById('theme-toggle');
     const body = document.body;
 
-    // Check saved theme
     if (localStorage.getItem('theme') === 'dark') {
         body.setAttribute('data-theme', 'dark');
         if (themeBtn) themeBtn.innerHTML = '<i class="fa-solid fa-sun"></i>';
@@ -32,8 +31,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- Authentication & Context ---
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    const currentEmployee = JSON.parse(localStorage.getItem('currentEmployee'));
+    const userRole = (currentUser && currentUser.role) || (currentEmployee && currentEmployee.role) || 'staff';
+    const currentOwnerId = (currentUser && currentUser.ownerId) || (currentEmployee && currentEmployee.ownerId);
+
+    if (!currentOwnerId) {
+        window.location.href = '../Authentication/employee_login.html';
+        return;
+    }
+
     // --- Udhaar Management Logic ---
-    let udhaarList = JSON.parse(localStorage.getItem('udhaarRecords')) || [];
+    const allRecords = JSON.parse(localStorage.getItem('udhaarRecords')) || [];
+    let udhaarList = allRecords.filter(r => r.ownerId === currentOwnerId);
+
 
     // --- Data Migration for Partial Payments Support ---
     udhaarList = udhaarList.map(record => {
@@ -152,6 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const newRecord = {
             id: Date.now().toString(),
+            ownerId: currentOwnerId,
             date: date,
             dueDate: dueDate,
             name: document.getElementById('u-name').value,
@@ -188,7 +201,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Helper Functions
     function saveData() {
-        localStorage.setItem('udhaarRecords', JSON.stringify(udhaarList));
+        // Merge current owner list back into global list
+        const otherOwnerRecords = allRecords.filter(r => r.ownerId !== currentOwnerId);
+        const updatedGlobalList = [...otherOwnerRecords, ...udhaarList];
+        localStorage.setItem('udhaarRecords', JSON.stringify(updatedGlobalList));
     }
 
     function renderTable(data = udhaarList) {
@@ -470,6 +486,11 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.deleteRecord = (id) => {
+        if (userRole === 'staff') {
+            alert('Access Denied: Staff cannot delete records.');
+            return;
+        }
+
         if (confirm('Are you sure you want to delete this record irrecoverably?')) {
             udhaarList = udhaarList.filter(r => r.id !== id);
             saveData();

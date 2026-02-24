@@ -14,6 +14,8 @@
     <link rel="stylesheet" href="../Shared/Styles/global.css">
     <!-- CSS -->
     <link rel="stylesheet" href="inventory.css">
+    <link rel="stylesheet" href="../Shared/Components/quad-modals.css">
+
     <script src="../Shared/Vendor/html5-qrcode.min.js"></script>
 </head>
 
@@ -254,7 +256,17 @@
 
                     <!-- Section A: Basic Details -->
                     <div class="form-section">
-                        <h4 class="section-title"><i class="fa-solid fa-box"></i> Basic Details</h4>
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h4 class="section-title" style="margin-bottom: 0;"><i class="fa-solid fa-box"></i> Basic
+                                Details</h4>
+                            <div class="barcode-input-wrapper" style="display: flex; gap: 8px; align-items: center;">
+                                <i class="fa-solid fa-barcode" style="color: var(--primary);"></i>
+                                <input type="text" id="product-barcode" placeholder="Hardware Scan Here"
+                                    style="width: 180px; padding: 0.4rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem;">
+                            </div>
+                        </div>
+
 
                         <!-- 1. Category & Sub-Category (First) -->
                         <div class="form-row">
@@ -542,7 +554,9 @@
 
     <script src="../Shared/Utils/offline.js"></script>
     <script src="../Shared/Auth/rbac.js"></script>
+    <script src="../Shared/Components/quad-modals.js"></script>
     <script src="inventory.js"></script>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);

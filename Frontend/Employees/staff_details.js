@@ -244,6 +244,29 @@ function initStaffDetails(getSafeEmployees, currentOwnerId, onSave, currentUserR
         if (selectedDateFull) selectedDateFull.textContent = "--/--/----";
         if (dayStatsContent) dayStatsContent.innerHTML = '<p class="empty-detail-msg">Select a date to view punch logs</p>';
 
+        // --- RBAC UI Enforcement ---
+        const isStaff = currentUserRole === 'staff';
+        const isManager = currentUserRole === 'manager';
+        const isOwner = currentUserRole === 'owner';
+
+        // Hide Actions Tab for Staff
+        const actionsTab = modal.querySelector('.section-tab-header[data-tab="3"]');
+        if (actionsTab) actionsTab.style.display = isStaff ? 'none' : 'flex';
+
+        // Hide Save button for Staff
+        if (saveBtn) saveBtn.style.display = isStaff ? 'none' : 'block';
+
+        // Restrict specific action cards based on role
+        if (btnDelete) {
+            const deleteCard = btnDelete.closest('.action-card');
+            if (deleteCard) deleteCard.style.display = isOwner ? 'block' : 'none';
+        }
+
+        if (btnBlock) {
+            const blockCard = btnBlock.closest('.action-card');
+            if (blockCard) blockCard.style.display = (isOwner || isManager) ? 'block' : 'none';
+        }
+
         document.getElementById('detail-header-name').textContent = emp.name;
         document.getElementById('detail-header-id').textContent = emp.empId;
         document.getElementById('detail-header-role').textContent = emp.role;
@@ -314,6 +337,11 @@ function initStaffDetails(getSafeEmployees, currentOwnerId, onSave, currentUserR
     if (saveBtn) {
         saveBtn.onclick = () => {
             if (!activeEmpId) return;
+            if (currentUserRole === 'staff') {
+                QuadModals.alert("Access Denied", "Staff members cannot modify employee records.", "error");
+                return;
+            }
+
             const emp = getActiveEmp();
             if (!emp) return;
 
@@ -339,6 +367,7 @@ function initStaffDetails(getSafeEmployees, currentOwnerId, onSave, currentUserR
 
     if (btnUpdateRole) {
         btnUpdateRole.onclick = () => {
+            if (currentUserRole === 'staff') return;
             const emp = getActiveEmp();
             if (!emp || !roleSelect) return;
             const newRole = roleSelect.value;
@@ -352,6 +381,7 @@ function initStaffDetails(getSafeEmployees, currentOwnerId, onSave, currentUserR
 
     if (btnBlock) {
         btnBlock.onclick = () => {
+            if (currentUserRole === 'staff') return;
             const emp = getActiveEmp();
             if (!emp) return;
             const isCurrentlyActive = (emp.status === 'active' || emp.status === 'present');

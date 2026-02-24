@@ -1,16 +1,21 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // --- Mock Data ---
-    // In a real app, this would come from an API
-    let products = [
-        { id: 1, name: "Crocin 650mg", batch: "BATCH-882", expiry: "2026-02-10", quantity: 150, category: "Medicine", price: 30, image: "https://ui-avatars.com/api/?name=Cr&background=fee2e2&color=ef4444" },
-        { id: 2, name: "Britannia Bread (White)", batch: "BRT-002", expiry: "2026-02-11", quantity: 25, category: "Bakery", price: 45, image: "https://ui-avatars.com/api/?name=Br&background=ffedd5&color=f97316" },
-        { id: 3, name: "Amul Taaza Milk 1L", batch: "AM-550", expiry: "2026-02-15", quantity: 45, category: "Dairy", price: 72, image: "https://ui-avatars.com/api/?name=Am&background=e0f2fe&color=0ea5e9" },
-        { id: 4, name: "Farm Fresh Eggs (Tray)", batch: "EGG-101", expiry: "2026-02-28", quantity: 12, category: "Dairy", price: 180, image: "https://ui-avatars.com/api/?name=Eg&background=fce7f3&color=db2777" },
-        { id: 5, name: "Amul Cheese Slices", batch: "Ch-909", expiry: "2026-03-05", quantity: 30, category: "Dairy", price: 145, image: "https://ui-avatars.com/api/?name=Ch&background=f3e8ff&color=a855f7" },
-        { id: 6, name: "Mother Dairy Dahi", batch: "MD-221", expiry: "2026-02-05", quantity: 18, category: "Dairy", price: 35, image: "https://ui-avatars.com/api/?name=Da&background=dcfce7&color=16a34a" },
-        { id: 7, name: "Amul Butter (500g)", batch: "BT-112", expiry: "2026-04-10", quantity: 60, category: "Dairy", price: 285, image: "https://ui-avatars.com/api/?name=Bu&background=f1f5f9&color=475569" },
-        { id: 8, name: "Dolo 650", batch: "DL-999", expiry: "2026-02-09", quantity: 200, category: "Medicine", price: 32, image: "https://ui-avatars.com/api/?name=Do&background=fee2e2&color=ef4444" },
-    ];
+    // --- Authentication & Context ---
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    const currentEmployee = JSON.parse(localStorage.getItem('currentEmployee'));
+    const ownerId = (currentUser && currentUser.ownerId) || (currentEmployee && currentEmployee.ownerId);
+
+    if (!ownerId) {
+        window.location.href = '../Authentication/login.html';
+        return;
+    }
+
+    // --- Data Loading (Real Inventory) ---
+    const inventoryKey = `inventory_${ownerId}`;
+    let rawInventory = JSON.parse(localStorage.getItem(inventoryKey)) || [];
+
+    // Only process products that have an expiry date
+    let products = rawInventory.filter(p => p.expiry && p.expiry !== '');
+
 
     // --- Dynamic Sidebar Logic ---
     function setupSidebar() {

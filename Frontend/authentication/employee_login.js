@@ -94,12 +94,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (employee) {
                     // Success
-                    if (employee.status === 'pending' || employee.status === 'blocked' || employee.status === 'offline') {
-                        showError(loginBtn, 'Account Access Restricted. Contact Administrator.');
+                    const restrictedStatuses = ['pending', 'blocked', 'rejected'];
+                    if (restrictedStatuses.includes(employee.status)) {
+                        const message = employee.status === 'pending' ? 'Account Pending Approval.' : 'Account Access Restricted.';
+                        showError(loginBtn, message + ' Contact Administrator.');
                         loginBtn.innerHTML = originalContent;
                         loginBtn.disabled = false;
                         return;
                     }
+
 
                     localStorage.setItem('currentEmployee', JSON.stringify(employee));
 

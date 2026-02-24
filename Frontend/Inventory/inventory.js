@@ -1,23 +1,43 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // --- 0. RBAC Security Check ---
-    const activeRole = sessionStorage.getItem('activeRole') || localStorage.getItem('activeRole');
+    // --- 0. Authentication & Context ---
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
     const currentEmployee = JSON.parse(localStorage.getItem('currentEmployee'));
-    const role = activeRole || (currentEmployee ? currentEmployee.role : 'owner');
+
+    // Security: Derive role strictly from session data. Ignore URL overrides to prevent privilege escalation.
+    const role = (currentUser ? 'owner' : (currentEmployee ? currentEmployee.role : null));
+    const ownerId = (currentUser && currentUser.ownerId) || (currentEmployee && currentEmployee.ownerId);
+
+    // If no context, redirect to login
+    if (!role || !ownerId) {
+        window.location.href = '../Authentication/login.html';
+        return;
+    }
 
     if (role === 'staff') {
+
         // Hide Restricted Actions
         const btnAdd = document.getElementById('add-product-btn');
         if (btnAdd) btnAdd.style.display = 'none';
 
-        // Add Style to hide edit/delete buttons dynamically
+        // Hide Edit/Delete functionality via CSS injection
         const style = document.createElement('style');
         style.innerHTML = `
-            .edit-btn, .delete-btn, .edit-group-btn { display: none !important; }
+            .edit-btn, .delete-btn, .edit-group-btn, .import-btn { display: none !important; }
         `;
         document.head.appendChild(style);
+    } else {
+        // Ensure buttons are visible for Non-Staff (Owner, Manager, Inventory Manager)
+        const btnAdd = document.getElementById('add-product-btn');
+        if (btnAdd) btnAdd.style.display = 'flex';
+        const btnImport = document.getElementById('import-btn');
+        if (btnImport) btnImport.style.display = 'flex';
     }
+
     // --- 1. State & Constants ---
-    let inventory = JSON.parse(localStorage.getItem('inventory')) || [];
+    // Scoped Storage: Load only this owner's products to prevent data leakage
+    const STORAGE_KEY = `inventory_${ownerId}`;
+    let inventory = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
     let isEditing = false;
     let currentEditId = null;
     let cameraStream = null;
@@ -95,7 +115,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const profitVal = document.getElementById('profit-val');
     const expiryHint = document.getElementById('expiry-hint');
 
+    const inputBarcode = document.getElementById('product-barcode');
     const divGroceryDates = document.getElementById('grocery-dates');
+
     const divClothesAttributes = document.getElementById('clothes-attributes');
     const inputSize = document.getElementById('product-size');
     const inputColor = document.getElementById('product-color');
@@ -197,6 +219,12 @@ document.addEventListener('DOMContentLoaded', () => {
     safeListener(productForm, 'submit', handleFormSubmit);
     safeListener(btnGenBatch, 'click', () => { if (inputBatch) inputBatch.value = generateBatchNumber(); });
 
+    // Handle Hardware Barcode Scan
+    safeListener(inputBarcode, 'change', (e) => {
+        handleScan(e.target.value.trim());
+    });
+
+
     // Split Batch
     safeListener(btnSplitBatch, 'click', () => {
         if (productForm && productForm.checkValidity()) {
@@ -282,10 +310,12 @@ document.addEventListener('DOMContentLoaded', () => {
         canvasEl.height = videoEl.videoHeight;
         context.drawImage(videoEl, 0, 0, canvasEl.width, canvasEl.height);
 
-        const dataURL = canvasEl.toDataURL('image/png');
+        // Optimization: Use JPEG with 0.5 quality to prevent LocalStorage overflow
+        const dataURL = canvasEl.toDataURL('image/jpeg', 0.5);
         showPreview(dataURL);
         stopCamera();
     });
+
 
     // 4. Stop Camera
     safeListener(btnStopCamera, 'click', stopCamera);
@@ -317,7 +347,56 @@ document.addEventListener('DOMContentLoaded', () => {
         return `BAT-${yyyy}${mm}${dd}-${random}`;
     }
 
+    function handleScan(scannedCode) {
+        if (!scannedCode) return;
+
+        // 1. Get Current Owner Context
+        const ownerId = (currentUser && currentUser.ownerId) || (currentEmployee && currentEmployee.ownerId);
+
+        if (!ownerId) {
+            QuadModals.alert("Configuration Error", "Owner ID not found. Please log in again.", "error");
+            return;
+        }
+
+        // Find the LATEST entry for this barcode (reverse search)
+        const match = [...inventory].reverse().find(p => p.barcode === scannedCode && p.ownerId === ownerId);
+
+        if (match) {
+            autoFillForm(match);
+            QuadModals.showToast("Product Found: " + match.name, "success");
+        } else {
+            QuadModals.showToast("Product not registered in this shop", "info");
+            // We keep the barcode in the field so it save with the new product
+            inputBarcode.value = scannedCode;
+        }
+    }
+
+    function autoFillForm(product) {
+        if (inputName) inputName.value = product.name || '';
+        if (inputBrand) inputBrand.value = product.brand || '';
+        if (inputType) {
+            inputType.value = product.type || 'Kirana';
+            populateSubCategories(product.type);
+            toggleAttributes(product.type);
+        }
+        if (inputCategory) inputCategory.value = product.category || '';
+        if (inputWeight) inputWeight.value = product.weight || '';
+        if (inputDesc) inputDesc.value = product.description || '';
+
+        // Populate Price data (Basic)
+        if (inputPP) inputPP.value = product.pp || '';
+        if (inputCP) inputCP.value = product.cp || '';
+        if (inputSP) inputSP.value = product.price || '';
+
+        // Architecture Fix: Skip Batch-specific fields (Batch#, MFD, EXP) to allow user to enter new batch info
+        if (inputReorder) inputReorder.value = product.reorderPoint || 10;
+        if (product.image) showPreview(product.image);
+
+        calculateMargin();
+    }
+
     function calculateMargin() {
+
         const pp = parseFloat(inputPP.value) || 0;
         const cp = parseFloat(inputCP.value) || 0;
         const sp = parseFloat(inputSP.value) || 0;
@@ -503,6 +582,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.querySelector('.image-controls').style.display = 'flex';
             }
 
+            inputBarcode.value = item.barcode || '';
             inputBatch.value = item.batchNumber || '';
             inputQty.value = item.quantity || 0;
             inputUnit.value = item.unit || 'pcs';
@@ -519,6 +599,7 @@ document.addEventListener('DOMContentLoaded', () => {
             previewInterface.style.display = 'none';
             imgPreview.src = '';
             document.querySelector('.image-controls').style.display = 'flex';
+            inputBarcode.value = '';
             inputBatch.value = generateBatchNumber();
             marginVal.textContent = '-';
             expiryHint.textContent = 'Select date to see alert status';
@@ -540,10 +621,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleFormSubmit(e) {
         e.preventDefault();
+
+        // Role Security: Prevent unauthorized functional access
+        if (role === 'staff') {
+            QuadModals.alert("Access Denied", "Staff members do not have permission to save products.", "error");
+            return;
+        }
+
         saveProduct(true);
     }
 
+
     function saveProduct(closeAfterSave = true) {
+        if (role === 'staff') {
+            QuadModals.alert("Access Denied", "Staff members do not have permission to save products.", "error");
+            return;
+        }
+
         // Handle Custom Sub-Category
         const currentType = inputType.value;
         const newCat = inputCategory.value;
@@ -575,6 +669,8 @@ document.addEventListener('DOMContentLoaded', () => {
             category: inputCategory.value,
             description: inputDesc.value,
             image: imgPreview.src || inputImageURL.value, // Prefer preview (file/camera)
+            barcode: inputBarcode.value,
+            ownerId: (currentUser && currentUser.ownerId) || (currentEmployee && currentEmployee.ownerId),
 
             batchNumber: inputBatch.value,
             quantity: parseInt(inputQty.value) || 0,
@@ -601,15 +697,14 @@ document.addEventListener('DOMContentLoaded', () => {
             inventory.unshift(productData);
         }
 
-        // Persist
+        // Persist Scoped
         try {
-            localStorage.setItem('inventory', JSON.stringify(inventory));
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(inventory));
         } catch (e) {
-            alert('Storage Full! Could not save product. Please clear old data or compress images.');
-            console.error('LocalStorage Save Error:', e);
-            // Revert changes in memory if save failed? 
-            // Ideally yes, but for now just warn.
+            QuadModals.alert("Storage Full", "Could not save. Please use smaller images or clear old data.", "error");
+            console.error('LocalStorage Scoped Save Error:', e);
         }
+
 
         // Update UI
         calculateDashboardStats();
@@ -637,6 +732,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function deleteProduct(id) {
+        // Role Security
+        if (role === 'staff') {
+            QuadModals.alert("Access Denied", "Staff members cannot delete products.", "error");
+            return;
+        }
+
         productToDeleteId = id;
         if (deleteModal) {
             deleteModal.classList.add('show');
@@ -649,12 +750,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+
     function executeDeletion(id) {
         inventory = inventory.filter(i => i.id !== id);
-        localStorage.setItem('inventory', JSON.stringify(inventory));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(inventory));
         calculateDashboardStats();
         renderTable();
     }
+
 
     // Delete Modal Listeners
     if (btnConfirmDelete) {
@@ -1378,6 +1481,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function processCSV(text) {
+        if (role === 'staff') {
+            QuadModals.alert("Access Denied", "Staff members cannot import data.", "error");
+            return;
+        }
+
         const lines = text.split('\n').filter(line => line.trim().length > 0);
         if (lines.length < 2) {
             QuadModals.alert("Import Error", "CSV file is empty or missing headers.", "error");
@@ -1553,26 +1661,49 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-    // --- 11. Barcode Scanner (Fix Task 1 - New Feature) ---
+    // --- 11. Barcode Scanner (Improved) ---
     const btnScan = document.getElementById('btn-scan-barcode');
     const scannerContainer = document.getElementById('barcode-reader');
     let html5QrCode = null;
 
     if (btnScan) {
-        btnScan.addEventListener('click', () => {
+        btnScan.addEventListener('click', async () => {
             if (!html5QrCode) {
+                // Ensure photo camera is stopped if running
+                if (cameraStream) stopCamera();
+
                 scannerContainer.style.display = 'block';
                 html5QrCode = new Html5Qrcode("barcode-reader");
-                const config = { fps: 10, qrbox: { width: 250, height: 150 } };
+
+                // Responsive QR Box for 1D/2D Barcodes
+                const qrboxFunction = (viewfinderWidth, viewfinderHeight) => {
+                    let minEdgePercentage = 0.7; // 70%
+                    let minEdgeSize = Math.min(viewfinderWidth, viewfinderHeight);
+                    let qrboxSize = Math.floor(minEdgeSize * minEdgePercentage);
+                    return {
+                        width: Math.max(250, qrboxSize),
+                        height: Math.max(150, Math.floor(qrboxSize / 1.5))
+                    };
+                };
+
+                const config = {
+                    fps: 10,
+                    qrbox: qrboxFunction,
+                    aspectRatio: 1.0
+                };
+
+                btnScan.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+                btnScan.classList.add('active-scanning');
+                btnScan.style.background = 'var(--c-red-text)';
 
                 html5QrCode.start(
                     { facingMode: "environment" },
                     config,
                     (decodedText) => {
                         // Success
-                        document.getElementById('batch-number').value = decodedText;
+                        if (inputBarcode) inputBarcode.value = decodedText;
+                        handleScan(decodedText);
                         stopScanner();
-                        QuadModals.showToast("Barcode Scanned: " + decodedText, 'success');
                     },
                     (errorMessage) => {
                         // Parse error, usually can be ignored
@@ -1580,7 +1711,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 ).catch(err => {
                     console.error("Scanner Error:", err);
                     scannerContainer.style.display = 'none';
-                    QuadModals.alert("Scanner Error", "Could not start camera. Please ensure permissions are granted.", "error");
+                    if (window.QuadModals) {
+                        QuadModals.alert("Scanner Error", "Could not start camera. Please ensure permissions are granted.", "error");
+                    } else {
+                        alert("Camera Error: Please ensure permissions are granted.");
+                    }
+                    resetScannerUI();
                     html5QrCode = null;
                 });
             } else {
@@ -1594,15 +1730,44 @@ document.addEventListener('DOMContentLoaded', () => {
             html5QrCode.stop().then(() => {
                 html5QrCode = null;
                 scannerContainer.style.display = 'none';
-            }).catch(err => console.error("Error stopping scanner:", err));
+                resetScannerUI();
+            }).catch(err => {
+                console.error("Error stopping scanner:", err);
+                // Force cleanup if stop fails
+                html5QrCode = null;
+                scannerContainer.style.display = 'none';
+                resetScannerUI();
+            });
         }
     }
 
-    // Stop scanner if modal is closed
-    const modalCloseBtns = document.querySelectorAll('.close-modal, .close-modal-btn');
-    modalCloseBtns.forEach(btn => {
-        btn.addEventListener('click', stopScanner);
+    function resetScannerUI() {
+        if (btnScan) {
+            btnScan.innerHTML = '<i class="fa-solid fa-barcode"></i>';
+            btnScan.classList.remove('active-scanning');
+            btnScan.style.background = '';
+        }
+    }
+
+    // Stop scanner/camera if modal is closed
+    const modalCloseElements = document.querySelectorAll('.close-modal, .close-modal-btn');
+    modalCloseElements.forEach(el => {
+        el.addEventListener('click', () => {
+            stopScanner();
+            stopCamera();
+        });
     });
+
+    // Architecture Fix: Ensure hardware is released even if modal transition is forced closed
+    if (modal) {
+        modal.addEventListener('transitionend', () => {
+            if (!modal.classList.contains('show')) {
+                stopScanner();
+                stopCamera();
+            }
+        });
+    }
 
     setupSidebar();
 });
+

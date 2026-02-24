@@ -319,7 +319,6 @@ document.addEventListener('DOMContentLoaded', () => {
             // Event Listeners (Fix #7 & #1)
             card.querySelector('.btn-change-pass').addEventListener('click', () => promptChangePassword(emp.empId));
             card.querySelector('.btn-view-profile').addEventListener('click', () => openStaffDetail(emp.empId));
-            card.querySelector('.toggle-pass-btn').addEventListener('click', (e) => togglePasswordDisplay(emp.empId, e.currentTarget));
 
             const btnApprove = card.querySelector('.btn-approve');
             if (btnApprove) btnApprove.addEventListener('click', () => approveEmployee(emp.empId));
@@ -382,6 +381,12 @@ document.addEventListener('DOMContentLoaded', () => {
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
+        // RBAC Check for Addition
+        if (userRole !== 'owner' && userRole !== 'manager') {
+            QuadModals.alert("Access Denied", "Only Owners or Managers can add employees.", "error");
+            return;
+        }
+
         const name = document.getElementById('emp-name').value;
         const photoInput = document.getElementById('emp-photo');
         const aadhaar = document.getElementById('emp-aadhaar').value;
@@ -402,12 +407,39 @@ document.addEventListener('DOMContentLoaded', () => {
         let finalPassword = passwordInput || "123456";
         const isDefaultPassword = !passwordInput;
 
-        // Process Photo
+        // Process Photo (Compressed for Storage Efficiency)
         let photoData = null;
         if (photoInput.files && photoInput.files[0]) {
             photoData = await new Promise((resolve) => {
                 const reader = new FileReader();
-                reader.onload = (ev) => resolve(ev.target.result);
+                reader.onload = (ev) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 300;
+                        const MAX_HEIGHT = 300;
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > MAX_WIDTH) {
+                                height *= MAX_WIDTH / width;
+                                width = MAX_WIDTH;
+                            }
+                        } else {
+                            if (height > MAX_HEIGHT) {
+                                width *= MAX_HEIGHT / height;
+                                height = MAX_HEIGHT;
+                            }
+                        }
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.5));
+                    };
+                    img.src = ev.target.result;
+                };
                 reader.readAsDataURL(photoInput.files[0]);
             });
         }
@@ -471,6 +503,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 5. Global Actions (Approve/Delete) ---
     // Attach to window for onclick access
     window.approveEmployee = (id) => {
+        if (userRole !== 'owner') {
+            QuadModals.alert("Access Denied", "Only the shop owner can approve employees.", "error");
+            return;
+        }
+
         const emp = employees.find(e => e.empId === id);
         if (emp && emp.ownerId === currentOwnerId) {
             emp.status = 'offline'; // Approved!
@@ -486,6 +523,11 @@ document.addEventListener('DOMContentLoaded', () => {
             "Are you sure you want to remove this employee? This action cannot be undone.",
             { isDanger: true, confirmText: 'Remove' }
         );
+
+        if (userRole !== 'owner') {
+            QuadModals.alert("Access Denied", "Only the shop owner can remove employees.", "error");
+            return;
+        }
 
         if (!confirmed) return;
 
