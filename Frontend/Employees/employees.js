@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <i class="fa-solid fa-chart-simple"></i>
                         <span>Analytics</span>
                     </a>
-                    <a href="../Query/query.html?role=owner" class="menu-item" title="Query">
+                    <a href="../Query/query.html" class="menu-item" title="Query">
                         <i class="fa-solid fa-clipboard-question"></i>
                         <span>Query</span>
                     </a>
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <i class="fa-solid fa-hourglass-end"></i>
                         <span>Smart Expiry</span>
                     </a>
-                    <a href="../Complain/complain.html?role=owner" class="menu-item" title="Complain">
+                    <a href="../Complain/complain.html" class="menu-item" title="Complain">
                         <i class="fa-solid fa-triangle-exclamation"></i>
                         <span>Complain</span>
                     </a>
@@ -112,11 +112,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             <i class="fa-solid fa-house-chimney"></i>
                             <span>Dashboard</span>
                         </a>
-                        <a href="../Analytics/analytics.html?role=manager" class="nav-item">
+                        <a href="../Analytics/analytics.html" class="nav-item">
                             <i class="fa-solid fa-chart-simple"></i>
                             <span>Analytics</span>
                         </a>
-                        <a href="../Query/query.html?role=manager" class="nav-item">
+                        <a href="../Query/query.html" class="nav-item">
                             <i class="fa-solid fa-clipboard-question"></i>
                             <span>Query</span>
                         </a>
@@ -133,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <i class="fa-solid fa-users"></i>
                             <span>Employees</span>
                         </a>
-                        <a href="../smartexpiry/smartexpiry.html?role=manager" class="nav-item">
+                        <a href="../smartexpiry/smartexpiry.html" class="nav-item">
                             <i class="fa-solid fa-hourglass-end"></i>
                             <span>Smart Expiry</span>
                         </a>
@@ -142,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="nav-section">
                     <h3 class="section-title">Business</h3>
                     <nav class="nav-menu">
-                        <a href="../Complain/complain.html?role=manager" class="nav-item">
+                        <a href="../Complain/complain.html" class="nav-item">
                             <i class="fa-solid fa-triangle-exclamation"></i>
                             <span>Complain</span>
                         </a>
@@ -165,6 +165,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     renderSidebar(userRole);
+
+    // Profile Target dynamic inject
+    const userProfileTarget = document.getElementById('user-profile-target');
+    if (userProfileTarget) {
+        let nameToUse = 'Owner';
+        if (currentUser) {
+            nameToUse = currentUser.ownerName || currentUser.shopName || 'Owner';
+        } else if (currentEmployee) {
+            nameToUse = currentEmployee.name || 'Manager';
+        }
+
+        userProfileTarget.innerHTML = `
+            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(nameToUse)}&background=F47C25&color=fff" alt="User" style="width:36px; height:36px; border-radius:50%; vertical-align:middle; margin-right:8px;">
+            <span class="user-name" style="font-weight: 700; color: var(--text-dark);">${nameToUse}</span>
+            <i class="fa-solid fa-chevron-down" style="font-size: 0.8rem; margin-left: 5px; color: var(--text-muted);"></i>
+        `;
+    }
 
     // Toggle Logic
     const toggle = document.getElementById('sidebar-toggle');

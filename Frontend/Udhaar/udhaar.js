@@ -42,6 +42,27 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
+    // Set User Profile Name
+    const nameSpans = document.querySelectorAll('.user-name');
+    nameSpans.forEach(span => {
+        if (currentUser) {
+            span.textContent = currentUser.ownerName || currentUser.shopName || 'Owner';
+        } else if (currentEmployee) {
+            span.textContent = currentEmployee.name || 'Manager';
+        }
+    });
+
+    const initialIcons = document.querySelectorAll('.user-profile img');
+    initialIcons.forEach(icon => {
+        let nameToUse = 'O';
+        if (currentUser) {
+            nameToUse = currentUser.ownerName || 'O';
+        } else if (currentEmployee) {
+            nameToUse = currentEmployee.name || 'M';
+        }
+        icon.src = `https://ui-avatars.com/api/?name=${nameToUse}&background=F47C25&color=fff`;
+    });
+
     // --- Udhaar Management Logic ---
     const allRecords = JSON.parse(localStorage.getItem('udhaarRecords')) || [];
     let udhaarList = allRecords.filter(r => r.ownerId === currentOwnerId);

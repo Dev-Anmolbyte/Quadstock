@@ -26,12 +26,12 @@
 }
 
 [data-theme="dark"] {
-    --bg-body: #1C1917;
-    --bg-white: #292524;
+    --bg-body: #000000;
+    --bg-white: #0a0a0a;
     --text-primary: #FDE8D8;
     --text-secondary: #A8A29E;
-    --border-color: #44403C;
-    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
+    --border-color: #1f1f1f;
+    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
 
     --c-blue-bg: rgba(21, 101, 192, 0.2);
     --c-blue-text: #90CAF9;
@@ -45,8 +45,14 @@
     --c-red-text: #EF9A9A;
     --c-orange-bg: rgba(239, 108, 0, 0.2);
     --c-orange-text: #FFCC80;
-    --bg-secondary: #292524;
-    --bg-tertiary: #44403C;
+    --bg-secondary: #0a0a0a;
+    --bg-tertiary: #1f1f1f;
+}
+
+/* Dark Mode Sidebar Hover Fix */
+[data-theme="dark"] .menu-item:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
 }
 
 /* Dark Mode Calendar Icon Fix */
@@ -295,11 +301,10 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
-    /* Lock main scroll */
+    overflow-y: auto;
+    overflow-x: hidden;
     position: relative;
     padding: 1.5rem;
-    /* Removed overflow-y: auto to enforce table scrolling instead */
 }
 
 /* Top Bar */

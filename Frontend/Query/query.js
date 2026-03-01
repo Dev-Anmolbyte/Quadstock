@@ -1,14 +1,23 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+    // --- Authentication & Context ---
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    const currentEmployee = JSON.parse(localStorage.getItem('currentEmployee'));
+    const userRole = (currentUser && currentUser.role) || (currentEmployee && currentEmployee.role) || 'staff';
+    const ownerId = (currentUser && currentUser.ownerId) || (currentEmployee && currentEmployee.ownerId);
+
+    if (!ownerId) {
+        window.location.href = '../Authentication/employee_login.html';
+        return;
+    }
+
     // --- Layout Hub ---
     function setupLayout() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const role = urlParams.get('role') || 'owner';
         const sidebarTarget = document.getElementById('sidebar-target');
         const mainContainer = document.getElementById('main-container');
         const dashboardCss = document.getElementById('dashboard-css');
 
-        if (role === 'manager') {
+        if (userRole === 'manager' || userRole === 'staff') {
             dashboardCss.href = '../Managerdashboard/manager_dashboard.css';
             mainContainer.className = 'layout-container';
 
@@ -26,11 +35,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             <i class="fa-solid fa-house-chimney"></i>
                             <span>Dashboard</span>
                         </a>
-                        <a href="../Analytics/analytics.html?role=manager" class="nav-item">
+                        <a href="../Analytics/analytics.html" class="nav-item">
                             <i class="fa-solid fa-chart-simple"></i>
                             <span>Analytics</span>
                         </a>
-                        <a href="query.html?role=manager" class="nav-item active">
+                        <a href="query.html" class="nav-item active">
                             <i class="fa-solid fa-clipboard-question"></i>
                             <span>Query</span>
                         </a>
@@ -43,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <i class="fa-solid fa-boxes-stacked"></i>
                             <span>Inventory</span>
                         </a>
-                        <a href="../smartexpiry/smartexpiry.html?role=manager" class="nav-item">
+                        <a href="../smartexpiry/smartexpiry.html" class="nav-item">
                             <i class="fa-solid fa-hourglass-end"></i>
                             <span>Smart Expiry</span>
                         </a>
@@ -57,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="nav-section">
                     <h3 class="section-title">Business</h3>
                     <nav class="nav-menu">
-                        <a href="../Complain/complain.html?role=manager" class="nav-item">
+                        <a href="../Complain/complain.html" class="nav-item">
                             <i class="fa-solid fa-triangle-exclamation"></i>
                             <span>Complain</span>
                         </a>
@@ -81,10 +90,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     </button>
                     <div class="user-profile" style="background: var(--bg-white); padding: 0.5rem 1rem; border-radius: 3rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
                         <div class="user-info">
-                            <h5>Anil Sharma</h5>
-                            <p>Shift Manager</p>
+                            <h5>${currentEmployee ? currentEmployee.name : 'Employee'}</h5>
+                            <p>${currentEmployee ? currentEmployee.role : 'Staff'}</p>
                         </div>
-                        <img src="https://ui-avatars.com/api/?name=Anil+Sharma&background=003f3f&color=fff" alt="Avatar" class="user-avatar" style="width: 40px; height: 40px;">
+                        <img src="${currentEmployee && currentEmployee.photo ? currentEmployee.photo : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(currentEmployee ? currentEmployee.name : 'User')}" alt="Avatar" class="user-avatar" style="width: 40px; height: 40px;">
                         <i class="fa-solid fa-chevron-up-down" style="font-size: 0.8rem; color: #9ca3af;"></i>
                     </div>
                 </div>
@@ -109,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <i class="fa-solid fa-chart-simple"></i>
                         <span>Analytics</span>
                     </a>
-                    <a href="query.html?role=owner" class="menu-item active" title="Query">
+                    <a href="query.html" class="menu-item active" title="Query">
                         <i class="fa-solid fa-clipboard-question"></i>
                         <span>Query</span>
                     </a>
@@ -126,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span>Smart Expiry</span>
                     </a>
 
-                    <a href="../Complain/complain.html?role=owner" class="menu-item" title="Complain">
+                    <a href="../Complain/complain.html" class="menu-item" title="Complain">
                         <i class="fa-solid fa-triangle-exclamation"></i>
                         <span>Complain</span>
                     </a>
@@ -157,9 +166,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
 
+            const displayName = currentUser ? (currentUser.ownerName || currentUser.shopName || 'Owner') : 'Owner';
             document.getElementById('user-profile-target').innerHTML = `
-                <img src="https://ui-avatars.com/api/?name=Rajesh+Kumar&background=random" alt="User">
-                <span class="user-name">Rajesh Kumar</span>
+                <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random" alt="User">
+                <span class="user-name">${displayName}</span>
                 <i class="fa-solid fa-chevron-down"></i>
             `;
         }
@@ -220,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupLayout();
 
     // --- State and Storage ---
-    const STORAGE_KEY = 'quadstock_queries';
+    const STORAGE_KEY = 'queries';
     const QUICK_REPLIES = [
         { text: "I'll get back to you soon.", icon: "fa-clock" },
         { text: "Query resolved.", icon: "fa-check" },
@@ -229,25 +239,25 @@ document.addEventListener('DOMContentLoaded', () => {
         { text: "Checking with the team.", icon: "fa-users" }
     ];
 
-    let queries = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    let allQueries = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    let queries = allQueries.filter(q => q.ownerId === ownerId);
     let uploadedImages = []; // Temp storage for modal
     let tempReplyImages = {}; // Temp storage for replies by id: []
     let expandedQueryIds = new Set(); // Track expanded states
 
-    function getCurrentUser() {
-        const ownerEl = document.querySelector('.user-profile .user-name');
-        if (ownerEl) return ownerEl.textContent.trim();
-        const managerEl = document.querySelector('.user-profile .user-info h5');
-        if (managerEl) return managerEl.textContent.trim();
+    function getCurrentUserName() {
+        if (currentUser) return currentUser.ownerName || currentUser.shopName || 'Owner';
+        if (currentEmployee) return currentEmployee.name || 'Manager';
         return 'Admin';
     }
 
-    const CURRENT_USER = getCurrentUser();
+    const CURRENT_USER = getCurrentUserName();
 
-    if (queries.length === 0) {
+    if (queries.length === 0 && ownerId === 'OWN-DEMO') { // Only auto-fill for demo or first load
         queries = [
             {
                 id: 'qry_' + Date.now(),
+                ownerId: ownerId,
                 staffName: 'Aarav Gupta',
                 role: 'Sales Staff',
                 timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
@@ -573,7 +583,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (q) { q.status = 'open'; q.closedBy = null; saveQueries(); renderQueries(); }
     };
 
-    function saveQueries() { localStorage.setItem(STORAGE_KEY, JSON.stringify(queries)); }
+    function saveQueries() {
+        // Merge current owner's queries back into the global list
+        const otherQueries = allQueries.filter(q => q.ownerId !== ownerId);
+        const updatedAll = [...otherQueries, ...queries];
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedAll));
+        allQueries = updatedAll; // Sync local state
+    }
 
     // --- Modal Logic ---
     raiseBtn.onclick = () => {
@@ -594,6 +610,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (name && subject && desc) {
             queries.unshift({
                 id: 'qry_' + Date.now(),
+                ownerId: ownerId, // Multi-Owner Fix
                 staffName: name,
                 role: roleSelect.value,
                 timestamp: new Date().toISOString(),

@@ -23,11 +23,11 @@
 }
 
 [data-theme="dark"] {
-    --bg-body: #1C1917;
-    --bg-white: #292524;
+    --bg-body: #000000;
+    --bg-white: #0a0a0a;
     --text-main: #FDE8D8;
     --text-muted: #A8A29E;
-    --border-color: #44403C;
+    --border-color: #1f1f1f;
     --primary: #F47C25;
     --primary-light: rgba(244, 124, 37, 0.1);
     --header-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);

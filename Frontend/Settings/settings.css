@@ -13,12 +13,12 @@
 }
 
 [data-theme="dark"] {
-    --bg-body: #0f172a;
-    --bg-white: #1e293b;
+    --bg-body: #000000;
+    --bg-white: #0a0a0a;
     --text-primary: #f8fafc;
     --text-secondary: #94a3b8;
-    --border-color: #334155;
-    --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3);
+    --border-color: #1f1f1f;
+    --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.5);
 }
 
 * {

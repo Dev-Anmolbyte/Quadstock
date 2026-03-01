@@ -13,11 +13,11 @@
 }
 
 [data-theme="dark"] {
-    --bg-main: #020617;
+    --bg-main: #000000;
     --text-main: #f8fafc;
     --text-muted: #94a3b8;
-    --white: #0f172a;
-    --border: #1e293b;
+    --white: #0a0a0a;
+    --border: #1f1f1f;
 }
 
 * {

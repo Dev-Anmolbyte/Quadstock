@@ -38,29 +38,30 @@
     --orb-blur: 80px;
 }
 
-html.dark {
+html.dark,
+[data-theme="dark"] {
     /* Dark Mode Variables */
-    --bg-light: #0f172a;
-    /* Slate 900 */
+    --bg-light: #000000;
+    /* absolute black */
     --text-main: #f1f5f9;
     --text-muted: #94a3b8;
 
-    --glass-bg: rgba(15, 23, 42, 0.65);
+    --glass-bg: rgba(0, 0, 0, 0.7);
     --glass-border: rgba(255, 255, 255, 0.1);
-    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
 
-    --input-bg: rgba(0, 0, 0, 0.3);
+    --input-bg: rgba(15, 23, 42, 0.4);
     /* Darker inset look for better contrast */
-    --input-border: rgba(255, 255, 255, 0.15);
+    --input-border: rgba(255, 255, 255, 0.1);
 
     /* Darker, futuristic gradients */
-    --bg-gradient-1: #0f172a;
-    --bg-gradient-2: #1e1b4b;
-    /* Indigo 950 */
-    --bg-gradient-3: #022c22;
-    /* Teal 950 */
-    --bg-gradient-4: #2a1205;
-    /* Dark Orange tint */
+    --bg-gradient-1: #000000;
+    --bg-gradient-2: #050505;
+    /* Very dark */
+    --bg-gradient-3: #0a0a0a;
+    /* Deep grey */
+    --bg-gradient-4: #030303;
+    /* Almost black */
 
     /* Dark Mode Orbs - More neon/vibrant to pop against dark bg */
     --orb-1: #f97316;
@@ -72,7 +73,7 @@ html.dark {
     --orb-4: #0ea5e9;
     /* Sky Blue */
 
-    --orb-opacity: 0.45;
+    --orb-opacity: 0.35;
 }
 
 * {

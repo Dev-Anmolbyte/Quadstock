@@ -1,5 +1,36 @@
 document.addEventListener('DOMContentLoaded', function () {
 
+    // --- Authentication & Context ---
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    const currentEmployee = JSON.parse(localStorage.getItem('currentEmployee'));
+    const userRole = (currentUser && currentUser.role) || (currentEmployee && currentEmployee.role) || 'staff';
+    const ownerId = (currentUser && currentUser.ownerId) || (currentEmployee && currentEmployee.ownerId);
+
+    if (!ownerId) {
+        window.location.href = '../Authentication/employee_login.html';
+        return;
+    }
+
+    // Set User Profile Name
+    const nameSpans = document.querySelectorAll('.user-name');
+    nameSpans.forEach(span => {
+        if (currentUser) {
+            span.textContent = currentUser.ownerName || currentUser.shopName || 'Owner';
+        } else if (currentEmployee) {
+            span.textContent = currentEmployee.name || 'Manager';
+        }
+    });
+    const initialIcons = document.querySelectorAll('.user-profile > div:first-child');
+    initialIcons.forEach(icon => {
+        if (currentUser) {
+            const nameToUse = currentUser.ownerName || 'O';
+            icon.textContent = nameToUse.charAt(0).toUpperCase();
+        } else if (currentEmployee) {
+            const nameToUse = currentEmployee.name || 'M';
+            icon.textContent = nameToUse.charAt(0).toUpperCase();
+        }
+    });
+
     // --- Digital Clock ---
     function updateClock() {
         const now = new Date();
@@ -38,16 +69,32 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // --- Scoped Data Loading ---
+    const inventory = JSON.parse(localStorage.getItem(`inventory_${ownerId}`)) || [];
+    const udhaarList = (JSON.parse(localStorage.getItem('udhaarRecords')) || []).filter(r => r.ownerId === ownerId);
+
+    // Update summary cards with real scoped data
+    function updateSummaryCards() {
+        const totalItemsEl = document.querySelector('.stat-card:nth-child(2) h3');
+        if (totalItemsEl) totalItemsEl.innerText = inventory.length;
+
+        const totalUdhaarEl = document.querySelector('.stat-card:nth-child(4) h3');
+        if (totalUdhaarEl) {
+            const totalPending = udhaarList.reduce((sum, r) => sum + (r.balance || 0), 0);
+            totalUdhaarEl.innerText = '₹' + totalPending.toLocaleString();
+        }
+    }
+    updateSummaryCards();
+
     // --- Submenu Logic ---
     window.toggleSubmenu = function (element) {
         const parent = element.parentElement;
         const submenu = parent.querySelector('.submenu');
 
-        // Toggle classes
         element.classList.toggle('active');
         submenu.classList.toggle('show');
 
-        // Optional: Close other submenus for a true accordion feel
+        // Optional: Close other submenus
         document.querySelectorAll('.menu-group').forEach(group => {
             if (group !== parent) {
                 const otherMenu = group.querySelector('.menu-item');

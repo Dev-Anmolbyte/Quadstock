@@ -13,6 +13,22 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
+    // Set User Profile Name dynamically
+    const nameSpans = document.querySelectorAll('.user-name');
+    nameSpans.forEach(span => {
+        if (currentUser) span.textContent = currentUser.ownerName || currentUser.shopName || 'Owner';
+        else if (currentEmployee) span.textContent = currentEmployee.name || 'Manager';
+    });
+
+    // Set dynamic Initial Icon
+    const userImage = document.querySelector('.user-profile img');
+    if (userImage) {
+        let nameToUse = 'O';
+        if (currentUser) nameToUse = currentUser.ownerName || 'O';
+        else if (currentEmployee) nameToUse = currentEmployee.name || 'M';
+        userImage.src = `https://ui-avatars.com/api/?name=${nameToUse}&background=F47C25&color=fff`;
+    }
+
     if (role === 'staff') {
 
         // Hide Restricted Actions
@@ -34,9 +50,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- 1. State & Constants ---
-    // Scoped Storage: Load only this owner's products to prevent data leakage
-    const STORAGE_KEY = `inventory_${ownerId}`;
-    let inventory = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    // Standard Global Storage with Immediate Tenant Filtering
+    const GLOBAL_KEY = 'quadstock_inventory';
+    const allInventory = JSON.parse(localStorage.getItem(GLOBAL_KEY)) || [];
+    let inventory = allInventory.filter(item => item.ownerId === ownerId);
 
     let isEditing = false;
     let currentEditId = null;
@@ -64,8 +81,8 @@ document.addEventListener('DOMContentLoaded', () => {
         'Amul', 'Tata', 'Britannia', 'Parle', 'Haldiram', 'Nestle', 'Dabur', 'HUL', 'Patanjali', 'Aashirvaad', 'India Gate', 'Fortune', 'Sunfeast', 'Maggi', 'Brooke Bond', 'Mother Dairy'
     ];
 
-    let CATEGORIES = JSON.parse(localStorage.getItem('categories')) || DEFAULT_CATEGORIES;
-    let BRANDS = JSON.parse(localStorage.getItem('brands')) || DEFAULT_BRANDS;
+    let CATEGORIES = JSON.parse(localStorage.getItem(`categories_${ownerId}`)) || DEFAULT_CATEGORIES;
+    let BRANDS = JSON.parse(localStorage.getItem(`brands_${ownerId}`)) || DEFAULT_BRANDS;
     const UNITS = ['pcs', 'kg', 'g', 'L', 'ml', 'box', 'pack', 'dozen', 'can', 'bottle'];
 
     // Settings [Caution, Warning, Critical] (Critical currently used for < 0)
@@ -275,14 +292,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Image Handling Listeners ---
 
-    // 1. File Upload
+    // 1. File Upload with Compression
     safeListener(inputImageFile, 'change', (e) => {
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
             reader.onload = (e) => {
-                showPreview(e.target.result);
-                if (inputImageURL) inputImageURL.value = ''; // Clear URL if file selected
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 300;
+                    const MAX_HEIGHT = 300;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width *= MAX_HEIGHT / height;
+                            height = MAX_HEIGHT;
+                        }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Compress to JPEG with 0.5 quality
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.5);
+                    showPreview(compressedDataUrl);
+                    if (inputImageURL) inputImageURL.value = ''; // Clear URL if file selected
+                };
+                img.src = e.target.result;
             };
             reader.readAsDataURL(file);
         }
@@ -358,16 +403,23 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Find the LATEST entry for this barcode (reverse search)
-        const match = [...inventory].reverse().find(p => p.barcode === scannedCode && p.ownerId === ownerId);
+        // Multi-Tenant Aware Matching: 
+        // 1. Precise Match (Batch Number) - inventory is already filtered by ownerId
+        let match = inventory.find(p => p.batchNumber === scannedCode);
+
+        // 2. Barcode Match (Fallback to latest batch update for this barcode)
+        if (!match) {
+            match = [...inventory].reverse().find(p => p.barcode === scannedCode);
+        }
 
         if (match) {
             autoFillForm(match);
-            QuadModals.showToast("Product Found: " + match.name, "success");
+            QuadModals.showToast("Product Found: " + match.name + (match.batchNumber === scannedCode ? " (Exact Batch)" : ""), "success");
         } else {
-            QuadModals.showToast("Product not registered in this shop", "info");
+            QuadModals.showToast("New Item Detected in this Shop", "info");
             // We keep the barcode in the field so it save with the new product
             inputBarcode.value = scannedCode;
+            inputBatch.value = ''; // Reset batch for new entry
         }
     }
 
@@ -622,9 +674,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleFormSubmit(e) {
         e.preventDefault();
 
-        // Role Security: Prevent unauthorized functional access
-        if (role === 'staff') {
-            QuadModals.alert("Access Denied", "Staff members do not have permission to save products.", "error");
+        // Data-Level RBAC: Enforce critical permission checks inside the action function
+        if (role !== 'owner' && role !== 'manager' && role !== 'inventory_manager') {
+            QuadModals.alert("Access Denied", "Your role does not have permission to modify inventory data.", "error");
             return;
         }
 
@@ -633,8 +685,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     function saveProduct(closeAfterSave = true) {
-        if (role === 'staff') {
-            QuadModals.alert("Access Denied", "Staff members do not have permission to save products.", "error");
+        if (role !== 'owner' && role !== 'manager' && role !== 'inventory_manager') {
+            QuadModals.alert("Access Denied", "Authorization failed for this operation.", "error");
             return;
         }
 
@@ -645,7 +697,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const exists = CATEGORIES[currentType].some(c => c.toLowerCase() === newCat.toLowerCase());
             if (!exists) {
                 CATEGORIES[currentType].push(newCat);
-                localStorage.setItem('categories', JSON.stringify(CATEGORIES));
+                localStorage.setItem(`categories_${ownerId}`, JSON.stringify(CATEGORIES));
                 populateSubCategories(currentType);
             }
         }
@@ -656,7 +708,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const exists = BRANDS.some(b => b.toLowerCase() === newBrand.toLowerCase());
             if (!exists) {
                 BRANDS.push(newBrand);
-                localStorage.setItem('brands', JSON.stringify(BRANDS));
+                localStorage.setItem(`brands_${ownerId}`, JSON.stringify(BRANDS));
                 updateBrandList();
             }
         }
@@ -697,12 +749,15 @@ document.addEventListener('DOMContentLoaded', () => {
             inventory.unshift(productData);
         }
 
-        // Persist Scoped
+        // Persist with Global Hub Pattern
         try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(inventory));
+            const currentGlobal = JSON.parse(localStorage.getItem(GLOBAL_KEY)) || [];
+            const otherOwners = currentGlobal.filter(item => item.ownerId !== ownerId);
+            const updatedGlobal = [...otherOwners, ...inventory];
+            localStorage.setItem(GLOBAL_KEY, JSON.stringify(updatedGlobal));
         } catch (e) {
             QuadModals.alert("Storage Full", "Could not save. Please use smaller images or clear old data.", "error");
-            console.error('LocalStorage Scoped Save Error:', e);
+            console.error('LocalStorage Hub Save Error:', e);
         }
 
 
@@ -1156,11 +1211,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             <i class="fa-solid fa-house-chimney"></i>
                             <span>Dashboard</span>
                         </a>
-                        <a href="../Analytics/analytics.html?role=manager" class="nav-item">
+                        <a href="../Analytics/analytics.html" class="nav-item">
                             <i class="fa-solid fa-chart-simple"></i>
                             <span>Analytics</span>
                         </a>
-                        <a href="../Query/query.html?role=manager" class="nav-item">
+                        <a href="../Query/query.html" class="nav-item">
                             <i class="fa-solid fa-clipboard-question"></i>
                             <span>Query</span>
                         </a>
@@ -1177,7 +1232,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <i class="fa-solid fa-users"></i>
                             <span>Employees</span>
                         </a>
-                        <a href="../smartexpiry/smartexpiry.html?role=manager" class="nav-item">
+                        <a href="../smartexpiry/smartexpiry.html" class="nav-item">
                             <i class="fa-solid fa-hourglass-end"></i>
                             <span>Smart Expiry</span>
                         </a>
@@ -1186,7 +1241,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="nav-section">
                     <h3 class="section-title">Business</h3>
                     <nav class="nav-menu">
-                        <a href="../Complain/complain.html?role=manager" class="nav-item">
+                        <a href="../Complain/complain.html" class="nav-item">
                             <i class="fa-solid fa-triangle-exclamation"></i>
                             <span>Complain</span>
                         </a>
@@ -1300,7 +1355,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <i class="fa-solid fa-chart-simple"></i>
                         <span>Analytics</span>
                     </a>
-                    <a href="../Query/query.html?role=owner" class="menu-item" title="Query">
+                    <a href="../Query/query.html" class="menu-item" title="Query">
                         <i class="fa-solid fa-clipboard-question"></i>
                         <span>Query</span>
                     </a>
@@ -1317,7 +1372,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span>Smart Expiry</span>
                     </a>
 
-                    <a href="../Complain/complain.html?role=owner" class="menu-item" title="Complain">
+                    <a href="../Complain/complain.html" class="menu-item" title="Complain">
                         <i class="fa-solid fa-triangle-exclamation"></i>
                         <span>Complain</span>
                     </a>
@@ -1544,7 +1599,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (newItems.length > 0) {
             inventory = [...inventory, ...newItems];
-            localStorage.setItem('inventory', JSON.stringify(inventory));
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(inventory));
             calculateDashboardStats();
             renderTable();
             QuadModals.alert("Success", `Imported ${newItems.length} products successfully!`, "success");

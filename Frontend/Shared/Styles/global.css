@@ -34,11 +34,13 @@
 }
 
 /* Dark Mode Overrides */
+[data-theme="dark"],
 .dark {
-    --bg-light: #0f172a;
-    --bg-card: #1e293b;
+    --bg-light: #000000;
+    --bg-card: #0a0a0a;
     --text-main: #f1f5f9;
     --text-muted: #94a3b8;
+    --border-color: #1f1f1f;
 }
 
 /* Global Base Styles */

@@ -17,14 +17,13 @@
 }
 
 [data-theme='dark'] {
-    --bg-light: #0f172a;
-    --bg-white: #1e293b;
-    --sidebar-bg: #1e293b;
+    --bg-light: #000000;
+    --bg-white: #0a0a0a;
+    --sidebar-bg: #0a0a0a;
     --text-dark: #f8fafc;
     --text-muted: #94a3b8;
-    --border: #334155;
+    --border: #1f1f1f;
     --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.5);
-    /* In dark mode, primary stays same but could adjust */
 }
 
 * {

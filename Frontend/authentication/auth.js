@@ -165,11 +165,12 @@ document.addEventListener('DOMContentLoaded', () => {
             // Register User
             const newUser = {
                 email,
-                password: btoa(password), // Storing Base64 encoded password for basic obfuscation
+                password: btoa(password),
                 ownerName,
                 shopName,
                 phone,
-                ownerId: ownerId
+                ownerId: ownerId,
+                role: 'owner'
             };
 
             saveUser(newUser);

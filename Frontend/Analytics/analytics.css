@@ -21,11 +21,11 @@
 }
 
 [data-theme="dark"] {
-    --bg-body: #1C1917;
-    --bg-white: #292524;
+    --bg-body: #000000;
+    --bg-white: #0a0a0a;
     --text-primary: #FDE8D8;
     --text-secondary: #A8A29E;
-    --border-color: #44403C;
+    --border-color: #1f1f1f;
     --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
 
     --c-blue-bg: rgba(21, 101, 192, 0.2);

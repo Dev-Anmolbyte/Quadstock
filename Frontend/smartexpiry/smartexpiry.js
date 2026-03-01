@@ -18,8 +18,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     // --- Dynamic Sidebar Logic ---
+    // --- Dynamic Sidebar Logic ---
     function setupSidebar() {
-        const role = new URLSearchParams(window.location.search).get('role') || localStorage.getItem('userRole') || 'owner';
+        // Derive role strictly from session data
+        const role = userRole;
         const sidebarTarget = document.getElementById('sidebar-target');
 
         // Logic to toggle sidebar
@@ -40,10 +42,8 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         };
 
-        if (role === 'manager') {
-            // Manager Sidebar - Adapted to grid style for consistency or keep sections?
-            // User requested "Same design". Inventory uses grid.
-            // Converting Manager to Flat Grid to match design exactly.
+        if (role === 'manager' || role === 'staff') {
+            // Adapted Sidebar for Employees
             sidebarTarget.innerHTML = `
                 <div class="brand">
                     <button id="sidebar-toggle" class="sidebar-toggle">
@@ -57,11 +57,11 @@ document.addEventListener('DOMContentLoaded', function () {
                         <i class="fa-solid fa-house-chimney"></i>
                         <span>Dashboard</span>
                     </a>
-                    <a href="../Analytics/analytics.html?role=manager" class="menu-item" title="Analytics">
+                    <a href="../Analytics/analytics.html" class="menu-item" title="Analytics">
                         <i class="fa-solid fa-chart-simple"></i>
                         <span>Analytics</span>
                     </a>
-                    <a href="../Query/query.html?role=manager" class="menu-item" title="Query">
+                    <a href="../Query/query.html" class="menu-item" title="Query">
                         <i class="fa-solid fa-clipboard-question"></i>
                         <span>Query</span>
                     </a>
@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <span>Smart Expiry</span>
                     </a>
 
-                    <a href="../Complain/complain.html?role=manager" class="menu-item" title="Complain">
+                    <a href="../Complain/complain.html" class="menu-item" title="Complain">
                         <i class="fa-solid fa-triangle-exclamation"></i>
                         <span>Complain</span>
                     </a>
@@ -106,17 +106,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
             `;
 
-            // Update User Profile for Manager
+            // Update User Profile for Manager/Staff
             const userProfile = document.querySelector('.user-profile');
-            if (userProfile) {
+            if (userProfile && currentEmployee) {
                 userProfile.innerHTML = `
-                    <img src="https://ui-avatars.com/api/?name=Anil+Sharma&background=003f3f&color=fff" alt="User">
-                    <span class="user-name">Anil Sharma</span>
+                    <img src="${currentEmployee.photo || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(currentEmployee.name)}" alt="User">
+                    <span class="user-name">${currentEmployee.name}</span>
                     <i class="fa-solid fa-chevron-down"></i>
                 `;
             }
         } else {
-            // Owner Sidebar (Default) - Matches Inventory.html structure
+            // Owner Sidebar (Default)
             sidebarTarget.innerHTML = `
                 <div class="brand">
                     <button id="sidebar-toggle" class="sidebar-toggle">
@@ -134,7 +134,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <i class="fa-solid fa-chart-simple"></i>
                         <span>Analytics</span>
                     </a>
-                    <a href="../Query/query.html?role=owner" class="menu-item" title="Query">
+                    <a href="../Query/query.html" class="menu-item" title="Query">
                         <i class="fa-solid fa-clipboard-question"></i>
                         <span>Query</span>
                     </a>
@@ -147,7 +147,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <span>Smart Expiry</span>
                     </a>
 
-                    <a href="../Complain/complain.html?role=owner" class="menu-item" title="Complain">
+                    <a href="../Complain/complain.html" class="menu-item" title="Complain">
                         <i class="fa-solid fa-triangle-exclamation"></i>
                         <span>Complain</span>
                     </a>
@@ -178,12 +178,24 @@ document.addEventListener('DOMContentLoaded', function () {
                     </a>
                 </div>
             `;
+
+            // Update User Profile for Owner
+            const userProfile = document.querySelector('.user-profile');
+            if (userProfile && currentUser) {
+                const displayName = currentUser.ownerName || currentUser.shopName || 'Owner';
+                userProfile.innerHTML = `
+                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random" alt="User">
+                    <span class="user-name">${displayName}</span>
+                    <i class="fa-solid fa-chevron-down"></i>
+                `;
+            }
         }
 
         attachToggle();
     }
 
     setupSidebar();
+
 
     // --- Logic: Calculate Days Remaining & FEFO ---
     const today = new Date();

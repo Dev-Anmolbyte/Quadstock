@@ -33,13 +33,20 @@
     if (!currentUser && !currentEmployee) {
         // Unauthorized access: redirect to landing page
         console.warn("🔐 Access Denied: Unauthorized access to " + path + ". Redirecting...");
-
-        // Prevent content flicker
         document.documentElement.style.display = 'none';
-
-        // All protected pages are in subdirectories of /Frontend/
-        // landing.html is in /Frontend/landing/
-        // So we go up one level then into landing/
         window.location.href = '../landing/landing.html';
+    } else if (currentEmployee) {
+        try {
+            const emp = JSON.parse(currentEmployee);
+            const restrictedStatuses = ['pending', 'blocked', 'rejected'];
+            if (restrictedStatuses.includes(emp.status)) {
+                console.warn("🔐 Access Denied: Employee status is " + emp.status);
+                document.documentElement.style.display = 'none';
+                localStorage.removeItem('currentEmployee'); // Clear session
+                window.location.href = '../Authentication/employee_login.html?error=restricted';
+            }
+        } catch (e) {
+            console.error("Guard: Session Error", e);
+        }
     }
 })();

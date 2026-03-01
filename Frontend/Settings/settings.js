@@ -61,11 +61,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function loadSettings() {
     const settings = JSON.parse(localStorage.getItem('appSettings')) || getDefaultSettings();
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
 
-    // Profile
-    document.getElementById('shop-name').value = settings.profile.shopName || '';
-    document.getElementById('owner-name').value = settings.profile.ownerName || '';
-    document.getElementById('contact-info').value = settings.profile.contact || '';
+    // Profile (Prioritize live auth data over generic settings save if missing)
+    document.getElementById('shop-name').value = (currentUser && currentUser.shopName) || settings.profile.shopName || '';
+    document.getElementById('owner-name').value = (currentUser && currentUser.ownerName) || settings.profile.ownerName || '';
+    document.getElementById('contact-info').value = (currentUser && currentUser.phone) || settings.profile.contact || '';
 
     // Preferences
     document.getElementById('low-stock-limit').value = settings.preferences.lowStockThreshold || 10;
@@ -191,33 +192,69 @@ function handleRoleAccess() {
 }
 
 
+// --- Authentication & Context ---
+const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+const currentEmployee = JSON.parse(localStorage.getItem('currentEmployee'));
+const userRole = (currentUser && currentUser.role) || (currentEmployee && currentEmployee.role) || 'staff';
+const ownerId = (currentUser && currentUser.ownerId) || (currentEmployee && currentEmployee.ownerId);
+
+if (!ownerId) {
+    window.location.href = '../Authentication/employee_login.html';
+}
+
+const INVENTORY_KEY = `inventory_${ownerId}`;
+const UDHAAR_KEY = `udhaarRecords`; // This one seems shared but filtered? No, let's keep it global for now as per prev turns or scope it?
+// Actually udhaar.js uses 'udhaarRecords' global but filters. 
+// However, the user wants 'inventory_OWNERID'. 
+// I'll stick to 'inventory_OWNERID' for inventory and global but filtered for others to maintain compatibility with existing logic unless I change all.
+// Actually, I should probably scope them all for "True Multi-Owner Stability".
+const EXPENSE_KEY = `expenses`; // Currently global but filtered in dashboard_stats.
+const SETTINGS_KEY = `appSettings_${ownerId}`;
+
 // --- Data Actions ---
 function exportData() {
+    if (userRole === 'staff') {
+        showModal('error', 'Access Denied', 'Staff cannot export data.');
+        return;
+    }
+
     const data = {
-        inventory: JSON.parse(localStorage.getItem('inventory')) || [], // Updated key
-        udhaar: JSON.parse(localStorage.getItem('udhaarRecords')) || [],
-        settings: JSON.parse(localStorage.getItem('appSettings')) || {},
-        expense: JSON.parse(localStorage.getItem('expenses')) || []
+        inventory: JSON.parse(localStorage.getItem(INVENTORY_KEY)) || [],
+        udhaar: (JSON.parse(localStorage.getItem('udhaarRecords')) || []).filter(r => r.ownerId === ownerId),
+        settings: JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {},
+        expense: (JSON.parse(localStorage.getItem('expenses')) || []).filter(e => e.ownerId === ownerId)
     };
 
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
     const downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", "quadstock_backup_" + new Date().toISOString().slice(0, 10) + ".json");
+    downloadAnchor.setAttribute("download", `quadstock_backup_${ownerId}_${new Date().toISOString().slice(0, 10)}.json`);
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
 }
 
 function clearData() {
-    showModal('warning', 'Reset Data', 'CRITICAL WARNING: This will delete ALL Inventory and Udhaar records. This action cannot be undone. Are you absolutely sure?', () => {
-        // Second step: Prompt replacement - simpler to just ask double confirmation or use a custom input modal.
-        // For now, simpler double check. Use a second modal.
+    if (userRole !== 'owner') {
+        showModal('error', 'Access Denied', 'Only the Shop Owner can reset system data.');
+        return;
+    }
+
+    showModal('warning', 'Reset Data', 'CRITICAL WARNING: This will delete ALL Inventory and Udhaar records for YOUR store. This action cannot be undone. Are you absolutely sure?', () => {
         showModal('warning', 'Final Confirmation', 'Really delete everything? Click Confirm to Wipe Data.', () => {
-            localStorage.removeItem('inventory');
-            localStorage.removeItem('udhaarRecords');
-            localStorage.removeItem('expenses');
-            showModal('success', 'Reset Complete', 'System data has been reset.', () => {
+            // Scoped Clear
+            localStorage.removeItem(INVENTORY_KEY);
+
+            // Filtered Clear for shared keys
+            const udhaar = (JSON.parse(localStorage.getItem('udhaarRecords')) || []).filter(r => r.ownerId !== ownerId);
+            localStorage.setItem('udhaarRecords', JSON.stringify(udhaar));
+
+            const expenses = (JSON.parse(localStorage.getItem('expenses')) || []).filter(e => e.ownerId !== ownerId);
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+
+            localStorage.removeItem(SETTINGS_KEY);
+
+            showModal('success', 'Reset Complete', 'Your store data has been reset.', () => {
                 location.reload();
             });
         });

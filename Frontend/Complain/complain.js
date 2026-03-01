@@ -1,14 +1,23 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+    // --- Authentication & Context ---
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    const currentEmployee = JSON.parse(localStorage.getItem('currentEmployee'));
+    const userRole = (currentUser && currentUser.role) || (currentEmployee && currentEmployee.role) || 'staff';
+    const ownerId = (currentUser && currentUser.ownerId) || (currentEmployee && currentEmployee.ownerId);
+
+    if (!ownerId) {
+        window.location.href = '../Authentication/employee_login.html';
+        return;
+    }
+
     // --- Layout Hub ---
     function setupLayout() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const role = urlParams.get('role') || 'owner';
         const sidebarTarget = document.getElementById('sidebar-target');
         const mainContainer = document.getElementById('main-container');
         const dashboardCss = document.getElementById('dashboard-css');
 
-        if (role === 'manager') {
+        if (userRole === 'manager' || userRole === 'staff') {
             dashboardCss.href = '../Managerdashboard/manager_dashboard.css';
             mainContainer.className = 'layout-container';
 
@@ -26,11 +35,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             <i class="fa-solid fa-house-chimney"></i>
                             <span>Dashboard</span>
                         </a>
-                        <a href="../Analytics/analytics.html?role=manager" class="nav-item">
+                        <a href="../Analytics/analytics.html" class="nav-item">
                             <i class="fa-solid fa-chart-simple"></i>
                             <span>Analytics</span>
                         </a>
-                        <a href="../Query/query.html?role=manager" class="nav-item">
+                        <a href="../Query/query.html" class="nav-item">
                             <i class="fa-solid fa-clipboard-question"></i>
                             <span>Query</span>
                         </a>
@@ -43,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <i class="fa-solid fa-boxes-stacked"></i>
                             <span>Inventory</span>
                         </a>
-                        <a href="../smartexpiry/smartexpiry.html?role=manager" class="nav-item">
+                        <a href="../smartexpiry/smartexpiry.html" class="nav-item">
                             <i class="fa-solid fa-hourglass-end"></i>
                             <span>Smart Expiry</span>
                         </a>
@@ -57,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="nav-section">
                     <h3 class="section-title">Business</h3>
                     <nav class="nav-menu">
-                        <a href="complain.html?role=manager" class="nav-item active">
+                        <a href="complain.html" class="nav-item active">
                             <i class="fa-solid fa-triangle-exclamation"></i>
                             <span>Complain</span>
                         </a>
@@ -81,10 +90,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     </button>
                     <div class="user-profile" style="background: var(--bg-white); padding: 0.5rem 1rem; border-radius: 3rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
                         <div class="user-info">
-                            <h5>Anil Sharma</h5>
-                            <p>Shift Manager</p>
+                            <h5>${currentEmployee ? currentEmployee.name : 'Employee'}</h5>
+                            <p>${currentEmployee ? currentEmployee.role : 'Staff'}</p>
                         </div>
-                        <img src="https://ui-avatars.com/api/?name=Anil+Sharma&background=003f3f&color=fff" alt="Avatar" class="user-avatar" style="width: 40px; height: 40px;">
+                        <img src="${currentEmployee && currentEmployee.photo ? currentEmployee.photo : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(currentEmployee ? currentEmployee.name : 'User')}" alt="Avatar" class="user-avatar" style="width: 40px; height: 40px;">
                         <i class="fa-solid fa-chevron-up-down" style="font-size: 0.8rem; color: #9ca3af;"></i>
                     </div>
                 </div>
@@ -109,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <i class="fa-solid fa-chart-simple"></i>
                         <span>Analytics</span>
                     </a>
-                    <a href="../Query/query.html?role=owner" class="menu-item" title="Query">
+                    <a href="../Query/query.html" class="menu-item" title="Query">
                         <i class="fa-solid fa-clipboard-question"></i>
                         <span>Query</span>
                     </a>
@@ -126,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span>Smart Expiry</span>
                     </a>
 
-                    <a href="complain.html?role=owner" class="menu-item active" title="Complain">
+                    <a href="complain.html" class="menu-item active" title="Complain">
                         <i class="fa-solid fa-triangle-exclamation"></i>
                         <span>Complain</span>
                     </a>
@@ -157,9 +166,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
 
+            const displayName = currentUser ? (currentUser.ownerName || currentUser.shopName || 'Owner') : 'Owner';
             document.getElementById('user-profile-target').innerHTML = `
-                <img src="https://ui-avatars.com/api/?name=Rajesh+Kumar&background=random" alt="User">
-                <span class="user-name">Rajesh Kumar</span>
+                <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random" alt="User">
+                <span class="user-name">${displayName}</span>
                 <i class="fa-solid fa-chevron-down"></i>
             `;
         }
@@ -229,24 +239,24 @@ document.addEventListener('DOMContentLoaded', () => {
         { text: "Noted, thank you.", icon: "fa-clipboard-check" }
     ];
 
-    let complaints = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    let allComplaints = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    let complaints = allComplaints.filter(c => c.ownerId === ownerId);
     let uploadedImages = []; // Temp storage for modal
     let tempReplyImages = {}; // Temp storage for replies by id: []
 
-    function getCurrentUser() {
-        const ownerEl = document.querySelector('.user-profile .user-name');
-        if (ownerEl) return ownerEl.textContent.trim();
-        const managerEl = document.querySelector('.user-profile .user-info h5');
-        if (managerEl) return managerEl.textContent.trim();
+    function getCurrentUserName() {
+        if (currentUser) return currentUser.ownerName || currentUser.shopName || 'Owner';
+        if (currentEmployee) return currentEmployee.name || 'Manager';
         return 'Admin';
     }
 
-    const CURRENT_USER = getCurrentUser();
+    const CURRENT_USER = getCurrentUserName();
 
-    if (complaints.length === 0) {
+    if (complaints.length === 0 && ownerId === 'OWN-DEMO') {
         complaints = [
             {
                 id: 'cmp_' + Date.now(),
+                ownerId: ownerId,
                 staffName: 'Aarav Gupta',
                 role: 'Sales Staff',
                 timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
@@ -275,25 +285,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const previewContainer = document.getElementById('image-preview-container');
 
     // --- Image Handling (Modal) ---
-    fileInput.addEventListener('change', (e) => {
-        const files = Array.from(e.target.files);
-        if (uploadedImages.length + files.length > 5) {
-            alert('You can upload a maximum of 5 images.');
-            return;
-        }
+    if (fileInput) {
+        fileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            if (uploadedImages.length + files.length > 5) {
+                alert('You can upload a maximum of 5 images.');
+                return;
+            }
 
-        files.forEach(file => {
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                uploadedImages.push({ name: file.name, data: ev.target.result });
-                renderImagePreviews();
-            };
-            reader.readAsDataURL(file);
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    uploadedImages.push({ name: file.name, data: ev.target.result });
+                    renderImagePreviews();
+                };
+                reader.readAsDataURL(file);
+            });
+            fileInput.value = '';
         });
-        fileInput.value = '';
-    });
+    }
 
     function renderImagePreviews() {
+        if (!previewContainer) return;
         previewContainer.innerHTML = '';
         uploadedImages.forEach((img, index) => {
             const wrapper = document.createElement('div');
@@ -378,6 +391,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderComplaints() {
+        if (!listContainer) return;
         listContainer.innerHTML = '';
         const sorted = [...complaints].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
@@ -519,7 +533,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.closeComplaint = (id) => {
         itemToClose = id;
-        confirmModal.classList.add('active');
+        if (confirmModal) confirmModal.classList.add('active');
+        else if (confirm('Close this complaint?')) {
+            const c = complaints.find(item => item.id === id);
+            if (c) {
+                c.status = 'closed';
+                c.closedBy = CURRENT_USER;
+                saveComplaints();
+                renderComplaints();
+            }
+        }
     };
 
     if (confirmCancelBtn) {
@@ -560,43 +583,55 @@ document.addEventListener('DOMContentLoaded', () => {
         if (c) { c.status = 'open'; c.closedBy = null; saveComplaints(); renderComplaints(); }
     };
 
-    function saveComplaints() { localStorage.setItem(STORAGE_KEY, JSON.stringify(complaints)); }
+    function saveComplaints() {
+        const otherComplaints = allComplaints.filter(c => c.ownerId !== ownerId);
+        const updatedAll = [...otherComplaints, ...complaints];
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedAll));
+        allComplaints = updatedAll;
+    }
 
     // --- Modal Logic ---
-    raiseBtn.onclick = () => {
-        modalOverlay.classList.add('active');
-        staffNameInput.value = CURRENT_USER;
-        subjectInput.value = '';
-        descInput.value = '';
-        uploadedImages = [];
-        renderImagePreviews();
-    };
+    if (raiseBtn) {
+        raiseBtn.onclick = () => {
+            modalOverlay.classList.add('active');
+            staffNameInput.value = CURRENT_USER;
+            subjectInput.value = '';
+            descInput.value = '';
+            uploadedImages = [];
+            renderImagePreviews();
+        };
+    }
 
-    closeModalBtn.onclick = () => modalOverlay.classList.remove('active');
+    if (closeModalBtn) closeModalBtn.onclick = () => modalOverlay.classList.remove('active');
 
-    submitComplaintBtn.onclick = () => {
-        const name = staffNameInput.value.trim();
-        const subject = subjectInput.value.trim();
-        const desc = descInput.value.trim();
-        if (name && subject && desc) {
-            complaints.unshift({
-                id: 'cmp_' + Date.now(),
-                staffName: name,
-                role: roleSelect.value,
-                timestamp: new Date().toISOString(),
-                subject: subject,
-                description: desc,
-                status: 'open',
-                replies: [],
-                images: [...uploadedImages]
-            });
-            saveComplaints();
-            renderComplaints();
-            modalOverlay.classList.remove('active');
-        } else alert('Fill all fields');
-    };
+    if (submitComplaintBtn) {
+        submitComplaintBtn.onclick = () => {
+            const name = staffNameInput.value.trim();
+            const subject = subjectInput.value.trim();
+            const desc = descInput.value.trim();
+            if (name && subject && desc) {
+                complaints.unshift({
+                    id: 'cmp_' + Date.now(),
+                    ownerId: ownerId,
+                    staffName: name,
+                    role: roleSelect.value,
+                    timestamp: new Date().toISOString(),
+                    subject: subject,
+                    description: desc,
+                    status: 'open',
+                    replies: [],
+                    images: [...uploadedImages]
+                });
+                saveComplaints();
+                renderComplaints();
+                modalOverlay.classList.remove('active');
+            } else alert('Fill all fields');
+        };
+    }
 
-    modalOverlay.onclick = (e) => { if (e.target === modalOverlay) modalOverlay.classList.remove('active'); };
+    if (modalOverlay) {
+        modalOverlay.onclick = (e) => { if (e.target === modalOverlay) modalOverlay.classList.remove('active'); };
+    }
 
     renderComplaints();
 });

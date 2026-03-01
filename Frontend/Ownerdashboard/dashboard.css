@@ -24,12 +24,12 @@
 }
 
 [data-theme="dark"] {
-    --bg-body: #1C1917;
-    --bg-white: #292524;
+    --bg-body: #000000;
+    --bg-white: #0a0a0a;
     --text-primary: #FDE8D8;
     --text-secondary: #A8A29E;
-    --border-color: #44403C;
-    --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    --border-color: #1f1f1f;
+    --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 
     /* Adjust badge/icon colors for dark mode contract */
     --c-blue-bg: rgba(21, 101, 192, 0.2);
