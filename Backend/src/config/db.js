@@ -3,8 +3,8 @@ import mongoose from "mongoose";
 
 const connectDB = async () => {
     try {
-        const connectionInstance = await mongoose.connect(`${process.env.MONGODB_URI}/quadstock`);
-        console.log(`\n MongoDB connected !! DB HOST: ${connectionInstance.connection.host}`);
+        await mongoose.connect(`${process.env.MONGODB_URI}/quadstock`);
+        console.log(`MongoDB connected successfully!`);
     } catch (error) {
         console.log("MONGODB connection FAILED: ", error);
         process.exit(1);
