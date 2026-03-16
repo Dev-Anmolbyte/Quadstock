@@ -83,7 +83,7 @@ body {
     overflow: hidden;
 }
 
-.dashboard-container {
+.layout-container {
     display: flex;
     height: 100vh;
     padding: 1rem;
@@ -443,7 +443,7 @@ body {
     transition: font-size 0.3s ease;
 }
 
-.sidebar-collapsed .dashboard-container {
+.sidebar-collapsed .layout-container {
     gap: 0.5rem;
 }
 
@@ -511,7 +511,7 @@ body {
 }
 
 @media (max-width: 992px) {
-    .dashboard-container {
+    .layout-container {
         padding: 0.5rem;
         gap: 0.5rem;
     }
@@ -527,7 +527,7 @@ body {
 }
 
 @media (max-width: 768px) {
-    .dashboard-container {
+    .layout-container {
         flex-direction: column;
         height: auto;
         overflow-y: auto;
@@ -743,7 +743,7 @@ body {
     margin: 0;
 }
 
-.sidebar-collapsed .dashboard-container {
+.sidebar-collapsed .layout-container {
     gap: 0.5rem;
 }
 

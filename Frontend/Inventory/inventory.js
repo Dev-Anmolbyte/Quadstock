@@ -1406,7 +1406,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Attach toggle logic again since we overwrote HTML
         const toggle = document.getElementById('sidebar-toggle');
-        const container = document.querySelector('.dashboard-container') || document.querySelector('.layout-container');
+        const container = document.querySelector('.layout-container') || document.querySelector('.layout-container');
         if (toggle && container) {
             toggle.addEventListener('click', () => {
                 const isCollapsed = container.classList.toggle('sidebar-collapsed');
@@ -1825,4 +1825,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setupSidebar();
 });
+
 

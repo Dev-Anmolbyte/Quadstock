@@ -9,6 +9,33 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
     }
 
+    const userRole = (currentUser && currentUser.role) || (currentEmployee && currentEmployee.role) || 'staff';
+
+    // --- Theme Logic ---
+    const themeBtn = document.getElementById('theme-toggle');
+    const body = document.body;
+    const documentElement = document.documentElement;
+    const savedTheme = localStorage.getItem('theme') || 'light';
+
+    function applyTheme(theme) {
+        body.setAttribute('data-theme', theme);
+        documentElement.setAttribute('data-theme', theme);
+        if (themeBtn) {
+            themeBtn.innerHTML = theme === 'dark' ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
+        }
+    }
+
+    applyTheme(savedTheme);
+
+    if (themeBtn) {
+        themeBtn.addEventListener('click', () => {
+            const currentTheme = body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            localStorage.setItem('theme', newTheme);
+            applyTheme(newTheme);
+        });
+    }
+
     // --- Data Loading (Real Inventory) ---
     const inventoryKey = `inventory_${ownerId}`;
     let rawInventory = JSON.parse(localStorage.getItem(inventoryKey)) || [];
@@ -24,10 +51,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const role = userRole;
         const sidebarTarget = document.getElementById('sidebar-target');
 
-        // Logic to toggle sidebar
         const attachToggle = () => {
             const toggle = document.getElementById('sidebar-toggle');
-            const container = document.querySelector('.dashboard-container');
+            const container = document.querySelector('.layout-container');
 
             if (toggle && container) {
                 // Clone to ensure clean listener
@@ -723,7 +749,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Handled in setupSidebar() to ensure listener is attached after dynamic injection
     /*
     const sidebarToggle = document.getElementById('sidebar-toggle');
-    const container = document.querySelector('.dashboard-container');
+    const container = document.querySelector('.layout-container');
     if (sidebarToggle) {
         sidebarToggle.addEventListener('click', () => {
             container.classList.toggle('sidebar-collapsed');
@@ -731,24 +757,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     */
 
-    // Theme
-    const themeBtn = document.getElementById('theme-toggle');
-    const body = document.body;
-    if (localStorage.getItem('theme') === 'dark') {
-        body.setAttribute('data-theme', 'dark');
-        if (themeBtn) themeBtn.innerHTML = '<i class="fa-solid fa-sun"></i>';
-    }
-    if (themeBtn) {
-        themeBtn.addEventListener('click', () => {
-            if (body.getAttribute('data-theme') === 'dark') {
-                body.removeAttribute('data-theme');
-                localStorage.setItem('theme', 'light');
-                themeBtn.innerHTML = '<i class="fa-solid fa-moon"></i>';
-            } else {
-                body.setAttribute('data-theme', 'dark');
-                localStorage.setItem('theme', 'dark');
-                themeBtn.innerHTML = '<i class="fa-solid fa-sun"></i>';
-            }
-        });
-    }
+    // Removed conflicting downstream theme logic
 });
+

@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- Sidebar Toggle ---
     const sidebarToggle = document.getElementById('sidebar-toggle');
-    const container = document.querySelector('.dashboard-container');
+    const container = document.querySelector('.layout-container');
 
     if (sidebarToggle) {
         sidebarToggle.addEventListener('click', (e) => {
@@ -94,3 +94,4 @@ document.addEventListener('DOMContentLoaded', function () {
 
     initCharts();
 });
+

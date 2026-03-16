@@ -35,6 +35,7 @@
         console.warn("🔐 Access Denied: Unauthorized access to " + path + ". Redirecting...");
         document.documentElement.style.display = 'none';
         window.location.href = '../landing/landing.html';
+        return;
     } else if (currentEmployee) {
         try {
             const emp = JSON.parse(currentEmployee);
@@ -43,10 +44,51 @@
                 console.warn("🔐 Access Denied: Employee status is " + emp.status);
                 document.documentElement.style.display = 'none';
                 localStorage.removeItem('currentEmployee'); // Clear session
-                window.location.href = '../Authentication/employee_login.html?error=restricted';
+                window.location.href = '../authentication/employee_login.html?error=restricted';
+                return;
             }
         } catch (e) {
             console.error("Guard: Session Error", e);
         }
     }
+
+    // Role-based Path Filtering (Strict Dashboard Enforce)
+    const empData = currentEmployee ? JSON.parse(currentEmployee) : null;
+
+    // 1. Owner Dashboard Protection
+    if (path.includes('/ownerdashboard/') && !currentUser) {
+        document.documentElement.style.display = 'none';
+        window.location.href = '../authentication/login.html';
+        return;
+    }
+
+    // 2. Manager Dashboard Protection
+    if (path.includes('/managerdashboard/') && (!empData || empData.role !== 'manager')) {
+        document.documentElement.style.display = 'none';
+        window.location.href = '../authentication/employee_login.html';
+        return;
+    }
+
+    // 3. Staff Dashboard Protection
+    if (path.includes('/staffdashboard/') && (!empData || empData.role !== 'staff')) {
+        document.documentElement.style.display = 'none';
+        window.location.href = '../authentication/employee_login.html';
+        return;
+    }
+
+    // Global Logout Interceptor
+    document.addEventListener('click', function (e) {
+        // Attempt to find if they clicked an anchor traversing to landing.html acting as a Logout
+        let target = e.target.closest('a') || e.target.closest('button');
+        if (target && (
+            (target.title && target.title.toLowerCase() === 'logout') ||
+            (target.href && target.href.includes('landing.html')) ||
+            (target.textContent && target.textContent.trim().toLowerCase() === 'logout')
+        )) {
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('currentEmployee');
+            // Allow default navigation to happen gracefully
+        }
+    });
+
 })();

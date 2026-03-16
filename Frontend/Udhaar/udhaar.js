@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Sidebar Toggle ---
     const sidebarToggle = document.getElementById('sidebar-toggle');
-    const dashboardContainer = document.querySelector('.dashboard-container');
+    const dashboardContainer = document.querySelector('.layout-container');
     if (sidebarToggle && dashboardContainer) {
         sidebarToggle.addEventListener('click', () => {
             dashboardContainer.classList.toggle('sidebar-collapsed');
@@ -520,3 +520,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 });
+
