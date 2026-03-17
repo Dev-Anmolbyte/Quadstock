@@ -1217,3 +1217,9 @@ tr:last-child td {
     background: var(--c-purple-bg);
     color: var(--c-purple-text);
 }
+
+/* Select Options Visibility Fix */
+.stat-card select option {
+    background-color: var(--bg-white);
+    color: var(--text-primary);
+}

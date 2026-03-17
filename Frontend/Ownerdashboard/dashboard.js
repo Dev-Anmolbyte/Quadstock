@@ -92,6 +92,32 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // --- Dropdowns Initialization ---
+    const monthSelect = document.getElementById('revenue-month-select');
+    if (monthSelect) {
+        const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        const currentMonthIndex = new Date().getMonth();
+        months.forEach((month, index) => {
+            const option = document.createElement('option');
+            option.value = index;
+            option.textContent = month;
+            if (index === currentMonthIndex) option.selected = true;
+            monthSelect.appendChild(option);
+        });
+    }
+
+    const yearSelect = document.getElementById('revenue-year-select');
+    if (yearSelect) {
+        const currentYear = new Date().getFullYear();
+        for (let i = 0; i < 5; i++) {
+            const year = currentYear - i;
+            const option = document.createElement('option');
+            option.value = year;
+            option.textContent = year;
+            yearSelect.appendChild(option);
+        }
+    }
+
     initCharts();
 });
 
