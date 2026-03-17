@@ -329,6 +329,27 @@ body {
     gap: 1.5rem;
 }
 
+.shop-name-container {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 1rem;
+    background: var(--bg-body);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .shop-name-container {
+    background: #0f172a;
+}
+
+.shop-name {
+    font-weight: 700;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
 .notif-btn {
     background: none;
     border: none;

@@ -10,14 +10,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // Fetch Owner Info dynamically
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
     if (currentUser) {
-        const nameSpans = document.querySelectorAll('.user-name');
-        nameSpans.forEach(span => {
-            span.textContent = currentUser.ownerName || currentUser.shopName || 'Owner';
-        });
-        const initialIcons = document.querySelectorAll('.user-profile > div:first-child');
-        initialIcons.forEach(icon => {
-            const nameToUse = currentUser.ownerName || 'O';
-            icon.textContent = nameToUse.charAt(0).toUpperCase();
+        const shopSpans = document.querySelectorAll('.shop-name');
+        shopSpans.forEach(span => {
+            span.textContent = currentUser.shopName || 'QuadStock Store';
         });
     }
 

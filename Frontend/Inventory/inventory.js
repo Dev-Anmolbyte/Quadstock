@@ -14,10 +14,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Set User Profile Name dynamically
-    const nameSpans = document.querySelectorAll('.user-name');
-    nameSpans.forEach(span => {
-        if (currentUser) span.textContent = currentUser.ownerName || currentUser.shopName || 'Owner';
-        else if (currentEmployee) span.textContent = currentEmployee.name || 'Manager';
+    const shopSpans = document.querySelectorAll('.shop-name');
+    shopSpans.forEach(span => {
+        span.textContent = (currentUser && currentUser.shopName) || 'QuadStock Store';
+
     });
 
     // Set dynamic Initial Icon

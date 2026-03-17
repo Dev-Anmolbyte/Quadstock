@@ -173,10 +173,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const displayName = currentUser ? (currentUser.ownerName || currentUser.shopName || 'Owner') : 'Owner';
             document.getElementById('user-profile-target').innerHTML = `
-                <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random" alt="User">
-                <span class="user-name">${displayName}</span>
-                <i class="fa-solid fa-chevron-down"></i>
+                <div class="shop-name-container">
+                    <i class="fa-solid fa-store" style="color: var(--primary-color); margin-right: 0.5rem;"></i>
+                    <span class="shop-name">${(currentUser && currentUser.shopName) || 'QuadStock Store'}</span>
+                </div>
             `;
+
+
+
+
         }
 
         initializeCommonUI();
@@ -395,6 +400,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderQueries() {
         listContainer.innerHTML = '';
+        if (userRole === 'staff') {
+            listContainer.innerHTML = `
+                <div style="text-align:center; padding:3rem 1.5rem; background:var(--bg-white); border-radius:1.5rem; border:1px dashed var(--border-color); margin-top:1rem;">
+                    <div style="width:60px; height:60px; background:rgba(244, 124, 37, 0.1); color:var(--primary-color); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 1.5rem; font-size:1.5rem;">
+                        <i class="fa-solid fa-user-shield"></i>
+                    </div>
+                    <h3 style="margin-bottom:0.5rem; color:var(--text-primary);">Privacy Restricted</h3>
+                    <p style="color:var(--text-secondary); font-size:0.9rem; max-width:400px; margin:0 auto;">For security reasons, you cannot view existing queries. Please use the button above to ask a new question to the management.</p>
+                </div>
+            `;
+            return;
+        }
         const sorted = [...queries].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
         if (sorted.length === 0) {
