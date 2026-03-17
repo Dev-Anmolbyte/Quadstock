@@ -635,4 +635,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renderQueries();
 });
-\n\n
