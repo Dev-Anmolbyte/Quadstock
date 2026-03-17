@@ -100,71 +100,76 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         } else {
             dashboardCss.href = '../Ownerdashboard/dashboard.css';
-            mainContainer.className = 'dashboard-container';
+            mainContainer.className = 'layout-container';
 
             sidebarTarget.innerHTML = `
-                <div class="brand">
-                    <button id="sidebar-toggle" class="sidebar-toggle">
-                        <i class="fa-solid fa-bars"></i>
-                    </button>
-                    <h2 class="brand-text">QuadStock</h2>
-                </div>
-                <nav class="sidebar-menu">
-                    <a href="../Ownerdashboard/dashboard.html" class="menu-item" title="Dashboard">
-                        <i class="fa-solid fa-house"></i>
-                        <span>Dashboard</span>
-                    </a>
-                    <a href="../Analytics/analytics.html" class="menu-item" title="Analytics">
-                        <i class="fa-solid fa-chart-simple"></i>
-                        <span>Analytics</span>
-                    </a>
-                    <a href="query.html" class="menu-item active" title="Query">
-                        <i class="fa-solid fa-clipboard-question"></i>
-                        <span>Query</span>
-                    </a>
-                    <a href="../Inventory/inventory.html" class="menu-item" title="Inventory">
-                        <i class="fa-solid fa-boxes-stacked"></i>
-                        <span>Inventory</span>
-                    </a>
-                    <a href="../Employees/employees.html" class="menu-item" title="Employees">
-                        <i class="fa-solid fa-users"></i>
-                        <span>Employees</span>
-                    </a>
-                    <a href="../smartexpiry/smartexpiry.html" class="menu-item" title="Smart Expiry">
-                        <i class="fa-solid fa-hourglass-end"></i>
-                        <span>Smart Expiry</span>
-                    </a>
 
-                    <a href="../Complain/complain.html" class="menu-item" title="Complain">
+            <div class="brand">
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <h2 class="brand-text">QuadStock</h2>
+            </div>
+            <nav class="sidebar-menu">
+                <a href="../Ownerdashboard/dashboard.html" class="menu-item " title="Dashboard">
+                    <i class="fa-solid fa-house"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="../Analytics/analytics.html" class="menu-item " title="Analytics">
+                    <i class="fa-solid fa-chart-simple"></i>
+                    <span>Analytics</span>
+                </a>
+                <a href="../Query/query.html" class="menu-item active" title="Query">
+                    <i class="fa-solid fa-clipboard-question"></i>
+                    <span>Query</span>
+                </a>
+                <a href="../Inventory/inventory.html" class="menu-item " title="Inventory">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                    <span>Inventory</span>
+                </a>
+                <a href="../Employees/employees.html" class="menu-item " title="Employees">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Employees</span>
+                </a>
+                <a href="../smartexpiry/smartexpiry.html" class="menu-item " title="Smart Expiry">
+                    <i class="fa-solid fa-hourglass-end"></i>
+                    <span>Smart Expiry</span>
+                </a>
+
+                <a href="../Complain/complain.html" class="menu-item " title="Complaints">
+                    <div style="position:relative;">
                         <i class="fa-solid fa-triangle-exclamation"></i>
-                        <span>Complain</span>
-                    </a>
-                    <a href="../Udhaar/udhaar.html" class="menu-item" title="Pending Payments">
-                        <i class="fa-solid fa-indian-rupee-sign"></i>
-                        <span>Udhaar/Pending</span>
-                    </a>
-                    <a href="../Settings/settings.html" class="menu-item" title="Settings">
-                        <i class="fa-solid fa-gear"></i>
-                        <span>Settings</span>
-                    </a>
-                    <a href="../landing/landing.html" class="menu-item" title="Logout">
-                        <i class="fa-solid fa-right-from-bracket"></i>
-                        <span>Logout</span>
-                    </a>
-                </nav>
-                <div class="sidebar-footer-card">
-                    <div class="support-illustration">
-                        <svg viewBox="0 0 100 100" class="illus-svg">
-                            <circle cx="50" cy="35" r="15" fill="#333" />
-                            <path d="M20,80 Q50,70 80,80 V100 H20 Z" fill="#333" />
-                            <rect x="15" y="45" width="25" height="15" rx="2" fill="#555" transform="rotate(-15 27 52)" />
-                        </svg>
+                        <span id="nav-badge-complain" class="nav-badge" style="display:none;">0</span>
                     </div>
-                    <a href="../Footer/contact.html" class="btn-support" style="text-decoration: none; display: inline-block; text-align: center;">
-                        <i class="fa-regular fa-life-ring"></i> Support
-                    </a>
+                    <span>Complaints</span>
+                </a>
+                <a href="../Udhaar/udhaar.html" class="menu-item " title="Pending Payments">
+                    <i class="fa-solid fa-indian-rupee-sign"></i>
+                    <span>Udhaar/Pending</span>
+                </a>
+                <a href="../Settings/settings.html" class="menu-item " title="Settings">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Settings</span>
+                </a>
+                <a href="../landing/landing.html" class="menu-item" title="Logout">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Logout</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer-card">
+                <div class="support-illustration">
+                    <svg viewBox="0 0 100 100" class="illus-svg">
+                        <circle cx="50" cy="35" r="15" fill="#333" />
+                        <path d="M20,80 Q50,70 80,80 V100 H20 Z" fill="#333" />
+                        <rect x="15" y="45" width="25" height="15" rx="2" fill="#555" transform="rotate(-15 27 52)" />
+                    </svg>
                 </div>
-            `;
+                <a href="../Footer/contact.html" class="btn-support" style="text-decoration: none; display: inline-block; text-align: center;">
+                    <i class="fa-regular fa-life-ring"></i> Support
+                </a>
+            </div>
+
+`;
 
             const displayName = currentUser ? (currentUser.ownerName || currentUser.shopName || 'Owner') : 'Owner';
             document.getElementById('user-profile-target').innerHTML = `
@@ -630,3 +635,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renderQueries();
 });
+\n\n
