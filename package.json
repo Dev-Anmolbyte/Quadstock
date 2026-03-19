@@ -1,7 +1,24 @@
 {
+  "name": "quadstock-project",
+  "version": "1.0.0",
+  "description": "Unified QuadStock Inventory and Management System",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon Backend/src/server.js",
+    "start": "node Backend/src/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
   "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cloudinary": "^2.9.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
     "dotenv": "^17.3.1",
-    "mongoose": "^9.3.0"
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "mongodb": "^7.1.0",
+    "mongoose": "^9.3.0",
+    "multer": "^2.1.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
