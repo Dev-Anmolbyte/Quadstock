@@ -1,4 +1,4 @@
-node_modules/
+node_modules
 .env
-public/temp/
-.DS_Store
+public/temp/*
+!public/temp/.gitkeep
