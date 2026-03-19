@@ -1,5 +1,24 @@
+# Dependencies
 node_modules/
+package-lock.json
+
+# Environment/Security
 .env
+.env.local
+.env.*.local
+*.log
+
+# Temp/Cache
 public/temp/
 .DS_Store
+Thumbs.db
+.cache/
 
+# IDE/Editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Empty/Nested Repos
+Quadstock/
