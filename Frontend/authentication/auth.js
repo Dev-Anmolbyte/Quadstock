@@ -1,11 +1,11 @@
 
 import { initInteractiveBackground } from '../Shared/Components/interactive-bg.js';
 import { togglePasswordVisibility, calculatePasswordStrength, validateEmail, validatePhone, showError, clearError } from '../Shared/Auth/auth-utils.js';
+import CONFIG from '../Shared/Utils/config.js';
 
 // --- Main Logic ---
 document.addEventListener('DOMContentLoaded', () => {
     // --- Interactive Background Logic ---
-    // Pass the container ID
     initInteractiveBackground('interactive-bg', { orbCount: 4 });
 
     // --- Password Visibility Toggle ---
@@ -50,12 +50,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Input Validations (Email & Phone) ---
+    // --- Input Validations ---
     const emailInput = document.getElementById('email');
     const phoneInput = document.getElementById('phone');
 
     if (emailInput) {
-        emailInput.addEventListener('blur', (e) => { // Validate on blur, not input
+        emailInput.addEventListener('blur', (e) => {
             const val = e.target.value;
             if (val && !validateEmail(val)) {
                 showError(emailInput, 'Please enter a valid email address.');
@@ -67,7 +67,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (phoneInput) {
-        // Enforce Numbers Only and Max Length 10
         phoneInput.addEventListener('input', (e) => {
             let val = e.target.value;
             val = val.replace(/\D/g, '');
@@ -85,23 +84,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Authentication Logic (Simulation) ---
+    // --- Authentication Logic ---
     const loginForm = document.getElementById('login-form');
     const signupForm = document.getElementById('signup-form');
     const loginError = document.getElementById('login-error');
 
-    // MOCK DATABASE HELPER
-    const getUsers = () => JSON.parse(localStorage.getItem('quadstock_users') || '[]');
-    const saveUser = (user) => {
-        const users = getUsers();
-        users.push(user);
-        localStorage.setItem('quadstock_users', JSON.stringify(users));
-    };
-
     if (signupForm) {
-        signupForm.addEventListener('submit', (e) => {
+        signupForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const submitBtn = signupForm.querySelector('button[type="submit"]');
+            
             if (submitBtn) {
                 submitBtn.disabled = true;
                 submitBtn.dataset.originalText = submitBtn.innerText;
@@ -115,16 +107,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             };
 
-            const email = document.getElementById('email').value;
+            const ownerEmail = document.getElementById('email').value;
             const password = document.getElementById('signup-password').value;
             const confirmPass = document.getElementById('confirm-password').value;
             const ownerName = document.getElementById('owner-name').value;
             const shopName = document.getElementById('shop-name').value;
-            const phone = document.getElementById('phone').value;
+            const phoneNumber = document.getElementById('phone').value;
 
             let isValid = true;
 
-            // Basic Validation
+            // Basic Local Validation
             if (password !== confirmPass) {
                 showError(document.getElementById('confirm-password'), 'Passwords do not match!');
                 isValid = false;
@@ -139,73 +131,51 @@ document.addEventListener('DOMContentLoaded', () => {
                 clearError(document.getElementById('signup-password'));
             }
 
-            if (!validatePhone(phone)) {
-                showError(document.getElementById('phone'), 'Phone number must be exactly 10 digits.');
-                isValid = false;
-            } else {
-                clearError(document.getElementById('phone'));
-            }
-
             if (!isValid) { restoreBtn(); return; }
 
-            // Check if user exists
-            const users = getUsers();
-            if (users.find(u => u.email === email)) {
-                showError(document.getElementById('email'), 'User already exists with this email. Please Login.');
-                // setTimeout(() => window.location.href = 'login.html', 2000); // Optional auto-redirect
+            try {
+                // Real API Request
+                const response = await fetch(`${CONFIG.API_BASE_URL}/owner/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        ownerName,
+                        shopName,
+                        ownerEmail,
+                        phoneNumber,
+                        password,
+                        role: 'owner'
+                    })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    // API error response
+                    if (result.message.toLowerCase().includes('email') || result.message.toLowerCase().includes('user')) {
+                        showError(document.getElementById('email'), result.message);
+                    } else {
+                        alert(`Error: ${result.message}`);
+                    }
+                    restoreBtn();
+                    return;
+                }
+
+                // Show Success Modal with Server-Side Owner ID
+                const modal = document.getElementById('signup-success-modal');
+                const ownerIdDisplay = document.getElementById('generated-owner-id');
+                const copyBtn = document.getElementById('copy-id-btn');
+                const ownerId = result.data.ownerId;
+
                 restoreBtn();
-                return;
-            } else {
-                clearError(document.getElementById('email'));
-            }
 
-            // Generate Owner ID
-            const ownerId = 'QS-' + Math.floor(10000 + Math.random() * 90000);
+                if (modal && ownerIdDisplay) {
+                    ownerIdDisplay.textContent = ownerId;
+                    modal.classList.add('active');
 
-            // Register User
-            const newUser = {
-                email,
-                password: btoa(password),
-                ownerName,
-                shopName,
-                phone,
-                ownerId: ownerId,
-                role: 'owner'
-            };
-
-            saveUser(newUser);
-
-            // Show Success Modal
-            const modal = document.getElementById('signup-success-modal');
-            const ownerIdDisplay = document.getElementById('generated-owner-id');
-            const copyBtn = document.getElementById('copy-id-btn');
-
-            restoreBtn(); // Done processing
-
-            if (modal && ownerIdDisplay) {
-                ownerIdDisplay.textContent = ownerId;
-                modal.classList.add('active');
-
-                // Copy Functionality
-                if (copyBtn) {
-                    copyBtn.onclick = () => { // Use onclick to avoid multiple bindings if re-run
-                        navigator.clipboard.writeText(ownerId).then(() => {
-                            const originalIcon = '<i class="fa-regular fa-copy"></i>';
-                            copyBtn.innerHTML = '<i class="fa-solid fa-check"></i>';
-                            copyBtn.style.color = 'var(--primary-green)';
-                            setTimeout(() => {
-                                copyBtn.innerHTML = originalIcon;
-                                copyBtn.style.color = '';
-                            }, 2000);
-                        }).catch(err => {
-                            console.error('Failed to copy: ', err);
-                            // Fallback for non-secure contexts
-                            const textArea = document.createElement("textarea");
-                            textArea.value = ownerId;
-                            document.body.appendChild(textArea);
-                            textArea.select();
-                            try {
-                                document.execCommand('copy');
+                    if (copyBtn) {
+                        copyBtn.onclick = () => {
+                            navigator.clipboard.writeText(ownerId).then(() => {
                                 const originalIcon = '<i class="fa-regular fa-copy"></i>';
                                 copyBtn.innerHTML = '<i class="fa-solid fa-check"></i>';
                                 copyBtn.style.color = 'var(--primary-green)';
@@ -213,23 +183,24 @@ document.addEventListener('DOMContentLoaded', () => {
                                     copyBtn.innerHTML = originalIcon;
                                     copyBtn.style.color = '';
                                 }, 2000);
-                            } catch (err) {
-                                console.error('Fallback copy failed', err);
-                            }
-                            document.body.removeChild(textArea);
-                        });
-                    };
+                            });
+                        };
+                    }
+                } else {
+                    alert(`Registration Successful! Your Owner ID is: ${ownerId}`);
+                    window.location.href = 'login.html';
                 }
-            } else {
-                // Fallback if modal elements missing
-                alert(`Registration Successful! Your Owner ID is: ${ownerId}`);
-                window.location.href = 'login.html';
+
+            } catch (err) {
+                console.error('Network Error:', err);
+                alert('Connection to backend failed. Make sure the server is running on port 3000.');
+                restoreBtn();
             }
         });
     }
 
     if (loginForm) {
-        // Also clear error on input
+        // Clear error on input
         const inputs = loginForm.querySelectorAll('input');
         inputs.forEach(inp => {
             inp.addEventListener('input', () => {
@@ -240,14 +211,14 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        loginForm.addEventListener('submit', (e) => {
+        loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
             const submitBtn = loginForm.querySelector('button[type="submit"]');
             if (submitBtn) {
                 submitBtn.disabled = true;
                 submitBtn.dataset.originalText = submitBtn.innerText;
-                submitBtn.innerText = 'Loggin in...';
+                submitBtn.innerText = 'Logging in...';
             }
             const restoreBtn = () => {
                 if (submitBtn) {
@@ -268,68 +239,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const users = getUsers();
-            const user = users.find(u =>
-                (u.email && u.email.toLowerCase() === emailOrId.toLowerCase()) ||
-                (u.phone && u.phone === emailOrId) ||
-                (u.ownerId && u.ownerId.toUpperCase() === emailOrId.toUpperCase())
-            );
+            try {
+                // Real API Request for Login
+                const response = await fetch(`${CONFIG.API_BASE_URL}/owner/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ emailOrId, password })
+                });
 
-            if (user) {
-                // Owner Found
-                let isPasswordValid = false;
+                const result = await response.json();
 
-                if (user.password === password) {
-                    // Plain text match - Upgrade to Base64
-                    user.password = btoa(password);
-                    localStorage.setItem('quadstock_users', JSON.stringify(users));
-                    isPasswordValid = true;
-                } else if (user.password === btoa(password)) {
-                    // Base64 match
-                    isPasswordValid = true;
-                }
-
-                if (isPasswordValid) {
-                    localStorage.setItem('currentUser', JSON.stringify(user));
+                if (response.ok) {
+                    // Success: Save user data and redirect
+                    localStorage.setItem('currentUser', JSON.stringify(result.data));
                     window.location.href = '../Ownerdashboard/dashboard.html';
                 } else {
+                    // Error: Show message from server
                     if (loginError) {
                         loginError.style.display = 'block';
-                        loginError.textContent = 'Invalid credentials. Please try again.';
+                        loginError.textContent = result.message || 'Invalid credentials. Please try again.';
                     }
                     restoreBtn();
                 }
-            } else {
-                // Not Owner. Check if Employee Credentials.
-                const employees = JSON.parse(localStorage.getItem('quadstock_employees') || '[]');
-                const employee = employees.find(e =>
-                    ((e.empId && e.empId.toUpperCase() === emailOrId.toUpperCase()) ||
-                        (e.email && e.email.toLowerCase() === emailOrId.toLowerCase())) &&
-                    e.password === password
-                );
 
-                if (employee) {
-                    if (loginError) {
-                        loginError.style.display = 'block';
-                        loginError.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
-                        loginError.style.borderColor = '#ef4444';
-                        loginError.style.color = '#ef4444';
-                        loginError.innerHTML = '<strong>Access Denied.</strong> Employee credentials detected.<br>Redirecting to Staff Portal...';
-                    }
-                    setTimeout(() => {
-                        window.location.href = 'employee_login.html';
-                    }, 3000);
-                    return; // Don't restore button here to prevent double clicks during redirect wait
-                }
-
-                // Not found anywhere
+            } catch (err) {
+                console.error('Login Network Error:', err);
                 if (loginError) {
                     loginError.style.display = 'block';
-                    loginError.textContent = 'User not found. Redirecting to signup...';
+                    loginError.textContent = 'Server connection failed. Please try again later.';
                 }
-                setTimeout(() => {
-                    window.location.href = 'signup.html';
-                }, 1500);
+                restoreBtn();
             }
         });
     }

@@ -52,6 +52,49 @@ const registerUser = async (req, res) => {
     }
 }
 
+const loginUser = async (req, res) => {
+    try {
+        const { emailOrId, password } = req.body;
+
+        if (!emailOrId || !password) {
+            return res.status(400).json({ success: false, message: "Email/ID and password are required" });
+        }
+
+        // Find user by any valid identifier
+        const user = await User.findOne({
+            $or: [
+                { ownerEmail: emailOrId.toLowerCase() },
+                { phoneNumber: emailOrId },
+                { ownerId: emailOrId.toUpperCase() }
+            ]
+        });
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+
+        if (!isPasswordValid) {
+            return res.status(401).json({ success: false, message: "Invalid credentials" });
+        }
+
+        // Prepare response - exclude sensitive data
+        const loggedInUser = await User.findById(user._id).select("-password -__v");
+
+        return res.status(200).json({
+            success: true,
+            data: loggedInUser,
+            message: "Login successful"
+        });
+
+    } catch (error) {
+        console.error("Login Error:", error);
+        return res.status(500).json({ success: false, message: error.message });
+    }
+}
+
 export {
     registerUser,
+    loginUser,
 }
