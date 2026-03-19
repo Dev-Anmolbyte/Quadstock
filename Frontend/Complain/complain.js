@@ -103,74 +103,80 @@ document.addEventListener('DOMContentLoaded', () => {
             mainContainer.className = 'dashboard-container';
 
             sidebarTarget.innerHTML = `
-                <div class="brand">
-                    <button id="sidebar-toggle" class="sidebar-toggle">
-                        <i class="fa-solid fa-bars"></i>
-                    </button>
-                    <h2 class="brand-text">QuadStock</h2>
-                </div>
-                <nav class="sidebar-menu">
-                    <a href="../Ownerdashboard/dashboard.html" class="menu-item" title="Dashboard">
-                        <i class="fa-solid fa-house"></i>
-                        <span>Dashboard</span>
-                    </a>
-                    <a href="../Analytics/analytics.html" class="menu-item" title="Analytics">
-                        <i class="fa-solid fa-chart-simple"></i>
-                        <span>Analytics</span>
-                    </a>
-                    <a href="../Query/query.html" class="menu-item" title="Query">
-                        <i class="fa-solid fa-clipboard-question"></i>
-                        <span>Query</span>
-                    </a>
-                    <a href="../Inventory/inventory.html" class="menu-item" title="Inventory">
-                        <i class="fa-solid fa-boxes-stacked"></i>
-                        <span>Inventory</span>
-                    </a>
-                    <a href="../Employees/employees.html" class="menu-item" title="Employees">
-                        <i class="fa-solid fa-users"></i>
-                        <span>Employees</span>
-                    </a>
-                    <a href="../smartexpiry/smartexpiry.html" class="menu-item" title="Smart Expiry">
-                        <i class="fa-solid fa-hourglass-end"></i>
-                        <span>Smart Expiry</span>
-                    </a>
 
-                    <a href="complain.html" class="menu-item active" title="Complain">
+            <div class="brand">
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <h2 class="brand-text">QuadStock</h2>
+            </div>
+            <nav class="sidebar-menu">
+                <a href="../Ownerdashboard/dashboard.html" class="menu-item " title="Dashboard">
+                    <i class="fa-solid fa-house"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="../Analytics/analytics.html" class="menu-item " title="Analytics">
+                    <i class="fa-solid fa-chart-simple"></i>
+                    <span>Analytics</span>
+                </a>
+                <a href="../Query/query.html" class="menu-item " title="Query">
+                    <i class="fa-solid fa-clipboard-question"></i>
+                    <span>Query</span>
+                </a>
+                <a href="../Inventory/inventory.html" class="menu-item " title="Inventory">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                    <span>Inventory</span>
+                </a>
+                <a href="../Employees/employees.html" class="menu-item " title="Employees">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Employees</span>
+                </a>
+                <a href="../smartexpiry/smartexpiry.html" class="menu-item " title="Smart Expiry">
+                    <i class="fa-solid fa-hourglass-end"></i>
+                    <span>Smart Expiry</span>
+                </a>
+
+                <a href="../Complain/complain.html" class="menu-item active" title="Complaints">
+                    <div style="position:relative;">
                         <i class="fa-solid fa-triangle-exclamation"></i>
-                        <span>Complain</span>
-                    </a>
-                    <a href="../Udhaar/udhaar.html" class="menu-item" title="Pending Payments">
-                        <i class="fa-solid fa-indian-rupee-sign"></i>
-                        <span>Udhaar/Pending</span>
-                    </a>
-                    <a href="../Settings/settings.html" class="menu-item" title="Settings">
-                        <i class="fa-solid fa-gear"></i>
-                        <span>Settings</span>
-                    </a>
-                    <a href="../landing/landing.html" class="menu-item" title="Logout">
-                        <i class="fa-solid fa-right-from-bracket"></i>
-                        <span>Logout</span>
-                    </a>
-                </nav>
-                <div class="sidebar-footer-card">
-                    <div class="support-illustration">
-                        <svg viewBox="0 0 100 100" class="illus-svg">
-                            <circle cx="50" cy="35" r="15" fill="#333" />
-                            <path d="M20,80 Q50,70 80,80 V100 H20 Z" fill="#333" />
-                            <rect x="15" y="45" width="25" height="15" rx="2" fill="#555" transform="rotate(-15 27 52)" />
-                        </svg>
+                        <span id="nav-badge-complain" class="nav-badge" style="display:none;">0</span>
                     </div>
-                    <a href="../Footer/contact.html" class="btn-support" style="text-decoration: none; display: inline-block; text-align: center;">
-                        <i class="fa-regular fa-life-ring"></i> Support
-                    </a>
+                    <span>Complaints</span>
+                </a>
+                <a href="../Udhaar/udhaar.html" class="menu-item " title="Pending Payments">
+                    <i class="fa-solid fa-indian-rupee-sign"></i>
+                    <span>Udhaar/Pending</span>
+                </a>
+                <a href="../Settings/settings.html" class="menu-item " title="Settings">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Settings</span>
+                </a>
+                <a href="../landing/landing.html" class="menu-item" title="Logout">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Logout</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer-card">
+                <div class="support-illustration">
+                    <svg viewBox="0 0 100 100" class="illus-svg">
+                        <circle cx="50" cy="35" r="15" fill="#333" />
+                        <path d="M20,80 Q50,70 80,80 V100 H20 Z" fill="#333" />
+                        <rect x="15" y="45" width="25" height="15" rx="2" fill="#555" transform="rotate(-15 27 52)" />
+                    </svg>
                 </div>
-            `;
+                <a href="../Footer/contact.html" class="btn-support" style="text-decoration: none; display: inline-block; text-align: center;">
+                    <i class="fa-regular fa-life-ring"></i> Support
+                </a>
+            </div>
+
+`;
 
             const displayName = currentUser ? (currentUser.ownerName || currentUser.shopName || 'Owner') : 'Owner';
             document.getElementById('user-profile-target').innerHTML = `
-                <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random" alt="User">
-                <span class="user-name">${displayName}</span>
-                <i class="fa-solid fa-chevron-down"></i>
+                <div class="shop-name-container">
+                    <i class="fa-solid fa-store" style="color: var(--primary-color); margin-right: 0.5rem;"></i>
+                    <span class="shop-name">${(currentUser && currentUser.shopName) || 'QuadStock Store'}</span>
+                </div>
             `;
         }
 
@@ -393,6 +399,20 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderComplaints() {
         if (!listContainer) return;
         listContainer.innerHTML = '';
+
+        if (userRole === 'staff') {
+            listContainer.innerHTML = `
+                <div style="text-align:center; padding:3rem 1.5rem; background:var(--bg-white); border-radius:1.5rem; border:1px dashed var(--border-color); margin-top:1rem;">
+                    <div style="width:60px; height:60px; background:rgba(244, 124, 37, 0.1); color:var(--primary-color); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 1.5rem; font-size:1.5rem;">
+                        <i class="fa-solid fa-user-shield"></i>
+                    </div>
+                    <h3 style="margin-bottom:0.5rem; color:var(--text-primary);">Privacy Restricted</h3>
+                    <p style="color:var(--text-secondary); font-size:0.9rem; max-width:400px; margin:0 auto;">For security reasons, you cannot view existing threads. Please use the button above to submit a new complaint to the management.</p>
+                </div>
+            `;
+            return;
+        }
+
         const sorted = [...complaints].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
         if (sorted.length === 0) {

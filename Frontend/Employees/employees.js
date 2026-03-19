@@ -177,9 +177,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         userProfileTarget.innerHTML = `
-            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(nameToUse)}&background=F47C25&color=fff" alt="User" style="width:36px; height:36px; border-radius:50%; vertical-align:middle; margin-right:8px;">
-            <span class="user-name" style="font-weight: 700; color: var(--text-dark);">${nameToUse}</span>
-            <i class="fa-solid fa-chevron-down" style="font-size: 0.8rem; margin-left: 5px; color: var(--text-muted);"></i>
+            <div class="shop-name-container">
+                <i class="fa-solid fa-store" style="color: var(--primary-color); margin-right: 0.5rem;"></i>
+                <span class="shop-name">${(currentUser && currentUser.shopName) || (currentEmployee && currentEmployee.shopName) || 'QuadStock Store'}</span>
+            </div>
         `;
     }
 

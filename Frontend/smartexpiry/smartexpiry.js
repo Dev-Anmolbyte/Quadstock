@@ -9,6 +9,33 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
     }
 
+    const userRole = (currentUser && currentUser.role) || (currentEmployee && currentEmployee.role) || 'staff';
+
+    // --- Theme Logic ---
+    const themeBtn = document.getElementById('theme-toggle');
+    const body = document.body;
+    const documentElement = document.documentElement;
+    const savedTheme = localStorage.getItem('theme') || 'light';
+
+    function applyTheme(theme) {
+        body.setAttribute('data-theme', theme);
+        documentElement.setAttribute('data-theme', theme);
+        if (themeBtn) {
+            themeBtn.innerHTML = theme === 'dark' ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
+        }
+    }
+
+    applyTheme(savedTheme);
+
+    if (themeBtn) {
+        themeBtn.addEventListener('click', () => {
+            const currentTheme = body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            localStorage.setItem('theme', newTheme);
+            applyTheme(newTheme);
+        });
+    }
+
     // --- Data Loading (Real Inventory) ---
     const inventoryKey = `inventory_${ownerId}`;
     let rawInventory = JSON.parse(localStorage.getItem(inventoryKey)) || [];
@@ -18,32 +45,26 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     // --- Dynamic Sidebar Logic ---
-    // --- Dynamic Sidebar Logic ---
     function setupSidebar() {
-        // Derive role strictly from session data
         const role = userRole;
         const sidebarTarget = document.getElementById('sidebar-target');
 
-        // Logic to toggle sidebar
         const attachToggle = () => {
             const toggle = document.getElementById('sidebar-toggle');
-            const container = document.querySelector('.dashboard-container');
+            const container = document.querySelector('.layout-container');
 
             if (toggle && container) {
-                // Clone to ensure clean listener
                 const newToggle = toggle.cloneNode(true);
                 toggle.parentNode.replaceChild(newToggle, toggle);
 
                 newToggle.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    // Always toggle on container for desktop view
                     container.classList.toggle('sidebar-collapsed');
                 });
             }
         };
 
         if (role === 'manager' || role === 'staff') {
-            // Adapted Sidebar for Employees
             sidebarTarget.innerHTML = `
                 <div class="brand">
                     <button id="sidebar-toggle" class="sidebar-toggle">
@@ -106,87 +127,90 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
             `;
 
-            // Update User Profile for Manager/Staff
+            // Update Shop Name
             const userProfile = document.querySelector('.user-profile');
-            if (userProfile && currentEmployee) {
+            if (userProfile) {
+                userProfile.className = 'shop-name-container';
                 userProfile.innerHTML = `
-                    <img src="${currentEmployee.photo || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(currentEmployee.name)}" alt="User">
-                    <span class="user-name">${currentEmployee.name}</span>
-                    <i class="fa-solid fa-chevron-down"></i>
+                    <i class="fa-solid fa-store" style="color: var(--primary-color); margin-right: 0.5rem;"></i>
+                    <span class="shop-name">${(currentUser && currentUser.shopName) || (currentEmployee && currentEmployee.shopName) || 'QuadStock Store'}</span>
                 `;
             }
         } else {
-            // Owner Sidebar (Default)
             sidebarTarget.innerHTML = `
-                <div class="brand">
-                    <button id="sidebar-toggle" class="sidebar-toggle">
-                        <i class="fa-solid fa-bars"></i>
-                    </button>
-                    <h2 class="brand-text">QuadStock</h2>
-                </div>
+            <div class="brand">
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <h2 class="brand-text">QuadStock</h2>
+            </div>
+            <nav class="sidebar-menu">
+                <a href="../Ownerdashboard/dashboard.html" class="menu-item " title="Dashboard">
+                    <i class="fa-solid fa-house"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="../Analytics/analytics.html" class="menu-item " title="Analytics">
+                    <i class="fa-solid fa-chart-simple"></i>
+                    <span>Analytics</span>
+                </a>
+                <a href="../Query/query.html" class="menu-item " title="Query">
+                    <i class="fa-solid fa-clipboard-question"></i>
+                    <span>Query</span>
+                </a>
+                <a href="../Inventory/inventory.html" class="menu-item " title="Inventory">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                    <span>Inventory</span>
+                </a>
+                <a href="../Employees/employees.html" class="menu-item " title="Employees">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Employees</span>
+                </a>
+                <a href="../smartexpiry/smartexpiry.html" class="menu-item active" title="Smart Expiry">
+                    <i class="fa-solid fa-hourglass-end"></i>
+                    <span>Smart Expiry</span>
+                </a>
 
-                <nav class="sidebar-menu">
-                    <a href="../Ownerdashboard/dashboard.html" class="menu-item" title="Dashboard">
-                        <i class="fa-solid fa-house"></i>
-                        <span>Dashboard</span>
-                    </a>
-                    <a href="../Analytics/analytics.html" class="menu-item" title="Analytics">
-                        <i class="fa-solid fa-chart-simple"></i>
-                        <span>Analytics</span>
-                    </a>
-                    <a href="../Query/query.html" class="menu-item" title="Query">
-                        <i class="fa-solid fa-clipboard-question"></i>
-                        <span>Query</span>
-                    </a>
-                    <a href="../Inventory/inventory.html" class="menu-item" title="Inventory">
-                        <i class="fa-solid fa-boxes-stacked"></i>
-                        <span>Inventory</span>
-                    </a>
-                    <a href="smartexpiry.html" class="menu-item active" title="Smart Expiry">
-                        <i class="fa-solid fa-hourglass-end"></i>
-                        <span>Smart Expiry</span>
-                    </a>
-
-                    <a href="../Complain/complain.html" class="menu-item" title="Complain">
+                <a href="../Complain/complain.html" class="menu-item " title="Complaints">
+                    <div style="position:relative;">
                         <i class="fa-solid fa-triangle-exclamation"></i>
-                        <span>Complain</span>
-                    </a>
-                    <a href="../Udhaar/udhaar.html" class="menu-item" title="Pending Payments">
-                        <i class="fa-solid fa-indian-rupee-sign"></i>
-                        <span>Udhaar/Pending</span>
-                    </a>
-                    <a href="../Settings/settings.html" class="menu-item" title="Settings">
-                        <i class="fa-solid fa-gear"></i>
-                        <span>Settings</span>
-                    </a>
-                    <a href="../landing/landing.html" class="menu-item" title="Logout">
-                        <i class="fa-solid fa-right-from-bracket"></i>
-                        <span>Logout</span>
-                    </a>
-                </nav>
-
-                <div class="sidebar-footer-card">
-                    <div class="support-illustration">
-                        <svg viewBox="0 0 100 100" class="illus-svg">
-                            <circle cx="50" cy="35" r="15" fill="#333" />
-                            <path d="M20,80 Q50,70 80,80 V100 H20 Z" fill="#333" />
-                            <rect x="15" y="45" width="25" height="15" rx="2" fill="#555" transform="rotate(-15 27 52)" />
-                        </svg>
+                        <span id="nav-badge-complain" class="nav-badge" style="display:none;">0</span>
                     </div>
-                    <a href="../Footer/contact.html" class="btn-support" style="text-decoration: none; display: inline-block; text-align: center;">
-                        <i class="fa-regular fa-life-ring"></i> Support
-                    </a>
+                    <span>Complaints</span>
+                </a>
+                <a href="../Udhaar/udhaar.html" class="menu-item " title="Pending Payments">
+                    <i class="fa-solid fa-indian-rupee-sign"></i>
+                    <span>Udhaar/Pending</span>
+                </a>
+                <a href="../Settings/settings.html" class="menu-item " title="Settings">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Settings</span>
+                </a>
+                <a href="../landing/landing.html" class="menu-item" title="Logout">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Logout</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer-card">
+                <div class="support-illustration">
+                    <svg viewBox="0 0 100 100" class="illus-svg">
+                        <circle cx="50" cy="35" r="15" fill="#333" />
+                        <path d="M20,80 Q50,70 80,80 V100 H20 Z" fill="#333" />
+                        <rect x="15" y="45" width="25" height="15" rx="2" fill="#555" transform="rotate(-15 27 52)" />
+                    </svg>
                 </div>
+                <a href="../Footer/contact.html" class="btn-support" style="text-decoration: none; display: inline-block; text-align: center;">
+                    <i class="fa-regular fa-life-ring"></i> Support
+                </a>
+            </div>
             `;
 
-            // Update User Profile for Owner
+            // Update Shop Name
             const userProfile = document.querySelector('.user-profile');
-            if (userProfile && currentUser) {
-                const displayName = currentUser.ownerName || currentUser.shopName || 'Owner';
+            if (userProfile) {
+                userProfile.className = 'shop-name-container';
                 userProfile.innerHTML = `
-                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random" alt="User">
-                    <span class="user-name">${displayName}</span>
-                    <i class="fa-solid fa-chevron-down"></i>
+                    <i class="fa-solid fa-store" style="color: var(--primary-color); margin-right: 0.5rem;"></i>
+                    <span class="shop-name">${(currentUser && currentUser.shopName) || (currentEmployee && currentEmployee.shopName) || 'QuadStock Store'}</span>
                 `;
             }
         }
@@ -196,11 +220,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     setupSidebar();
 
-
     // --- Logic: Calculate Days Remaining & FEFO ---
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    // IMPORTANT: In production, use server time. Here we use new Date() which relies on system time.
 
     // Enrich data
     products = products.map(p => {
@@ -246,7 +268,6 @@ document.addEventListener('DOMContentLoaded', function () {
         stat30Days.textContent = count30;
 
         // Filtering
-        // Filtering
         let filtered = products.filter(p => {
             // Category/Date Filter
             let matchesFilter = true;
@@ -281,7 +302,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (filtered.length === 0) {
             expiryList.innerHTML = `<div style="text-align:center; padding: 2rem; color: var(--text-secondary);">No items found for this filter.</div>`;
-            // return; // Don't return here, we need to update notif count even if filter is empty visually (though stats guide it)
         }
 
         // Update Notification Bell Count
@@ -301,9 +321,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 statusClass = 'expired';
                 statusText = `Expired ${Math.abs(p.daysRemaining)} days ago`;
                 badgeClass = 'red';
-                badgeColor = '#fee2e2'; // Light red
+                badgeColor = '#fee2e2';
             } else if (p.daysRemaining <= 7) {
-                statusClass = 'warning'; // Red/Orange
+                statusClass = 'warning';
                 statusText = `Expires in ${p.daysRemaining} days`;
                 badgeClass = 'red';
                 badgeColor = '#fee2e2';
@@ -330,25 +350,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (p.daysRemaining < 0) {
                 progressPct = 100;
-                progressColor = '#ef4444'; // Red
+                progressColor = '#ef4444';
             } else {
-                // Assume visual scale of 60 days
-                // Days: 0 -> 100% width (Red)
-                // Days: 60 -> 0% width (Greenish)
-                // Actually commonly: Full bar = Good. Empty = Bad.
-                // Let's do: Width = Freshness.
-                // < 0: 0% width.
-                // 0: 5% width.
-                // 30: 50% width.
-                // 60+: 100% width.
                 progressPct = Math.min(100, Math.max(5, (p.daysRemaining / 60) * 100));
-
                 if (p.daysRemaining <= 7) progressColor = '#ef4444';
                 else if (p.daysRemaining <= 30) progressColor = '#eab308';
                 else progressColor = '#22c55e';
             }
 
-            // Price Calculation
             let priceHtml = `<div class="price-info" style="font-weight:600; color:var(--text-primary); font-size: 0.95rem; margin-top:0.25rem;">MRP: ₹${p.price}</div>`;
 
             if (p.discount) {
@@ -373,13 +382,12 @@ document.addEventListener('DOMContentLoaded', function () {
             item.className = `timeline-item ${statusClass}`;
             item.innerHTML = `
                 <input type="checkbox" class="item-check" data-id="${p.id}" ${isSelected ? 'checked' : ''}>
-                <div class="prod-cell" style="cursor: pointer;" onclick="viewProductDetails(${p.id})">
+                <div class="prod-cell" style="cursor: pointer;">
                     <div class="prod-img" style="background: ${badgeColor};">
                         <img src="${p.image}" alt="${p.name}">
                     </div>
                     <div class="item-info">
-                        <h4>${p.name} <span style="font-size:0.8rem; color:var(--text-secondary); font-weight:400;">(Batch: ${p.batch})</span> 
-                        </h4>
+                        <h4>${p.name} <span style="font-size:0.8rem; color:var(--text-secondary); font-weight:400;">(Batch: ${p.batch})</span> </h4>
                         <div style="display:flex; flex-direction:column; gap:0.1rem;">
                             <p>${p.category} • Qty: ${p.quantity}</p>
                             ${priceHtml}
@@ -395,28 +403,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div style="font-size: 0.85rem; color: var(--text-secondary); font-weight:600;">
                     ${p.rawDate.toLocaleDateString()}
                 </div>
-                <button class="action-btn" style="background: transparent; border: 1px solid var(--border-color); margin-left: auto;" onclick="viewProductDetails(${p.id})">
+                <button class="action-btn" style="background: transparent; border: 1px solid var(--border-color); margin-left: auto;">
                     <i class="fa-solid fa-eye"></i>
                 </button>
             `;
 
-            // Bind view event strictly to cell, avoid checkbox interference if any
             const prodCell = item.querySelector('.prod-cell');
             prodCell.addEventListener('click', () => viewProductDetails(p));
-            // Remove the inline onclick from innerHTML to use closure p
-            prodCell.removeAttribute('onclick');
 
             const viewBtn = item.querySelector('.action-btn');
             viewBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 viewProductDetails(p);
             });
-            viewBtn.removeAttribute('onclick');
 
             expiryList.appendChild(item);
         });
 
-        // Re-attach listeners to checkboxes
         document.querySelectorAll('.item-check').forEach(cb => {
             cb.addEventListener('change', (e) => {
                 const id = parseInt(e.target.dataset.id);
@@ -437,7 +440,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // --- Event Listeners ---
     filterBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             filterBtns.forEach(b => {
@@ -446,30 +448,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 b.classList.remove('active-orange');
                 b.classList.remove('active-yellow');
             });
-
             btn.classList.add('active');
-            // Add specific color active classes for visual punch
             if (btn.dataset.filter === '7days') btn.classList.add('active-red');
             if (btn.dataset.filter === '14days') btn.classList.add('active-orange');
             if (btn.dataset.filter === '30days') btn.classList.add('active-yellow');
-
             currentFilter = btn.dataset.filter;
             renderList();
         });
     });
 
-    if (searchInput) {
-        searchInput.addEventListener('input', renderList);
-    }
+    if (searchInput) searchInput.addEventListener('input', renderList);
+    if (sortSelect) sortSelect.addEventListener('change', renderList);
 
-    if (sortSelect) {
-        sortSelect.addEventListener('change', renderList);
-    }
-
-    // --- Init ---
     renderList();
 
-    // --- Modal & Toast Helpers ---
     const modal = document.getElementById('action-modal');
     const modalTitle = document.getElementById('modal-title');
     const modalBody = document.getElementById('modal-body');
@@ -491,10 +483,7 @@ document.addEventListener('DOMContentLoaded', function () {
         currentConfirmAction = null;
     }
 
-    if (modalCancel) {
-        modalCancel.addEventListener('click', hideModal);
-    }
-
+    if (modalCancel) modalCancel.addEventListener('click', hideModal);
     if (modalConfirm) {
         modalConfirm.addEventListener('click', () => {
             if (currentConfirmAction) currentConfirmAction();
@@ -510,8 +499,6 @@ document.addEventListener('DOMContentLoaded', function () {
             <span>${message}</span>
         `;
         toastContainer.appendChild(toast);
-
-        // Remove after 3s
         setTimeout(() => {
             toast.style.animation = 'fadeOut 0.5s forwards';
             setTimeout(() => {
@@ -520,7 +507,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 3000);
     }
 
-    // --- Action Button Listeners ---
     const btnDiscount = document.querySelector('.btn-discount');
     const btnReturn = document.querySelector('.btn-return');
     const btnDispose = document.querySelector('.btn-dispose');
@@ -544,22 +530,17 @@ document.addEventListener('DOMContentLoaded', function () {
                     const val = document.getElementById('disc-val').value;
                     const typeRadio = document.querySelector('input[name="discType"]:checked');
                     const type = typeRadio ? typeRadio.value : 'percent';
-
                     if (!val) {
                         showToast('Please enter a value', 'error');
                         return;
                     }
-
-                    // Update Products
                     products = products.map(p => {
                         if (selectedItems.has(p.id)) {
                             return { ...p, discount: { type, value: parseFloat(val) } };
                         }
                         return p;
                     });
-
-                    showToast(`Success! ${val}${type === 'percent' ? '%' : '₹'} Discount applied for Maha Sale 🛍️`, 'success');
-
+                    showToast(`Success! ${val}${type === 'percent' ? '%' : '₹'} Discount applied! 🛍️`, 'success');
                     selectedItems.clear();
                     updateBulkActions();
                     renderList();
@@ -572,9 +553,9 @@ document.addEventListener('DOMContentLoaded', function () {
         btnReturn.addEventListener('click', () => {
             const count = selectedItems.size;
             showModal(
-                '🚚 Return to Vendor (Wapas Bhejo)',
+                '🚚 Return to Vendor',
                 `
-                <p style="margin-bottom:1rem; color:var(--text-secondary);">Returning <strong>${count}</strong> items to source. <i>"Mal wapas, paisa wapas."</i></p>
+                <p style="margin-bottom:1rem; color:var(--text-secondary);">Returning <strong>${count}</strong> items. <i>"Mal wapas, paisa wapas."</i></p>
                 <div class="input-group">
                     <label>Select Reason</label>
                     <select>
@@ -583,19 +564,13 @@ document.addEventListener('DOMContentLoaded', function () {
                         <option>Excess Inventory</option>
                     </select>
                 </div>
-                 <div class="input-group">
-                    <label>Vendor Transport</label>
-                    <input type="text" value="Sharma Logistics (Default)" readonly style="opacity:0.7">
-                </div>
-                <p style="font-size:0.8rem; color:#f59e0b;"><i class="fa-solid fa-file-invoice"></i> E-Way Bill will be auto-generated.</p>
                 `,
                 () => {
-                    // Remove items mock
                     products = products.filter(p => !selectedItems.has(p.id));
                     selectedItems.clear();
                     updateBulkActions();
                     renderList();
-                    showToast(`Returned ${count} items. Challan Generated! 📄`, 'success');
+                    showToast(`Returned ${count} items. 📄`, 'success');
                 }
             );
         });
@@ -604,20 +579,11 @@ document.addEventListener('DOMContentLoaded', function () {
     if (btnDispose) {
         btnDispose.addEventListener('click', () => {
             const count = selectedItems.size;
-            // Calculate vague loss
-            const loss = count * 1500; // Mock avg price
+            const loss = count * 1500;
             showModal(
-                '🗑️ Scrap / Kabadi (Dispose)',
+                '🗑️ Dispose Stock',
                 `
-                <p style="margin-bottom:1rem; color:var(--c-red-text);">⚠️ Warning: This is a total loss. <i>"Kachra Seth ko bulao?"</i></p>
-                <div class="input-group">
-                    <label>Disposal Method</label>
-                    <select>
-                        <option>Sent to Scrap Dealer (Kabadiwala)</option>
-                        <option>Bio-hazard Treatment</option>
-                        <option>Destroyed</option>
-                    </select>
-                </div>
+                <p style="margin-bottom:1rem; color:var(--c-red-text);">⚠️ Total loss action. <i>"Kachra Seth ko bulao?"</i></p>
                 <div style="background:#fee2e2; padding:1rem; border-radius:1rem; color:#991b1b; display:flex; justify-content:space-between; align-items:center;">
                     <span>Estimated Loss:</span>
                     <span style="font-weight:800; font-size:1.1rem;">₹${loss.toLocaleString('en-IN')}</span>
@@ -634,7 +600,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // --- Product Details View ---
     function viewProductDetails(p) {
         let priceDisplay = `<span style="font-size:1.2rem; font-weight:700;">₹${p.price}</span>`;
         if (p.discount) {
@@ -646,11 +611,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div style="display:flex; align-items:center; gap:0.5rem;">
                     <span style="text-decoration: line-through; color: var(--text-secondary);">₹${p.price}</span>
                     <span style="font-size:1.4rem; font-weight:700; color:#16a34a;">₹${finalPrice}</span>
-                    <span class="discount-badge" style="background:#bfdbfe; color:#1e40af; padding:2px 8px; border-radius:4px; font-size:0.8rem; font-weight:700;">${p.discount.type === 'percent' ? p.discount.value + '% OFF' : '₹' + p.discount.value + ' OFF'}</span>
                 </div>
             `;
         }
-
         const html = `
             <div style="display:flex; gap:1.5rem; align-items:flex-start;">
                 <div style="width:100px; height:100px; border-radius:1rem; overflow:hidden; flex-shrink:0;">
@@ -658,97 +621,22 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
                 <div style="flex:1;">
                     <h4 style="font-size:1.3rem; margin-bottom:0.25rem;">${p.name}</h4>
-                    <p style="color:var(--text-secondary); margin-bottom:0.5rem;">Batch: <span style="font-family:monospace; background:#f3f4f6; padding:2px 6px; border-radius:4px;">${p.batch}</span></p>
+                    <p style="color:var(--text-secondary); margin-bottom:0.5rem;">Batch: ${p.batch}</p>
                     <div style="margin-bottom:1rem;">${priceDisplay}</div>
                 </div>
             </div>
-            
-            <div style="background:var(--bg-body); padding:1rem; border-radius:1rem; margin-top:1.5rem; display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
-                <div>
-                    <span style="font-size:0.8rem; color:var(--text-secondary); display:block; margin-bottom:0.25rem;">Category</span>
-                    <span style="font-weight:600;">${p.category}</span>
-                </div>
-                <div>
-                    <span style="font-size:0.8rem; color:var(--text-secondary); display:block; margin-bottom:0.25rem;">Current Stock</span>
-                    <span style="font-weight:600;">${p.quantity} Units</span>
-                </div>
-                <div>
-                    <span style="font-size:0.8rem; color:var(--text-secondary); display:block; margin-bottom:0.25rem;">Expiry Date</span>
-                    <span style="font-weight:600; color:${p.daysRemaining <= 7 ? '#ef4444' : 'inherit'}">${p.rawDate.toLocaleDateString()}</span>
-                </div>
-                <div>
-                    <span style="font-size:0.8rem; color:var(--text-secondary); display:block; margin-bottom:0.25rem;">Status</span>
-                    <span style="font-weight:600;">${p.daysRemaining < 0 ? 'Expired' : p.daysRemaining + ' Days Left'}</span>
-                </div>
-            </div>
-
-            <p style="margin-top:1.5rem; font-size:0.85rem; color:var(--text-secondary); font-style:italic;">
-                <i class="fa-solid fa-circle-info"></i> Inventory details synced from main database.
-            </p>
         `;
-
-        showModal('📦 Product Details', html, () => {
-            hideModal();
-        });
-
-        // Reset Confirm Button Text if needed (since showModal is generic)
-        // Ideally showModal should handle button text. For now, this is fine.
+        showModal('📦 Product Details', html, () => { hideModal(); });
         if (modalConfirm) modalConfirm.innerText = "Close";
-
-        // Ensure subsequent modals reset this text if they need "Confirm"
-        // Since other modals pass `onConfirmAction`, we can hook into `showModal` or reset manually.
-        // Let's modify showModal slightly if possible, OR just reset it in other handlers.
-        // I will reset it in the other handlers for robustness next time I touch those.
-        // But for safe measure, I'll add a quick reset logic to `showModal` if I could, but I can't edit that function now easily without more chunks.
-        // Instead, I'll rely on the fact that for "Details", the "Close" button is just dismiss. 
-        // Wait, `modalConfirm` listener executes action then hides. Perfect.
     }
 
-    // --- Standard Dashboard JS (Clock, Sidebar, Theme) from dashboard.js ---
-
-    // Clock
     function updateClock() {
         const now = new Date();
-        const dateString = now.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' });
-        const timeString = now.toLocaleTimeString('en-US', { hour12: true });
         const clockEl = document.getElementById('digital-clock');
         if (clockEl) {
-            clockEl.innerHTML = `<span style="font-size:0.85em; margin-right:12px; color:#6366f1; font-weight:700; opacity:0.8;">${dateString}</span> <span style="font-weight:800;">${timeString}</span>`;
+            clockEl.innerHTML = `<span style="font-weight:800;">${now.toLocaleTimeString()}</span>`;
         }
     }
     setInterval(updateClock, 1000);
     updateClock();
-
-    // Sidebar
-    // Handled in setupSidebar() to ensure listener is attached after dynamic injection
-    /*
-    const sidebarToggle = document.getElementById('sidebar-toggle');
-    const container = document.querySelector('.dashboard-container');
-    if (sidebarToggle) {
-        sidebarToggle.addEventListener('click', () => {
-            container.classList.toggle('sidebar-collapsed');
-        });
-    }
-    */
-
-    // Theme
-    const themeBtn = document.getElementById('theme-toggle');
-    const body = document.body;
-    if (localStorage.getItem('theme') === 'dark') {
-        body.setAttribute('data-theme', 'dark');
-        if (themeBtn) themeBtn.innerHTML = '<i class="fa-solid fa-sun"></i>';
-    }
-    if (themeBtn) {
-        themeBtn.addEventListener('click', () => {
-            if (body.getAttribute('data-theme') === 'dark') {
-                body.removeAttribute('data-theme');
-                localStorage.setItem('theme', 'light');
-                themeBtn.innerHTML = '<i class="fa-solid fa-moon"></i>';
-            } else {
-                body.setAttribute('data-theme', 'dark');
-                localStorage.setItem('theme', 'dark');
-                themeBtn.innerHTML = '<i class="fa-solid fa-sun"></i>';
-            }
-        });
-    }
 });

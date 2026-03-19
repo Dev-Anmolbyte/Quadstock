@@ -104,12 +104,9 @@
                         <i class="fa-solid fa-moon"></i>
                     </button>
 
-                    <div class="user-profile">
-                        <div
-                            style="width:32px; height:32px; border-radius:50%; background:var(--primary); color:white; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.8rem;">
-                            O</div>
-                        <span class="user-name">Owner Admin</span>
-                        <i class="fa-solid fa-chevron-down"></i>
+                    <div class="shop-name-container">
+                        <i class="fa-solid fa-store" style="color: var(--primary-color); margin-right: 0.5rem;"></i>
+                        <span class="shop-name">Loading...</span>
                     </div>
                 </div>
             </div>
@@ -166,7 +163,7 @@
                     </div>
 
                     <!-- New Card 5 -->
-                    <div class="stat-card">
+                    <div class="stat-card" style="cursor:pointer;" onclick="window.location.href='../Inventory/inventory.html'">
                         <div class="stat-icon red-bg"><i class="fa-solid fa-triangle-exclamation"></i></div>
                         <div class="stat-info">
                             <p class="label">Low Stocks in Inventory</p>
@@ -175,7 +172,7 @@
                     </div>
 
                     <!-- New Card 6: Total Udhaar Pending -->
-                    <div class="stat-card">
+                    <div class="stat-card" style="cursor:pointer;" onclick="window.location.href='../Udhaar/udhaar.html'">
                         <div class="stat-icon red-bg"><i class="fa-solid fa-hand-holding-dollar"></i></div>
                         <div class="stat-info">
                             <p class="label">Total Udhaar Pending</p>
@@ -294,41 +291,41 @@
                         </div>
                         <ul class="details-list">
                             <li>
-                                <div class="detail-left">
-                                    <div class="icon-box red-text"><i class="fa-solid fa-hourglass-end"></i></div>
-                                    <span>Items Expiring Soon</span>
-                                </div>
-                                <a href="../smartexpiry/smartexpiry.html" class="detail-right"
-                                    style="text-decoration:none; color:var(--primary-color); font-weight:600;">View 8
-                                    Items</a>
-                            </li>
-                            <li>
-                                <div class="detail-left">
-                                    <div class="icon-box orange-text"><i class="fa-solid fa-triangle-exclamation"></i>
+                                <a href="../smartexpiry/smartexpiry.html" style="display: flex; justify-content: space-between; align-items: center; text-decoration: none; width: 100%; color: inherit; cursor: pointer;">
+                                    <div class="detail-left">
+                                        <div class="icon-box red-text"><i class="fa-solid fa-hourglass-end"></i></div>
+                                        <span>Items Expiring Soon</span>
                                     </div>
-                                    <span>Low Stock Alerts</span>
-                                </div>
-                                <a href="../Inventory/inventory.html" class="detail-right"
-                                    style="text-decoration:none; color:var(--primary-color); font-weight:600;">Restock
-                                    15 Items</a>
+                                    <span class="detail-right" style="color:var(--primary-color); font-weight:600;">View 8 Items</span>
+                                </a>
                             </li>
                             <li>
-                                <div class="detail-left">
-                                    <div class="icon-box blue-text"><i class="fa-solid fa-clipboard-question"></i></div>
-                                    <span>Unresolved Queries</span>
-                                </div>
-                                <a href="../Query/query.html" class="detail-right"
-                                    style="text-decoration:none; color:var(--primary-color); font-weight:600;">Reply to
-                                    5</a>
+                                <a href="../Inventory/inventory.html" style="display: flex; justify-content: space-between; align-items: center; text-decoration: none; width: 100%; color: inherit; cursor: pointer;">
+                                    <div class="detail-left">
+                                        <div class="icon-box orange-text"><i class="fa-solid fa-triangle-exclamation"></i>
+                                        </div>
+                                        <span>Low Stock Alerts</span>
+                                    </div>
+                                    <span class="detail-right" style="color:var(--primary-color); font-weight:600;">Restock 15 Items</span>
+                                </a>
                             </li>
                             <li>
-                                <div class="detail-left">
-                                    <div class="icon-box red-text"><i class="fa-solid fa-circle-exclamation"></i></div>
-                                    <span>Open Complaints</span>
-                                </div>
-                                <a href="../Complain/complain.html" class="detail-right"
-                                    style="text-decoration:none; color:var(--primary-color); font-weight:600;">Resolve
-                                    3</a>
+                                <a href="../Query/query.html" style="display: flex; justify-content: space-between; align-items: center; text-decoration: none; width: 100%; color: inherit; cursor: pointer;">
+                                    <div class="detail-left">
+                                        <div class="icon-box blue-text"><i class="fa-solid fa-clipboard-question"></i></div>
+                                        <span>Unresolved Queries</span>
+                                    </div>
+                                    <span class="detail-right" style="color:var(--primary-color); font-weight:600;">Reply to 5</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="../Complain/complain.html" style="display: flex; justify-content: space-between; align-items: center; text-decoration: none; width: 100%; color: inherit; cursor: pointer;">
+                                    <div class="detail-left">
+                                        <div class="icon-box red-text"><i class="fa-solid fa-circle-exclamation"></i></div>
+                                        <span>Open Complaints</span>
+                                    </div>
+                                    <span class="detail-right" style="color:var(--primary-color); font-weight:600;">Resolve 3</span>
+                                </a>
                             </li>
                         </ul>
                     </div>

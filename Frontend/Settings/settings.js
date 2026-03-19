@@ -6,20 +6,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Sidebar & Theme Toggle (Reused Logic) ---
     const sidebarToggle = document.getElementById('sidebar-toggle');
-    const sidebar = document.getElementById('sidebar');
+    const container = document.querySelector('.layout-container');
     if (sidebarToggle) {
         sidebarToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('active');
+            if (container) {
+                container.classList.toggle('sidebar-collapsed');
+            } else {
+                document.body.classList.toggle('sidebar-collapsed');
+            }
         });
 
         // Mobile Sidebar Close on Click Outside
         document.addEventListener('click', (e) => {
             if (window.innerWidth <= 768 &&
-                sidebar.classList.contains('active') &&
-                !sidebar.contains(e.target) &&
-                e.target !== sidebarToggle &&
-                !sidebarToggle.contains(e.target)) {
-                sidebar.classList.remove('active');
+                container && container.classList.contains('sidebar-collapsed') === false) { // Logic reversed for dashboard
+                // wait, if sidebar-collapsed is present, it's CLOSED on desktop, 
+                // but on mobile, dashboard.css shows it differently.
+                // Mobile layout is different.
             }
         });
     }
@@ -173,20 +176,40 @@ function handleRoleAccess() {
             dataSection.style.display = 'none';
         }
 
-        // Sidebar Injection for Settings Page
+        // Sidebar Injection for Settings Page (Consistent Design)
         const sidebar = document.getElementById('sidebar');
         if (sidebar) {
             sidebar.innerHTML = `
-                <div class="sidebar-header">
-                    <h3>QuadStock</h3>
-                     <button id="sidebar-toggle-btn" class="sidebar-toggle"><i class="fa-solid fa-bars"></i></button>
+                <div class="brand">
+                    <button id="sidebar-toggle" class="sidebar-toggle">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <h2 class="brand-text">QuadStock</h2>
                 </div>
-                <ul class="nav-links">
-                    <li><a href="../Inventory/inventory.html"><i class="fa-solid fa-boxes-stacked"></i> Inventory</a></li>
-                    <li><a href="../Settings/settings.html" class="active"><i class="fa-solid fa-gear"></i> Settings</a></li>
-                    <li><a href="../landing/landing.html"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
-                </ul>
+                <nav class="sidebar-menu">
+                    <a href="../Inventory/inventory.html" class="menu-item" title="Inventory">
+                        <i class="fa-solid fa-boxes-stacked"></i>
+                        <span>Inventory</span>
+                    </a>
+                    <a href="../Settings/settings.html" class="menu-item active" title="Settings">
+                        <i class="fa-solid fa-gear"></i>
+                        <span>Settings</span>
+                    </a>
+                    <a href="../landing/landing.html" class="menu-item" title="Logout">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span>Logout</span>
+                    </a>
+                </nav>
             `;
+            // Re-attach toggle listener since we just nuked it
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const container = document.querySelector('.layout-container');
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', () => {
+                   if (container) container.classList.toggle('sidebar-collapsed');
+                   else document.body.classList.toggle('sidebar-collapsed');
+                });
+            }
         }
     }
 }

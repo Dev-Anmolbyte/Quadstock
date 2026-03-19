@@ -11,24 +11,10 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
     }
 
-    // Set User Profile Name
-    const nameSpans = document.querySelectorAll('.user-name');
-    nameSpans.forEach(span => {
-        if (currentUser) {
-            span.textContent = currentUser.ownerName || currentUser.shopName || 'Owner';
-        } else if (currentEmployee) {
-            span.textContent = currentEmployee.name || 'Manager';
-        }
-    });
-    const initialIcons = document.querySelectorAll('.user-profile > div:first-child');
-    initialIcons.forEach(icon => {
-        if (currentUser) {
-            const nameToUse = currentUser.ownerName || 'O';
-            icon.textContent = nameToUse.charAt(0).toUpperCase();
-        } else if (currentEmployee) {
-            const nameToUse = currentEmployee.name || 'M';
-            icon.textContent = nameToUse.charAt(0).toUpperCase();
-        }
+    // Set Shop Name
+    const shopSpans = document.querySelectorAll('.shop-name');
+    shopSpans.forEach(span => {
+        span.textContent = (currentUser && currentUser.shopName) || 'QuadStock Store';
     });
 
     // --- Digital Clock ---
@@ -514,7 +500,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Sidebar Collapse Support (if implemented in other dashboards)
     const sidebarToggle = document.getElementById('sidebar-toggle');
-    const dashboardContainer = document.querySelector('.dashboard-container');
+    const dashboardContainer = document.querySelector('.layout-container');
     if (sidebarToggle && dashboardContainer) {
         sidebarToggle.addEventListener('click', () => {
             dashboardContainer.classList.toggle('sidebar-collapsed');
@@ -584,3 +570,4 @@ document.addEventListener('DOMContentLoaded', function () {
     // Delay number animation slightly to wait for entrance
     setTimeout(animateNumbers, 600);
 });
+

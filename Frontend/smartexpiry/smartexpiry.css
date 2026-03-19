@@ -23,13 +23,7 @@
 }
 
 [data-theme="dark"] {
-    --bg-body: #000000;
-    --bg-white: #0a0a0a;
-    --text-primary: #FDE8D8;
-    --text-secondary: #A8A29E;
-    --border-color: #1f1f1f;
-    --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-
+    /* Rely on global dark theme from root framework for base tokens */
     /* Adjust badge/icon colors for dark mode contract */
     --c-blue-bg: rgba(21, 101, 192, 0.2);
     --c-blue-text: #90CAF9;
@@ -180,7 +174,7 @@ body {
     background: transparent;
 }
 
-.dashboard-container {
+.layout-container {
     display: flex;
     min-height: 100vh;
     /* Allow growth */
@@ -337,14 +331,14 @@ body {
 }
 
 /* Sidebar Collapsed (Mini) State */
-.dashboard-container.sidebar-collapsed .sidebar {
+.layout-container.sidebar-collapsed .sidebar {
     width: 80px !important;
     padding: 1.5rem 0.5rem !important;
 }
 
-.dashboard-container.sidebar-collapsed .brand-text,
-.dashboard-container.sidebar-collapsed .menu-item span,
-.dashboard-container.sidebar-collapsed .sidebar-footer-card {
+.layout-container.sidebar-collapsed .brand-text,
+.layout-container.sidebar-collapsed .menu-item span,
+.layout-container.sidebar-collapsed .sidebar-footer-card {
     display: none;
     opacity: 0;
     pointer-events: none;
@@ -356,32 +350,32 @@ body {
     white-space: nowrap;
 }
 
-.dashboard-container.sidebar-collapsed .sidebar-menu {
+.layout-container.sidebar-collapsed .sidebar-menu {
     grid-template-columns: 1fr;
     gap: 0.5rem;
 }
 
-.dashboard-container.sidebar-collapsed .brand {
+.layout-container.sidebar-collapsed .brand {
     justify-content: center;
     margin-bottom: 2rem;
 }
 
-.dashboard-container.sidebar-collapsed .sidebar-toggle {
+.layout-container.sidebar-collapsed .sidebar-toggle {
     margin-right: 0;
 }
 
-.dashboard-container.sidebar-collapsed .menu-item {
+.layout-container.sidebar-collapsed .menu-item {
     padding: 0.8rem 0;
     width: 100%;
     transition: all 0.3s ease;
 }
 
-.dashboard-container.sidebar-collapsed .menu-item i {
+.layout-container.sidebar-collapsed .menu-item i {
     font-size: 1.4rem;
     margin: 0;
 }
 
-.dashboard-container.sidebar-collapsed .menu-item:hover {
+.layout-container.sidebar-collapsed .menu-item:hover {
     background: var(--c-purple-bg);
     color: var(--c-purple-text);
 }
@@ -958,14 +952,14 @@ tr:last-child td {
 
 
 /* Sidebar Collapsed (Mini) State */
-.dashboard-container.sidebar-collapsed .sidebar {
+.layout-container.sidebar-collapsed .sidebar {
     width: 80px;
     padding: 1.5rem 0.5rem;
 }
 
-.dashboard-container.sidebar-collapsed .brand-text,
-.dashboard-container.sidebar-collapsed .menu-item span,
-.dashboard-container.sidebar-collapsed .sidebar-footer-card {
+.layout-container.sidebar-collapsed .brand-text,
+.layout-container.sidebar-collapsed .menu-item span,
+.layout-container.sidebar-collapsed .sidebar-footer-card {
     opacity: 0;
     visibility: hidden;
     transform: translateX(-10px);
@@ -980,25 +974,25 @@ tr:last-child td {
     white-space: nowrap;
 }
 
-.dashboard-container.sidebar-collapsed .sidebar-menu,
-.dashboard-container.sidebar-collapsed .nav-menu {
+.layout-container.sidebar-collapsed .sidebar-menu,
+.layout-container.sidebar-collapsed .nav-menu {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 0.5rem;
 }
 
-.dashboard-container.sidebar-collapsed .brand {
+.layout-container.sidebar-collapsed .brand {
     justify-content: center;
     margin-bottom: 2rem;
 }
 
-.dashboard-container.sidebar-collapsed .sidebar-toggle {
+.layout-container.sidebar-collapsed .sidebar-toggle {
     margin-right: 0;
 }
 
-.dashboard-container.sidebar-collapsed .menu-item,
-.dashboard-container.sidebar-collapsed .nav-item {
+.layout-container.sidebar-collapsed .menu-item,
+.layout-container.sidebar-collapsed .nav-item {
     padding: 0.8rem 0;
     width: 100%;
     justify-content: center;
@@ -1006,8 +1000,8 @@ tr:last-child td {
     transition: all 0.3s ease;
 }
 
-.dashboard-container.sidebar-collapsed .menu-item i,
-.dashboard-container.sidebar-collapsed .nav-item i {
+.layout-container.sidebar-collapsed .menu-item i,
+.layout-container.sidebar-collapsed .nav-item i {
     font-size: 1.4rem;
     /* Larger icons for focus */
     margin: 0;
@@ -1015,13 +1009,13 @@ tr:last-child td {
     /* Allow auto width for centering */
 }
 
-.dashboard-container.sidebar-collapsed .menu-item:hover,
-.dashboard-container.sidebar-collapsed .nav-item:hover {
+.layout-container.sidebar-collapsed .menu-item:hover,
+.layout-container.sidebar-collapsed .nav-item:hover {
     background: var(--c-purple-bg);
     color: var(--c-purple-text);
 }
 
-.dashboard-container.sidebar-collapsed .section-title {
+.layout-container.sidebar-collapsed .section-title {
     display: none;
 }
 

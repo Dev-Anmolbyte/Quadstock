@@ -34,112 +34,17 @@ body {
     overflow-x: hidden;
 }
 
-.app-container {
-    display: flex;
-    min-height: 100vh;
-}
+/* Layout & Sidebar handled by dashboard.css */
+/*
+.app-container { ... }
+.sidebar { ... }
+.main-content { margin-left: 260px; ... }
+*/
 
-/* Sidebar (Reused Styles Simplified) */
-.sidebar {
-    width: 260px;
-    background: var(--bg-white);
-    border-right: 1px solid var(--border-color);
-    display: flex;
-    flex-direction: column;
-    position: fixed;
-    height: 100vh;
-    transition: width 0.3s ease;
-    z-index: 50;
-}
-
-.sidebar-header {
-    padding: 1.5rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.logo {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--primary-orange);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.nav-menu {
-    flex: 1;
-    padding: 1.5rem 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.nav-item {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 0.75rem 1rem;
-    color: var(--text-secondary);
-    text-decoration: none;
-    border-radius: 0.5rem;
-    transition: all 0.2s;
-    font-weight: 500;
-}
-
-.nav-item:hover,
-.nav-item.active {
-    background: #fff7ed;
-    color: var(--primary-orange);
-}
-
-[data-theme="dark"] .nav-item:hover,
-[data-theme="dark"] .nav-item.active {
-    background: rgba(244, 124, 37, 0.1);
-}
-
-.nav-divider {
-    height: 1px;
-    background: var(--border-color);
-    margin: 0.5rem 0;
-}
-
-.sidebar-footer {
-    padding: 1.5rem;
-    border-top: 1px solid var(--border-color);
-}
-
-.logout-btn {
-    width: 100%;
-    padding: 0.75rem;
-    background: #fee2e2;
-    color: var(--danger);
-    border: none;
-    border-radius: 0.5rem;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    transition: background 0.2s;
-}
-
-.logout-btn:hover {
-    background: #fecaca;
-}
-
-[data-theme="dark"] .logout-btn {
-    background: rgba(239, 68, 68, 0.1);
-}
-
-/* Main Content */
 .main-content {
     flex: 1;
-    margin-left: 260px;
     padding: 2rem;
+    overflow-y: auto;
 }
 
 .top-header {
@@ -586,18 +491,4 @@ input:checked+.slider:before {
     /* Needs to be clickable */
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-    .sidebar {
-        width: 0;
-        overflow: hidden;
-    }
-
-    .sidebar.active {
-        width: 260px;
-    }
-
-    .main-content {
-        margin-left: 0;
-    }
-}
+/* Responsive handled by dashboard.css */

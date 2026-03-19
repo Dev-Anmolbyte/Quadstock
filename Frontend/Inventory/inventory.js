@@ -14,10 +14,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Set User Profile Name dynamically
-    const nameSpans = document.querySelectorAll('.user-name');
-    nameSpans.forEach(span => {
-        if (currentUser) span.textContent = currentUser.ownerName || currentUser.shopName || 'Owner';
-        else if (currentEmployee) span.textContent = currentEmployee.name || 'Manager';
+    const shopSpans = document.querySelectorAll('.shop-name');
+    shopSpans.forEach(span => {
+        span.textContent = (currentUser && currentUser.shopName) || 'QuadStock Store';
+
     });
 
     // Set dynamic Initial Icon
@@ -1340,73 +1340,78 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             // Owner Sidebar
             sidebarTarget.innerHTML = `
-                <div class="brand">
-                    <button id="sidebar-toggle" class="sidebar-toggle">
-                        <i class="fa-solid fa-bars"></i>
-                    </button>
-                    <h2 class="brand-text">QuadStock</h2>
-                </div>
-                <nav class="sidebar-menu">
-                    <a href="../Ownerdashboard/dashboard.html" class="menu-item" title="Dashboard">
-                        <i class="fa-solid fa-house"></i>
-                        <span>Dashboard</span>
-                    </a>
-                    <a href="../Analytics/analytics.html" class="menu-item" title="Analytics">
-                        <i class="fa-solid fa-chart-simple"></i>
-                        <span>Analytics</span>
-                    </a>
-                    <a href="../Query/query.html" class="menu-item" title="Query">
-                        <i class="fa-solid fa-clipboard-question"></i>
-                        <span>Query</span>
-                    </a>
-                    <a href="inventory.html" class="menu-item active" title="Inventory">
-                        <i class="fa-solid fa-boxes-stacked"></i>
-                        <span>Inventory</span>
-                    </a>
-                     <a href="../Employees/employees.html" class="menu-item" title="Employees">
-                        <i class="fa-solid fa-users"></i>
-                        <span>Employees</span>
-                    </a>
-                    <a href="../smartexpiry/smartexpiry.html" class="menu-item" title="Smart Expiry">
-                        <i class="fa-solid fa-hourglass-end"></i>
-                        <span>Smart Expiry</span>
-                    </a>
 
-                    <a href="../Complain/complain.html" class="menu-item" title="Complain">
+            <div class="brand">
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <h2 class="brand-text">QuadStock</h2>
+            </div>
+            <nav class="sidebar-menu">
+                <a href="../Ownerdashboard/dashboard.html" class="menu-item " title="Dashboard">
+                    <i class="fa-solid fa-house"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="../Analytics/analytics.html" class="menu-item " title="Analytics">
+                    <i class="fa-solid fa-chart-simple"></i>
+                    <span>Analytics</span>
+                </a>
+                <a href="../Query/query.html" class="menu-item " title="Query">
+                    <i class="fa-solid fa-clipboard-question"></i>
+                    <span>Query</span>
+                </a>
+                <a href="../Inventory/inventory.html" class="menu-item active" title="Inventory">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                    <span>Inventory</span>
+                </a>
+                <a href="../Employees/employees.html" class="menu-item " title="Employees">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Employees</span>
+                </a>
+                <a href="../smartexpiry/smartexpiry.html" class="menu-item " title="Smart Expiry">
+                    <i class="fa-solid fa-hourglass-end"></i>
+                    <span>Smart Expiry</span>
+                </a>
+
+                <a href="../Complain/complain.html" class="menu-item " title="Complaints">
+                    <div style="position:relative;">
                         <i class="fa-solid fa-triangle-exclamation"></i>
-                        <span>Complain</span>
-                    </a>
-                    <a href="../Udhaar/udhaar.html" class="menu-item" title="Pending Payments">
-                        <i class="fa-solid fa-indian-rupee-sign"></i>
-                        <span>Udhaar/Pending</span>
-                    </a>
-                    <a href="../Settings/settings.html" class="menu-item" title="Settings">
-                        <i class="fa-solid fa-gear"></i>
-                        <span>Settings</span>
-                    </a>
-                    <a href="../landing/landing.html" class="menu-item" title="Logout">
-                        <i class="fa-solid fa-right-from-bracket"></i>
-                        <span>Logout</span>
-                    </a>
-                </nav>
-                 <div class="sidebar-footer-card">
-                    <div class="support-illustration">
-                        <svg viewBox="0 0 100 100" class="illus-svg">
-                            <circle cx="50" cy="35" r="15" fill="#333" />
-                            <path d="M20,80 Q50,70 80,80 V100 H20 Z" fill="#333" />
-                            <rect x="15" y="45" width="25" height="15" rx="2" fill="#555" transform="rotate(-15 27 52)" />
-                        </svg>
+                        <span id="nav-badge-complain" class="nav-badge" style="display:none;">0</span>
                     </div>
-                    <a href="../Footer/contact.html" class="btn-support" style="text-decoration: none; display: inline-block; text-align: center;">
-                        <i class="fa-regular fa-life-ring"></i> Support
-                    </a>
+                    <span>Complaints</span>
+                </a>
+                <a href="../Udhaar/udhaar.html" class="menu-item " title="Pending Payments">
+                    <i class="fa-solid fa-indian-rupee-sign"></i>
+                    <span>Udhaar/Pending</span>
+                </a>
+                <a href="../Settings/settings.html" class="menu-item " title="Settings">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Settings</span>
+                </a>
+                <a href="../landing/landing.html" class="menu-item" title="Logout">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Logout</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer-card">
+                <div class="support-illustration">
+                    <svg viewBox="0 0 100 100" class="illus-svg">
+                        <circle cx="50" cy="35" r="15" fill="#333" />
+                        <path d="M20,80 Q50,70 80,80 V100 H20 Z" fill="#333" />
+                        <rect x="15" y="45" width="25" height="15" rx="2" fill="#555" transform="rotate(-15 27 52)" />
+                    </svg>
                 </div>
-            `;
+                <a href="../Footer/contact.html" class="btn-support" style="text-decoration: none; display: inline-block; text-align: center;">
+                    <i class="fa-regular fa-life-ring"></i> Support
+                </a>
+            </div>
+
+`;
         }
 
         // Attach toggle logic again since we overwrote HTML
         const toggle = document.getElementById('sidebar-toggle');
-        const container = document.querySelector('.dashboard-container') || document.querySelector('.layout-container');
+        const container = document.querySelector('.layout-container') || document.querySelector('.layout-container');
         if (toggle && container) {
             toggle.addEventListener('click', () => {
                 const isCollapsed = container.classList.toggle('sidebar-collapsed');
@@ -1825,4 +1830,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setupSidebar();
 });
+
 

@@ -10,14 +10,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // Fetch Owner Info dynamically
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
     if (currentUser) {
-        const nameSpans = document.querySelectorAll('.user-name');
-        nameSpans.forEach(span => {
-            span.textContent = currentUser.ownerName || currentUser.shopName || 'Owner';
-        });
-        const initialIcons = document.querySelectorAll('.user-profile > div:first-child');
-        initialIcons.forEach(icon => {
-            const nameToUse = currentUser.ownerName || 'O';
-            icon.textContent = nameToUse.charAt(0).toUpperCase();
+        const shopSpans = document.querySelectorAll('.shop-name');
+        shopSpans.forEach(span => {
+            span.textContent = currentUser.shopName || 'QuadStock Store';
         });
     }
 
@@ -78,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- Sidebar Toggle ---
     const sidebarToggle = document.getElementById('sidebar-toggle');
-    const container = document.querySelector('.dashboard-container');
+    const container = document.querySelector('.layout-container');
 
     if (sidebarToggle) {
         sidebarToggle.addEventListener('click', (e) => {
@@ -92,5 +87,32 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // --- Dropdowns Initialization ---
+    const monthSelect = document.getElementById('revenue-month-select');
+    if (monthSelect) {
+        const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        const currentMonthIndex = new Date().getMonth();
+        months.forEach((month, index) => {
+            const option = document.createElement('option');
+            option.value = index;
+            option.textContent = month;
+            if (index === currentMonthIndex) option.selected = true;
+            monthSelect.appendChild(option);
+        });
+    }
+
+    const yearSelect = document.getElementById('revenue-year-select');
+    if (yearSelect) {
+        const currentYear = new Date().getFullYear();
+        for (let i = 0; i < 5; i++) {
+            const year = currentYear - i;
+            const option = document.createElement('option');
+            option.value = year;
+            option.textContent = year;
+            yearSelect.appendChild(option);
+        }
+    }
+
     initCharts();
 });
+
