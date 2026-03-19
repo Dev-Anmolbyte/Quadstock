@@ -50,9 +50,64 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Input Validations ---
     const emailInput = document.getElementById('email');
     const phoneInput = document.getElementById('phone');
+    const usernameInput = document.getElementById('username');
+    const usernameFeedback = document.getElementById('username-feedback');
+
+    if (usernameInput) {
+        usernameInput.addEventListener('input', debounce(async (e) => {
+            let val = e.target.value.toLowerCase();
+
+            // Detect any character that is NOT allowed
+            const invalidChars = val.match(/[^a-z0-9@_.]/);
+
+            if (invalidChars) {
+                // Warn user about the invalid character
+                const badChar = invalidChars[0];
+                usernameFeedback.textContent = `⚠ "${badChar}" is not allowed. Only letters, numbers, @, _ and . are permitted.`;
+                usernameFeedback.style.color = '#f59e0b';
+                // Strip invalid characters so the value stays clean
+                val = val.replace(/[^a-z0-9@_.]/g, '');
+                e.target.value = val;
+                return;
+            }
+
+            // Also block usernames that END with a special character
+            if (/[@_.]$/.test(val) && val.length > 0) {
+                usernameFeedback.textContent = '⚠ Username cannot end with @, _ or .';
+                usernameFeedback.style.color = '#f59e0b';
+                return;
+            }
+
+            if (val.length < 3) {
+                usernameFeedback.textContent = val.length > 0 ? 'Username must be at least 3 characters.' : '';
+                usernameFeedback.style.color = '#9ca3af';
+                return;
+            }
+
+            usernameFeedback.textContent = 'Checking...';
+            usernameFeedback.style.color = '#9ca3af';
+
+            try {
+                const response = await fetch(`${CONFIG.API_BASE_URL}/users/check-username/${encodeURIComponent(val)}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    if (result.data.isAvailable) {
+                        usernameFeedback.textContent = '✓ Available';
+                        usernameFeedback.style.color = '#22c55e';
+                    } else {
+                        usernameFeedback.textContent = `✗ Taken. Try: ${result.data.recommendation}`;
+                        usernameFeedback.style.color = '#ef4444';
+                    }
+                }
+            } catch (err) {
+                usernameFeedback.textContent = '';
+                console.error("Username check failed", err);
+            }
+        }, 500));
+    }
 
     if (emailInput) {
         emailInput.addEventListener('blur', (e) => {
@@ -108,11 +163,13 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             const ownerEmail = document.getElementById('email').value;
+            const username = document.getElementById('username')?.value.toLowerCase();
             const password = document.getElementById('signup-password').value;
             const confirmPass = document.getElementById('confirm-password').value;
             const ownerName = document.getElementById('owner-name').value;
             const shopName = document.getElementById('shop-name').value;
             const phoneNumber = document.getElementById('phone').value;
+
 
             let isValid = true;
 
@@ -135,18 +192,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
             try {
                 // Real API Request
-                const response = await fetch(`${CONFIG.API_BASE_URL}/owner/register`, {
+                const response = await fetch(`${CONFIG.API_BASE_URL}/users/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        ownerName,
+                        name: ownerName,
+                        username,
                         shopName,
-                        ownerEmail,
+                        email: ownerEmail,
                         phoneNumber,
                         password,
                         role: 'owner'
                     })
+
                 });
+
 
                 const result = await response.json();
 
@@ -161,35 +221,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
-                // Show Success Modal with Server-Side Owner ID
-                const modal = document.getElementById('signup-success-modal');
-                const ownerIdDisplay = document.getElementById('generated-owner-id');
-                const copyBtn = document.getElementById('copy-id-btn');
-                const ownerId = result.data.ownerId;
-
-                restoreBtn();
-
-                if (modal && ownerIdDisplay) {
-                    ownerIdDisplay.textContent = ownerId;
-                    modal.classList.add('active');
-
-                    if (copyBtn) {
-                        copyBtn.onclick = () => {
-                            navigator.clipboard.writeText(ownerId).then(() => {
-                                const originalIcon = '<i class="fa-regular fa-copy"></i>';
-                                copyBtn.innerHTML = '<i class="fa-solid fa-check"></i>';
-                                copyBtn.style.color = 'var(--primary-green)';
-                                setTimeout(() => {
-                                    copyBtn.innerHTML = originalIcon;
-                                    copyBtn.style.color = '';
-                                }, 2000);
-                            });
-                        };
-                    }
-                } else {
-                    alert(`Registration Successful! Your Owner ID is: ${ownerId}`);
-                    window.location.href = 'login.html';
-                }
+                // Store email for OTP page and redirect
+                sessionStorage.setItem('pendingVerificationEmail', ownerEmail);
+                window.location.href = 'verify_otp.html';
 
             } catch (err) {
                 console.error('Network Error:', err);
@@ -241,19 +275,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
             try {
                 // Real API Request for Login
-                const response = await fetch(`${CONFIG.API_BASE_URL}/owner/login`, {
+                const response = await fetch(`${CONFIG.API_BASE_URL}/users/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ emailOrId, password })
+                    body: JSON.stringify({ emailOrUsername: emailOrId, password })
                 });
+
+
 
                 const result = await response.json();
 
                 if (response.ok) {
-                    // Success: Save user data and redirect
-                    localStorage.setItem('currentUser', JSON.stringify(result.data));
+                    // Success: Save user data and token for authenticated requests
+                    localStorage.setItem('currentUser', JSON.stringify(result.data.user));
+                    localStorage.setItem('authToken', result.data.accessToken);
+                    localStorage.setItem('refreshToken', result.data.refreshToken);
+
                     window.location.href = '../Ownerdashboard/dashboard.html';
                 } else {
+
                     // Error: Show message from server
                     if (loginError) {
                         loginError.style.display = 'block';
@@ -271,5 +311,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 restoreBtn();
             }
         });
+    }
+    // Helper: Debounce
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
     }
 });

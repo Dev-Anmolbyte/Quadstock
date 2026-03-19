@@ -10,7 +10,12 @@ const transactionSchema = new Schema({
 
 const udhaarSchema = new Schema(
     {
-        ownerId: { type: String, required: true },
+        storeId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Store',
+            required: true,
+            index: true
+        },
         name: { type: String, required: true, trim: true },
         contact: { type: String, trim: true },
         date: { type: String, required: true },
@@ -24,5 +29,7 @@ const udhaarSchema = new Schema(
         timestamps: true
     }
 );
+
+udhaarSchema.index({ storeId: 1, name: 1 });
 
 export const Udhaar = mongoose.model("Udhaar", udhaarSchema);

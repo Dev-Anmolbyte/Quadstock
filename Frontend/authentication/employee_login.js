@@ -109,14 +109,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     loginBtn.innerHTML = '<i class="fa-solid fa-check"></i> Success!';
                     loginBtn.style.background = '#22c55e'; // Green
 
-                    if (employee.role === 'manager') {
-                        window.location.href = '../Ownerdashboard/dashboard.html';
-                    } else if (employee.role === 'inventory_manager') {
-                        window.location.href = '../Inventory/inventory.html';
-                    } else {
-                        // Staff
-                        window.location.href = '../StaffDashboard/staff_dashboard.html';
-                    }
+                    // Simplified redirection for Staff role only
+                    window.location.href = '../StaffDashboard/staff_dashboard.html';
+
                 } else {
                     // Fail
                     showError(loginBtn, 'Invalid Employee ID or Password.');

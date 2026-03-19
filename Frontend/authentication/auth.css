@@ -276,16 +276,13 @@ body::after {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--text-muted);
+    color: var(--primary); /* Use primary color for better visibility */
     cursor: pointer;
-    transition: color 0.3s;
-    font-size: 1.1rem;
-    z-index: 5;
+    transition: all 0.3s;
+    font-size: 1.2rem;
+    z-index: 50; /* Higher z-index */
 }
 
-.input-icon:hover {
-    color: var(--primary);
-}
 
 /* Phone Input Specifics */
 .phone-input-group {

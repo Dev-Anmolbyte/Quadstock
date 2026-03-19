@@ -564,38 +564,12 @@
             // Update Dashboard Link
             const dashboardLink = document.querySelector('a[title="Dashboard"]');
             if (dashboardLink) {
-                if (role === 'manager') {
-                    dashboardLink.href = "../Ownerdashboard/dashboard.html";
-                } else {
-                    dashboardLink.href = "../Ownerdashboard/dashboard.html";
-                }
+                dashboardLink.href = "../Ownerdashboard/dashboard.html";
             }
-
-            // Update All Role-Dependent Links
-            const modules = ['analytics', 'query', 'inventory', 'smartexpiry', 'employees', 'complain', 'udhaar', 'settings'];
-            modules.forEach(mod => {
-                const link = document.querySelector(`a[href*="${mod}.html"]`);
-                if (link) {
-                    const currentHref = link.getAttribute('href');
-                    // Avoid infinite loop if href is strictly equal to current page without query params
-                    // But we are in inventory.html so inventory link is usually just '#' or 'inventory.html'
-                    if (currentHref.includes('?')) {
-                        if (!currentHref.includes('role=')) link.setAttribute('href', `${currentHref}&role=${role}`);
-                        else link.setAttribute('href', currentHref.replace(/role=[^&]*/, `role=${role}`));
-                    } else {
-                        link.setAttribute('href', `${currentHref}?role=${role}`);
-                    }
-                }
-            });
-
-            if (role === 'manager') {
-                // Update Profile Info
-                const userName = document.querySelector('.user-profile .user-name');
-                if (userName) {
-                    userName.textContent = "Manager";
-                }
-            }
+            // Clean up: Removed manager-specific logic for simplified model
         });
+
+
     </script>
 </body>
 

@@ -246,8 +246,8 @@ function initStaffDetails(getSafeEmployees, currentOwnerId, onSave, currentUserR
 
         // --- RBAC UI Enforcement ---
         const isStaff = currentUserRole === 'staff';
-        const isManager = currentUserRole === 'manager';
         const isOwner = currentUserRole === 'owner';
+
 
         // Hide Actions Tab for Staff
         const actionsTab = modal.querySelector('.section-tab-header[data-tab="3"]');
@@ -264,8 +264,9 @@ function initStaffDetails(getSafeEmployees, currentOwnerId, onSave, currentUserR
 
         if (btnBlock) {
             const blockCard = btnBlock.closest('.action-card');
-            if (blockCard) blockCard.style.display = (isOwner || isManager) ? 'block' : 'none';
+            if (blockCard) blockCard.style.display = isOwner ? 'block' : 'none';
         }
+
 
         document.getElementById('detail-header-name').textContent = emp.name;
         document.getElementById('detail-header-id').textContent = emp.empId;

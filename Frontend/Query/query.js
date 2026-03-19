@@ -1,4 +1,6 @@
 import CONFIG from '../Shared/Utils/config.js';
+import apiRequest from '../Shared/Utils/api.js';
+
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -13,14 +15,27 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
+    // Apply saved theme
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    document.body.setAttribute('data-theme', savedTheme);
+
     // --- Layout Hub ---
     function setupLayout() {
         const sidebarTarget = document.getElementById('sidebar-target');
         const mainContainer = document.getElementById('main-container');
         const dashboardCss = document.getElementById('dashboard-css');
+        const topBarTarget = document.getElementById('topbar-target');
+        const userProfileTarget = document.getElementById('user-profile-target');
 
-        if (userRole === 'manager' || userRole === 'staff') {
-            dashboardCss.href = '../Ownerdashboard/dashboard.css';
+        if (!sidebarTarget || !mainContainer) return;
+
+        const displayName = currentUser ? (currentUser.ownerName || currentUser.shopName || 'Owner') : 'Owner';
+        const shopName = (currentUser && currentUser.shopName) || (currentEmployee && currentEmployee.shopName) || 'QuadStock';
+
+        if (userRole === 'staff') {
+
+            if (dashboardCss) dashboardCss.href = '../Ownerdashboard/dashboard.css';
             mainContainer.className = 'layout-container';
 
             sidebarTarget.innerHTML = `
@@ -28,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button id="sidebar-toggle" style="width: 40px; height: 40px; background: var(--primary); border: none; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer;">
                         <i class="fa-solid fa-bars"></i>
                     </button>
-                    <h2 class="brand-name">QuadStock</h2>
+                    <h2 class="brand-name">${shopName}</h2>
                 </div>
                 <div class="nav-section">
                     <h3 class="section-title">Main Menu</h3>
@@ -110,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <button id="sidebar-toggle" class="sidebar-toggle">
                     <i class="fa-solid fa-bars"></i>
                 </button>
-                <h2 class="brand-text">QuadStock</h2>
+                <h2 class="brand-text">${shopName}</h2>
             </div>
             <nav class="sidebar-menu">
                 <a href="../Ownerdashboard/dashboard.html" class="menu-item " title="Dashboard">
@@ -249,7 +264,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function getCurrentUserName() {
         if (currentUser) return currentUser.ownerName || currentUser.shopName || 'Owner';
-        if (currentEmployee) return currentEmployee.name || 'Manager';
+        if (currentEmployee) return currentEmployee.name || 'Staff';
+
         return 'Admin';
     }
 
@@ -258,9 +274,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Dynamic Data Fetching ---
     async function fetchQueries() {
         try {
-            const response = await fetch(`${CONFIG.API_BASE_URL}/complaints/all?ownerId=${ownerId}`);
-            const result = await response.json();
-            if (response.ok && result.success) {
+            const result = await apiRequest('/complaints/');
+            if (result.success) {
                 queries = result.data.filter(q => q.type === 'query');
                 renderQueries();
             }
@@ -268,6 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("Query Fetch Error:", err);
         }
     }
+
 
     // --- DOM Elements ---
     const listContainer = document.getElementById('queries-list');
@@ -505,12 +521,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const text = input.value.trim();
         if (!text) return;
         try {
-            const response = await fetch(`${CONFIG.API_BASE_URL}/complaints/reply/${id}`, {
+            const result = await apiRequest(`/complaints/${id}/reply`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ author: CURRENT_USER, text })
             });
-            if (response.ok) {
+            if (result.success) {
                 input.value = '';
                 fetchQueries();
             }
@@ -519,18 +534,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+
     window.updateQueryStatus = async function (id, status) {
         try {
-            const response = await fetch(`${CONFIG.API_BASE_URL}/complaints/status/${id}`, {
+            const result = await apiRequest(`/complaints/${id}`, {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status, closedBy: status === 'closed' ? CURRENT_USER : null })
             });
-            if (response.ok) fetchQueries();
+            if (result.success) fetchQueries();
         } catch (err) {
             console.error("Status Update Error:", err);
         }
     }
+
 
     const confirmModal = document.getElementById('confirm-modal');
     const confirmProceedBtn = document.getElementById('btn-confirm-proceed');
@@ -567,11 +583,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const description = descInput.value.trim();
             if (subject && description) {
                 try {
-                    const response = await fetch(`${CONFIG.API_BASE_URL}/complaints/add`, {
+                    const result = await apiRequest('/complaints/', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            ownerId,
                             type: 'query',
                             staffName: CURRENT_USER,
                             role: userRole,
@@ -580,10 +594,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             images: uploadedImages
                         })
                     });
-                    if (response.ok) {
+                    if (result.success) {
                         modalOverlay.classList.remove('active');
                         fetchQueries();
                     }
+
                 } catch (err) {
                     console.error("Submit Error:", err);
                 }
@@ -592,5 +607,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (modalOverlay) modalOverlay.onclick = (e) => { if (e.target === modalOverlay) modalOverlay.classList.remove('active'); };
 
-    fetchQueries();
+    fetchQueries(); // Initial load
+    setInterval(fetchQueries, 15000); // Live refresh every 15s
 });

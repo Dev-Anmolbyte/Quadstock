@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QuadStock - Employee Login</title>
     <!-- Same font as dashboard -->
-    <link rel="stylesheet" href="../Shared/Vendor/font-awesome/css/all.min.css"
-        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
-        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="../Shared/Vendor/font-awesome/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <link rel="stylesheet" href="employee_login.css">
     <script src="employee_login.js" type="module" defer></script>
 </head>
@@ -36,8 +36,10 @@
                     <label for="employee-id">Employee ID</label>
                     <div class="input-container">
                         <i class="fa-solid fa-id-card-clip" aria-hidden="true"></i>
-                        <input type="text" id="employee-id" placeholder="Enter your ID (e.g. EMP-001)" required
+                        <input type="text" id="employee-id" placeholder="Employee ID" required
                             aria-required="true">
+
+
                     </div>
                 </div>
 
@@ -45,11 +47,14 @@
                     <label for="password">Password</label>
                     <div class="input-container">
                         <i class="fa-solid fa-lock" aria-hidden="true"></i>
-                        <input type="password" id="password" placeholder="••••••••" required aria-required="true">
+                        <input type="password" id="password" placeholder="Password" required aria-required="true">
+
+
                         <button type="button" class="toggle-password" id="toggle-password"
-                            aria-label="Toggle password visibility">
-                            <i class="fa-regular fa-eye" aria-hidden="true"></i>
+                            aria-label="Show password">
+                            <i class="fa-solid fa-eye" aria-hidden="true"></i>
                         </button>
+
                     </div>
                 </div>
 

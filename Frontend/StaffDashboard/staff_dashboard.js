@@ -25,29 +25,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!target) return;
 
         let menuHtml = `
-            <a href="${role === 'manager' ? '../Ownerdashboard/dashboard.html' : 'staff_dashboard.html'}" class="menu-item active" title="Dashboard">
+            <a href="staff_dashboard.html" class="menu-item active" title="Dashboard">
                 <i class="fa-solid fa-house-chimney"></i>
                 <span>Dashboard</span>
             </a>
+            <a href="../Sales/sales.html" class="menu-item" title="POS Billing"><i class="fa-solid fa-cash-register"></i><span>POS Billing</span></a>
+            <a href="../Query/query.html" class="menu-item" title="Query"><i class="fa-solid fa-clipboard-question"></i><span>Query</span></a>
+            <a href="../Complain/complain.html" class="menu-item" title="Complain"><i class="fa-solid fa-triangle-exclamation"></i><span>Complain</span></a>
         `;
 
-        if (role === 'staff') {
-            menuHtml += `
-                <a href="../Sales/sales.html" class="menu-item" title="POS Billing"><i class="fa-solid fa-cash-register"></i><span>POS Billing</span></a>
-                <a href="../Query/query.html" class="menu-item" title="Query"><i class="fa-solid fa-clipboard-question"></i><span>Query</span></a>
-                <a href="../Complain/complain.html" class="menu-item" title="Complain"><i class="fa-solid fa-triangle-exclamation"></i><span>Complain</span></a>
-            `;
-        } else {
-            menuHtml += `
-                <a href="../Analytics/analytics.html" class="menu-item"><i class="fa-solid fa-chart-simple"></i><span>Analytics</span></a>
-                <a href="../Query/query.html" class="menu-item"><i class="fa-solid fa-clipboard-question"></i><span>Query</span></a>
-                <a href="../Inventory/inventory.html" class="menu-item"><i class="fa-solid fa-boxes-stacked"></i><span>Inventory</span></a>
-                <a href="../smartexpiry/smartexpiry.html" class="menu-item"><i class="fa-solid fa-hourglass-end"></i><span>Smart Expiry</span></a>
-                <a href="../Complain/complain.html" class="menu-item"><i class="fa-solid fa-triangle-exclamation"></i><span>Complain</span></a>
-                <a href="../Udhaar/udhaar.html" class="menu-item"><i class="fa-solid fa-indian-rupee-sign"></i><span>Udhaar/Pending</span></a>
-                <a href="../Settings/settings.html" class="menu-item"><i class="fa-solid fa-gear"></i><span>Settings</span></a>
-            `;
-        }
+
 
         menuHtml += `<a href="#" class="menu-item" id="logout-btn-sidebar"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></a>`;
         target.innerHTML = `

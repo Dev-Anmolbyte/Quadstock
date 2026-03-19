@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuadStock - Verify Your Account</title>
+    <link rel="stylesheet" href="../Shared/Styles/global.css">
+    <link rel="stylesheet" href="auth.css">
+    <link rel="stylesheet" href="../Shared/Vendor/font-awesome/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* OTP Input Grid */
+        .otp-grid {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 1.5rem 0;
+        }
+
+        .otp-digit {
+            width: 52px;
+            height: 60px;
+            border: 2px solid #d1d5db;
+            border-radius: 12px;
+            background: #ffffff;
+            color: #111827;
+            font-size: 1.6rem;
+            font-weight: 700;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            caret-color: transparent;
+            /* Ensure it shows up */
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .otp-digit:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+        }
+
+        .otp-digit.filled {
+            border-color: var(--primary);
+            background: rgba(37, 99, 235, 0.08);
+        }
+
+        .otp-digit.error {
+            border-color: #ef4444;
+            animation: shake 0.4s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+
+        .verify-icon {
+            width: 72px;
+            height: 72px;
+            background: linear-gradient(135deg, var(--primary), #1d4ed8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.25rem;
+            font-size: 1.8rem;
+            color: white;
+            box-shadow: 0 8px 24px rgba(37, 99, 235, 0.3);
+        }
+
+        .email-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: rgba(37, 99, 235, 0.1);
+            border: 1px solid rgba(37, 99, 235, 0.3);
+            color: var(--primary);
+            padding: 0.3rem 0.75rem;
+            border-radius: 99px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin: 0.5rem 0 1.5rem;
+        }
+
+        .timer-text {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 0.75rem;
+        }
+
+        .timer-text span {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .resend-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: underline;
+            padding: 0;
+            transition: opacity 0.2s;
+        }
+
+        .resend-btn:disabled {
+            color: var(--text-muted);
+            text-decoration: none;
+            cursor: not-allowed;
+        }
+
+        .status-message {
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            text-align: center;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        .status-message.error {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            display: block;
+        }
+
+        .status-message.success {
+            background: rgba(34, 197, 94, 0.1);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.25);
+            display: block;
+        }
+    </style>
+    <script src="verify_otp.js" type="module" defer></script>
+    <script src="../Shared/Utils/offline.js" defer></script>
+</head>
+
+<body>
+    <div class="market-pattern"></div>
+    <div id="interactive-bg" class="interactive-bg"></div>
+
+    <div class="auth-container" style="max-width: 440px;">
+        <div class="auth-header">
+            <div class="verify-icon">
+                <i class="fa-solid fa-envelope-circle-check"></i>
+            </div>
+            <h2>Verify Your Email</h2>
+            <p>We've sent a 6-digit code to</p>
+            <div class="email-badge">
+                <i class="fa-solid fa-envelope"></i>
+                <span id="email-display">your email</span>
+            </div>
+        </div>
+
+        <form id="otp-form">
+            <!-- 6 individual OTP digit boxes -->
+            <div class="otp-grid">
+                <input class="otp-digit" type="text" inputmode="numeric" maxlength="1" id="otp-0" autocomplete="off">
+                <input class="otp-digit" type="text" inputmode="numeric" maxlength="1" id="otp-1" autocomplete="off">
+                <input class="otp-digit" type="text" inputmode="numeric" maxlength="1" id="otp-2" autocomplete="off">
+                <input class="otp-digit" type="text" inputmode="numeric" maxlength="1" id="otp-3" autocomplete="off">
+                <input class="otp-digit" type="text" inputmode="numeric" maxlength="1" id="otp-4" autocomplete="off">
+                <input class="otp-digit" type="text" inputmode="numeric" maxlength="1" id="otp-5" autocomplete="off">
+            </div>
+
+            <div id="status-message" class="status-message"></div>
+
+            <button type="submit" class="btn-submit" id="verify-btn">
+                Verify Account
+            </button>
+        </form>
+
+        <div style="text-align:center; margin-top: 1.25rem;">
+            <p class="timer-text">
+                Didn't receive the code?
+                <button class="resend-btn" id="resend-btn" disabled>Resend OTP</button>
+                <br>
+                <span id="timer-display">in <span id="countdown">60</span>s</span>
+            </p>
+        </div>
+
+        <div class="auth-footer" style="text-align:center; margin-top: 1rem;">
+            <p><a href="signup.html"><i class="fa-solid fa-arrow-left" style="font-size:0.8em;"></i> Back to Sign Up</a></p>
+        </div>
+    </div>
+</body>
+
+</html>

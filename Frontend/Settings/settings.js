@@ -32,18 +32,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const themeBtn = document.getElementById('theme-toggle');
-    const body = document.body;
+    const html = document.documentElement;
 
-    // Apply Saved Theme
+    // Apply saved theme
     const savedTheme = localStorage.getItem('theme') || 'light';
-    body.setAttribute('data-theme', savedTheme);
-    updateThemeIcon(savedTheme);
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    document.body.setAttribute('data-theme', savedTheme);
+    
+    // Update Shop Name
+    const shopName = (currentUser && currentUser.shopName) || (currentEmployee && currentEmployee.shopName) || 'QuadStock';
+    const brandTexts = document.querySelectorAll('.brand-text');
+    brandTexts.forEach(el => el.textContent = shopName);
+updateThemeIcon(savedTheme);
 
     if (themeBtn) {
         themeBtn.addEventListener('click', () => {
-            const current = body.getAttribute('data-theme');
+            const current = html.getAttribute('data-theme');
             const newTheme = current === 'dark' ? 'light' : 'dark';
-            body.setAttribute('data-theme', newTheme);
+            html.setAttribute('data-theme', newTheme);
+            document.body.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
             updateThemeIcon(newTheme);
         });
@@ -114,7 +121,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     Object.assign(currentEmployee, result.data);
                     localStorage.setItem('currentEmployee', JSON.stringify(currentEmployee));
                 }
-                showModal('success', 'Profile Saved', 'Profile updated in cloud successfully!');
+                
+                // Update UI immediately
+                const newShopName = result.data.shopName || shopName;
+                const brandTexts = document.querySelectorAll('.brand-text');
+                brandTexts.forEach(el => el.textContent = newShopName);
+                
+                showModal('success', 'Profile Saved', 'Profile updated across your session!');
             } else {
                 showModal('error', 'Update Failed', result.message);
             }
@@ -259,16 +272,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Role Management ---
     function handleRoleAccess() {
-        if (userRole === 'manager') {
-            const dataSection = document.getElementById('data-mgmt-section');
-            if (dataSection) dataSection.style.display = 'none';
-            const dashLink = document.querySelector('a[href*="Ownerdashboard"]');
-            if (dashLink) {
-                dashLink.href = '../Ownerdashboard/dashboard.html';
-                dashLink.innerHTML = '<i class="fa-solid fa-house"></i><span>Manager Dashboard</span>';
-            }
-        }
+        // Role-based UI visibility updates
     }
+
 
     function closeModal() {
         document.getElementById('custom-modal-overlay').classList.remove('active');

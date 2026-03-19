@@ -17,7 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Fix #3: Secure role fallback - don't promote to manager by default
         userRole = currentEmployee.role || 'staff';
         currentOwnerId = currentEmployee.ownerId;
-        addedByRole = 'manager';
+        addedByRole = 'staff';
+
     }
 
     // Fix #2: Stricter access check
@@ -173,8 +174,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentUser) {
             nameToUse = currentUser.ownerName || currentUser.shopName || 'Owner';
         } else if (currentEmployee) {
-            nameToUse = currentEmployee.name || 'Manager';
+            nameToUse = currentEmployee.name || 'Staff';
         }
+
 
         userProfileTarget.innerHTML = `
             <div class="shop-name-container">
@@ -400,8 +402,10 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
 
         // RBAC Check for Addition
-        if (userRole !== 'owner' && userRole !== 'manager') {
-            QuadModals.alert("Access Denied", "Only Owners or Managers can add employees.", "error");
+        if (userRole !== 'owner') {
+
+            QuadModals.alert("Access Denied", "Only Owners can add employees.", "error");
+
             return;
         }
 

@@ -1,5 +1,7 @@
 import { updateDashboardStats, resetNotification } from '../Shared/Utils/dashboard_stats.js';
 import CONFIG from '../Shared/Utils/config.js';
+import apiRequest from '../Shared/Utils/api.js';
+
 
 // --- Authentication Check ---
 const currentUser = JSON.parse(localStorage.getItem('currentUser'));
@@ -7,9 +9,10 @@ const currentEmployee = JSON.parse(localStorage.getItem('currentEmployee'));
 
 const ownerId = (currentUser && currentUser.ownerId) || (currentEmployee && currentEmployee.ownerId);
 
-if (!currentUser && (!currentEmployee || currentEmployee.role !== 'manager')) {
+if (!currentUser) {
     window.location.href = '../Authentication/login.html';
 }
+
 
 document.addEventListener('DOMContentLoaded', function () {
     // --- Live Data Refresh Logic ---
@@ -18,11 +21,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
         try {
             // 1. Fetch Stats (Inventory + Udhaar)
-            const statsRes = await fetch(`${CONFIG.API_BASE_URL}/stats/owner?ownerId=${ownerId}`);
-            const statsResult = await statsRes.json();
+            const statsResult = await apiRequest('/stats/owner');
 
-            if (statsRes.ok && statsResult.success) {
+
+            if (statsResult.success) {
                 const d = statsResult.data;
+
                 const formatter = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' });
 
                 document.getElementById('dash-stock-value').textContent = formatter.format(d.totalStockValue);
@@ -35,11 +39,12 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             // 2. Fetch Complaints/Queries
-            const compRes = await fetch(`${CONFIG.API_BASE_URL}/complaints/all?ownerId=${ownerId}`);
-            const compResult = await compRes.json();
+            const compResult = await apiRequest('/complaints/');
 
-            if (compRes.ok && compResult.success) {
-                const openComplaints = compResult.data.filter(c => c.type === 'complaint' && c.status === 'pending').length;
+
+            if (compResult.success) {
+                const openComplaints = compResult.data.filter(c => c.type === 'complaint' && c.status === 'open').length;
+
                 const openQueries = compResult.data.filter(c => c.type === 'query' && c.status === 'pending').length;
 
                 document.getElementById('dash-complain-count').textContent = openComplaints;
@@ -65,11 +70,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Fetch User Info dynamically
     const shopSpans = document.querySelectorAll('.shop-name');
-    const shopName = (currentUser && currentUser.shopName) || (currentEmployee && currentEmployee.shopName) || 'QuadStock Store';
-    
+    const storeIdBadge = document.getElementById('store-id-badge');
+    const shopName = (currentUser?.storeId?.name) || (currentUser?.shopName) || (currentEmployee?.shopName) || 'QuadStock Store';
+    const storeUniqueId = (currentUser?.storeId?.storeUniqueId) || 'QS-XXXXX';
+
     shopSpans.forEach(span => {
         span.textContent = shopName;
     });
+
+    if (storeIdBadge && storeUniqueId && storeUniqueId !== 'QS-XXXXX') {
+        storeIdBadge.textContent = `ID: ${storeUniqueId}`;
+        storeIdBadge.style.display = 'inline-block';
+    }
+
 
     // Initialize Shared Stats (Legacy Sync if needed)
     updateDashboardStats();
@@ -83,13 +96,21 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- Logout Functionality ---
     const logoutBtn = document.querySelector('a[title="Logout"]');
     if (logoutBtn) {
-        logoutBtn.addEventListener('click', (e) => {
+        logoutBtn.addEventListener('click', async (e) => {
             e.preventDefault();
+            try {
+                await apiRequest('/users/logout', { method: 'POST' });
+            } catch (err) {
+                console.error("Logout Error:", err);
+            }
             localStorage.removeItem('currentUser');
             localStorage.removeItem('currentEmployee');
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('refreshToken');
             window.location.replace('../Authentication/login.html');
         });
     }
+
 
     // --- Digital Clock ---
     function updateClock() {

@@ -1,4 +1,4 @@
-import CONFIG from '../Shared/Utils/config.js';
+import apiRequest from '../Shared/Utils/api.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     // --- 0. Authentication & Context ---
@@ -23,9 +23,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Fetch Inventory from DB
     async function refreshInventoryData() {
         try {
-            const response = await fetch(`${CONFIG.API_BASE_URL}/inventory/all?ownerId=${ownerId}`);
-            const result = await response.json();
-            if (response.ok) {
+            const result = await apiRequest('/products/');
+
+            if (result.success) {
                 inventory = result.data || [];
                 renderTable();
                 calculateDashboardStats();
@@ -37,6 +37,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Fallback to local if server down (optional, but let's stick to real backend)
         }
     }
+
 
     // Filters State
     let filters = {
@@ -159,7 +160,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     populateSelects();
     updateBrandList();
     calculateDashboardStats(); // Run once on load
-    refreshInventoryData(); // Trigger refreshInventoryData() at the end of the script to populate the dashboard on load.
+    refreshInventoryData(); // Initial load
+    setInterval(refreshInventoryData, 15000); // Live refresh every 15s
     // Initial Render is now handled by refreshInventoryData()
     // renderTable(); // Initial Render
 
@@ -651,9 +653,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     function handleFormSubmit(e) {
         e.preventDefault();
 
-        // Data-Level RBAC: Enforce critical permission checks inside the action function
-        if (role !== 'owner' && role !== 'manager' && role !== 'inventory_manager') {
+        // Data-Level RBAC: Only Owners can modify inventory
+        if (role !== 'owner') {
             QuadModals.alert("Access Denied", "Your role does not have permission to modify inventory data.", "error");
+
             return;
         }
 
@@ -662,8 +665,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     async function saveProduct(closeAfterSave = true) {
-        if (role !== 'owner' && role !== 'manager' && role !== 'inventory_manager') {
+        if (role !== 'owner') {
             QuadModals.alert("Access Denied", "Authorization failed for this operation.", "error");
+
             return;
         }
 
@@ -694,12 +698,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             name: inputName.value,
             brand: inputBrand.value,
             type: currentType,
-            category: inputCategory.value,
+            categoryName: inputCategory.value,
+
             description: inputDesc.value,
             image: imgPreview.src || inputImageURL.value, 
             barcode: inputBarcode.value,
-            ownerId: ownerId,
             batchNumber: inputBatch.value,
+
             quantity: parseInt(inputQty.value) || 0,
             unit: inputUnit.value,
             mfd: currentType === 'Clothes' ? null : inputMfd.value,
@@ -714,35 +719,30 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
 
         try {
-            let response;
+            let result;
             if (isEditing) {
-                // Update
-                response = await fetch(`${CONFIG.API_BASE_URL}/inventory/update/${currentEditId}`, {
+                // Update - RESTful PUT /products/:id
+                result = await apiRequest(`/products/${currentEditId}`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(productData)
                 });
             } else {
-                // Create
-                response = await fetch(`${CONFIG.API_BASE_URL}/inventory/add`, {
+                // Create - RESTful POST /products/
+                result = await apiRequest('/products/', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(productData)
                 });
             }
 
-            const result = await response.json();
-            if (response.ok) {
+
+            if (result.success) {
                 QuadModals.showToast(isEditing ? "Product Updated!" : "Product Added!", "success");
                 refreshInventoryData();
                 if (closeAfterSave) closeModal();
-            } else {
-                alert(`Error: ${result.message}`);
             }
-
         } catch (err) {
             console.error("Save Product Error:", err);
-            alert("Server connection failed.");
+            alert("Server connection failed or unauthorized.");
         }
     }
 
@@ -761,21 +761,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!confirmed) return;
 
         try {
-            const response = await fetch(`${CONFIG.API_BASE_URL}/inventory/delete/${id}`, {
+            const result = await apiRequest(`/inventory/${id}`, {
                 method: 'DELETE'
             });
 
-            if (response.ok) {
+            if (result.success) {
                 QuadModals.showToast("Product deleted successfully", "info");
                 refreshInventoryData();
-            } else {
-                alert("Failed to delete product.");
             }
         } catch (err) {
             console.error("Delete Error:", err);
-            alert("Network error.");
+            alert("Network error or unauthorized.");
         }
     }
+
 
     // --- 7. Dashboard Logic ---
 

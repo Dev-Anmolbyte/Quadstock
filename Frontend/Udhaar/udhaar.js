@@ -1,4 +1,6 @@
 import CONFIG from '../Shared/Utils/config.js';
+import apiRequest from '../Shared/Utils/api.js';
+
 
 document.addEventListener('DOMContentLoaded', async () => {
     // --- Authentication & Context ---
@@ -17,14 +19,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function refreshUdhaarData() {
         try {
-            const response = await fetch(`${CONFIG.API_BASE_URL}/udhaar/all?ownerId=${currentOwnerId}`);
-            const result = await response.json();
-            if (response.ok) {
+            const result = await apiRequest('/udhaar/');
+            if (result.success) {
                 udhaarList = result.data || [];
                 renderTable();
                 updateStats();
             }
         } catch (err) {
+
             console.error("Fetch Udhaar Error:", err);
         }
     }
@@ -117,13 +119,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
 
         try {
-            const response = await fetch(`${CONFIG.API_BASE_URL}/udhaar/add`, {
+            const result = await apiRequest('/udhaar/', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newRecord)
             });
 
-            if (response.ok) {
+            if (result.success) {
+
                 refreshUdhaarData();
                 form.reset();
                 if (dateInput) dateInput.valueAsDate = new Date();
@@ -353,13 +355,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
 
         try {
-            const response = await fetch(`${CONFIG.API_BASE_URL}/udhaar/payment/${id}`, {
+            const result = await apiRequest(`/udhaar/${id}`, {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(paymentData)
             });
 
-            if (response.ok) {
+            if (result.success) {
+
                 await refreshUdhaarData();
                 viewDetails(id); 
             }
@@ -373,10 +375,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (confirm('Are you sure you want to delete this record irrecoverably?')) {
             try {
-                const response = await fetch(`${CONFIG.API_BASE_URL}/udhaar/delete/${id}`, {
+                const result = await apiRequest(`/udhaar/${id}`, {
                     method: 'DELETE'
                 });
-                if (response.ok) refreshUdhaarData();
+                if (result.success) refreshUdhaarData();
+
             } catch (err) {
                 console.error("Delete Error:", err);
             }
@@ -441,6 +444,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // Init
-    refreshUdhaarData();
+    refreshUdhaarData(); // Initial load
+    setInterval(refreshUdhaarData, 15000); // Live refresh every 15s
 });
 

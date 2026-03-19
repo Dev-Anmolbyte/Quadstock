@@ -8,9 +8,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const ownerId = (currentUser && currentUser.ownerId) || (currentEmployee && currentEmployee.ownerId);
 
     if (!ownerId) {
-        window.location.href = '../Authentication/employee_login.html';
+        window.location.href = '../Authentication/login.html';
         return;
     }
+
+    // Apply saved theme
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    document.body.setAttribute('data-theme', savedTheme);
+    
+    // Update Shop Name
+    const shopName = (currentUser && currentUser.shopName) || (currentEmployee && currentEmployee.shopName) || 'QuadStock';
+    const brandTexts = document.querySelectorAll('.brand-text');
+    brandTexts.forEach(el => el.textContent = shopName);
 
     const INVENTORY_KEY = `inventory_${ownerId}`;
     let inventory = [];
@@ -218,7 +228,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    initialize();
+    initialize(); // Setup UI & first fetch
+    setInterval(fetchInventory, 15000); // Live refresh every 15s
 
     // Export window functions
     window.viewProduct = (id) => {
