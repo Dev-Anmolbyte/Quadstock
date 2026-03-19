@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuadStock - Employee Login</title>
+    <!-- Same font as dashboard -->
+    <link rel="stylesheet" href="../Shared/Vendor/font-awesome/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="employee_login.css">
+    <script src="employee_login.js" type="module" defer></script>
+</head>
+
+<body>
+    <!-- Background Patterns -->
+    <div id="interactive-bg" class="background-decor" aria-hidden="true">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <div class="login-wrapper">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-users-gear" aria-hidden="true"></i>
+                </div>
+                <h2>Employee Login</h2>
+                <p>Welcome back! Please enter your details.</p>
+            </div>
+
+            <form id="employee-login-form">
+                <div class="form-group">
+                    <label for="employee-id">Employee ID</label>
+                    <div class="input-container">
+                        <i class="fa-solid fa-id-card-clip" aria-hidden="true"></i>
+                        <input type="text" id="employee-id" placeholder="Enter your ID (e.g. EMP-001)" required
+                            aria-required="true">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="input-container">
+                        <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                        <input type="password" id="password" placeholder="••••••••" required aria-required="true">
+                        <button type="button" class="toggle-password" id="toggle-password"
+                            aria-label="Toggle password visibility">
+                            <i class="fa-regular fa-eye" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="login-options">
+                    <label class="remember-me">
+                        <input type="checkbox">
+                        <span>Remember me</span>
+                    </label>
+                    <!-- <a href="#" class="forgot-link">Forgot Password?</a> -->
+                </div>
+
+                <button type="submit" class="btn-login">
+                    <span>Sign In</span>
+                    <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                </button>
+            </form>
+
+            <div class="login-footer">
+                <p>Are you an Owner? <a href="login.html">Owner Login</a></p>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="../Shared/Auth/guard.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuadStock - Staff Dashboard</title>
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="../Shared/Vendor/google-fonts/plus-jakarta-sans.css">
+    <link rel="stylesheet" href="../Shared/Vendor/font-awesome/css/all.min.css">
+    <!-- Base Styles -->
+    <link rel="stylesheet" href="../Shared/Styles/global.css">
+    <link rel="stylesheet" href="../Ownerdashboard/dashboard.css">
+    <style>
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .card {
+            background: var(--bg-white);
+            padding: 1.75rem;
+            border-radius: 1.5rem;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+        }
+
+        .btn-punch {
+            background: var(--primary-color);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 1rem;
+            border: none;
+            font-weight: 800;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            font-size: 1rem;
+            box-shadow: 0 4px 12px rgba(244, 124, 37, 0.2);
+        }
+
+        .btn-punch:hover {
+            background: var(--primary-hover);
+            transform: scale(1.02);
+            box-shadow: 0 6px 15px rgba(244, 124, 37, 0.3);
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.25rem;
+            background: var(--bg-body);
+            border-radius: 1.25rem;
+            border: 1px solid var(--border-color);
+            transition: all 0.2s ease;
+        }
+
+        .activity-item:hover {
+            border-color: var(--primary-color);
+            background: var(--bg-white);
+        }
+
+        .activity-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .activity-in { background: var(--c-green-bg); color: var(--c-green-text); }
+        .activity-out { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+
+        .progress-container {
+            height: 14px;
+            background: var(--bg-body);
+            border-radius: 7px;
+            overflow: hidden;
+            margin: 1.25rem 0;
+            border: 1px solid var(--border-color);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #f47c25, #fbbf24);
+            width: 0%;
+            border-radius: 7px;
+            transition: width 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .pos-banner {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 1.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            grid-column: 1 / -1;
+            box-shadow: 0 12px 24px -8px rgba(79, 70, 229, 0.4);
+            margin-top: 1rem;
+        }
+
+        .banner-icon {
+            font-size: 2.5rem;
+            opacity: 0.2;
+            position: absolute;
+            right: -10px;
+            bottom: -10px;
+            transform: rotate(-15deg);
+        }
+
+        .action-btn-styled {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .action-btn-styled:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(1.05);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .pos-banner {
+                flex-direction: column;
+                text-align: center;
+                gap: 1.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="layout-container">
+        <!-- Sidebar -->
+        <aside id="sidebar-target" class="sidebar"></aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <div class="top-bar">
+                <div class="digital-clock" id="digital-clock">00:00:00 AM</div>
+
+                <div class="header-right">
+                    <button class="theme-toggle-btn" id="theme-toggle" title="Toggle Theme">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+
+                    <div class="shop-name-container" id="shop-name-target">
+                        <i class="fa-solid fa-store" style="color: var(--primary-color); margin-right: 0.5rem;"></i>
+                        <span class="shop-name">Loading...</span>
+                    </div>
+                </div>
+            </div>
+
+            <header class="top-header">
+                <div class="header-left">
+                    <h1 style="font-size: 2rem; font-weight: 800; letter-spacing: -0.02em;">Staff Dashboard</h1>
+                    <p class="text-secondary" style="font-size: 1.1rem;">Welcome back, <span id="staff-name" style="color: var(--primary-color); font-weight: 800;">User</span> ✨</p>
+                </div>
+            </header>
+
+            <div class="content-scrollable">
+                <div class="grid">
+                    <!-- Attendance Card -->
+                    <div class="card" style="text-align: center;">
+                        <div style="background: var(--bg-body); padding: 1.5rem; border-radius: 1.25rem; margin-bottom: 1.5rem; border: 1px solid var(--border-color);">
+                            <div id="status-badge" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.4rem 1rem; border-radius: 2rem; font-size: 0.85rem; font-weight: 700; margin-bottom: 1rem;">
+                                <i class="fa-solid fa-circle" style="font-size: 0.6rem;"></i>
+                                <span id="status-label">Offline</span>
+                            </div>
+                            <h2 id="status-time" style="margin: 0; font-size: 2rem; font-weight: 800; letter-spacing: -1px;">00:00</h2>
+                            <p id="status-desc" style="margin: 0.5rem 0 0; color: var(--text-secondary); font-size: 0.9rem;">You haven't started your shift yet.</p>
+                        </div>
+                        
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            <button id="btn-main-action" class="btn-punch" style="width: 100%; border: none;">
+                                <i class="fa-solid fa-play"></i> <span>Start Shift</span>
+                            </button>
+                            <button id="btn-sub-action" class="btn-punch" style="width: 100%; background: var(--bg-body); color: var(--text-primary); border: 1px solid var(--border-color); display: none;">
+                                <i class="fa-solid fa-mug-hot"></i> <span>Take Break</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Daily Target Card -->
+                    <div class="card">
+                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem;">
+                            <div class="stat-icon" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 14px; background: var(--c-orange-bg); color: var(--c-orange-text); font-size: 1.2rem;">
+                                <i class="fa-solid fa-fire-flame-curved"></i>
+                            </div>
+                            <h3 style="margin: 0; font-size: 1.25rem;">Daily Performance</h3>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 0.5rem;">
+                            <span style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 600;">Sales Target Progress</span>
+                            <span id="target-percent" style="font-size: 1.25rem; font-weight: 800; color: var(--primary-color);">0%</span>
+                        </div>
+                        
+                        <div class="progress-container">
+                            <div id="target-progress-bar" class="progress-bar"></div>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; font-size: 0.9rem; background: var(--bg-body); padding: 0.8rem; border-radius: 1rem; border: 1px solid var(--border-color);">
+                            <div style="text-align: center; flex: 1;">
+                                <span style="display: block; font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 2px;">Goal</span>
+                                <span style="font-weight: 800;">₹10,000</span>
+                            </div>
+                            <div style="width: 1px; background: var(--border-color); margin: 0 1rem;"></div>
+                            <div style="text-align: center; flex: 1;">
+                                <span style="display: block; font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 2px;">Current</span>
+                                <span id="current-sales" style="font-weight: 800; color: var(--c-green-text);">₹0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- POS Banner -->
+                    <div class="pos-banner">
+                        <i class="fa-solid fa-cash-register banner-icon"></i>
+                        <div style="position: relative; z-index: 1;">
+                            <h2 style="margin: 0 0 0.5rem 0; font-weight: 800;">Smart Billing System</h2>
+                            <p style="margin: 0; opacity: 0.9; font-size: 1rem; font-weight: 500;">Ready to serve customers? Access the store POS for quick checkout.</p>
+                        </div>
+                        <a href="../Sales/sales.html" class="action-btn-styled">
+                            <i class="fa-solid fa-bolt"></i> Launch POS
+                        </a>
+                    </div>
+
+                    <!-- Tasks and Activity Section -->
+                    <div style="grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+                        <!-- Tasks -->
+                        <div class="card">
+                            <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
+                                <i class="fa-solid fa-clipboard-list" style="color: var(--c-purple-text);"></i> Pending Tasks
+                            </h3>
+                            <div id="task-container" style="text-align: center; padding: 2rem 0;">
+                                <div style="width: 60px; height: 60px; background: var(--c-green-bg); color: var(--c-green-text); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.5rem; opacity: 0.8;">
+                                    <i class="fa-solid fa-check-double"></i>
+                                </div>
+                                <p style="font-weight: 700; color: var(--text-primary);">You're all caught up!</p>
+                                <p class="text-secondary" style="font-size: 0.85rem;">Managers haven't assigned any specific tasks to you for now.</p>
+                            </div>
+                        </div>
+
+                        <!-- Activity -->
+                        <div class="card">
+                            <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
+                                <i class="fa-solid fa-timeline" style="color: var(--c-blue-text);"></i> Recent Activity
+                            </h3>
+                            <div id="activity-feed" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                <p class="text-secondary">No recent activity recorded.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="staff_dashboard.js"></script>
+</body>
+
+</html>

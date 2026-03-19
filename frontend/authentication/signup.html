@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuadStock - Register Shop</title>
+    <link rel="stylesheet" href="../Shared/Styles/global.css">
+    <link rel="stylesheet" href="auth.css">
+    <link rel="stylesheet" href="../Shared/Vendor/font-awesome/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="auth.js" type="module" defer></script>
+    <script src="../Shared/Utils/offline.js" defer></script>
+</head>
+
+<body>
+    <!-- Background Elements -->
+    <div class="market-pattern"></div>
+    <!-- Interactive Background Container managed by JS -->
+    <div id="interactive-bg" class="interactive-bg"></div>
+
+    <div class="auth-container" style="max-width: 500px;">
+        <div class="auth-header">
+            <h2>Create Account</h2>
+            <p>Join QuadStock to manage your inventory</p>
+        </div>
+
+        <form id="signup-form">
+            <!-- Owner Name & Shop Name -->
+            <div class="form-group">
+                <label for="owner-name">Owner's Name</label>
+                <div class="input-wrapper">
+                    <input type="text" id="owner-name" class="form-control" placeholder="Enter full name" required
+                        aria-required="true">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="shop-name">Shop Name</label>
+                <div class="input-wrapper">
+                    <input type="text" id="shop-name" class="form-control" placeholder="e.g. Gupta General Store"
+                        required aria-required="true">
+                </div>
+            </div>
+
+            <!-- Email & Phone -->
+            <div class="form-group">
+                <label for="email">Owner Email</label>
+                <div class="input-wrapper">
+                    <input type="email" id="email" class="form-control" placeholder="name@example.com" required
+                        aria-required="true">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <div class="phone-input-group">
+                    <span class="phone-prefix">+91</span>
+                    <input type="tel" id="phone" class="form-control" placeholder="9876543210" maxlength="10" required
+                        aria-required="true" pattern="[0-9]{10}">
+                </div>
+            </div>
+
+            <!-- Password -->
+            <div class="form-group">
+                <label for="signup-password">Password</label>
+                <div class="input-wrapper">
+                    <input type="password" id="signup-password" class="form-control"
+                        placeholder="Create a strong password" required aria-required="true" minlength="6">
+                    <button type="button" class="input-icon" aria-label="Toggle password visibility">
+                        <i class="fa-regular fa-eye" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <!-- Strength Meter -->
+                <div class="strength-meter">
+                    <div id="strength-segment" class="strength-segment"></div>
+                </div>
+                <div id="strength-text" class="strength-text" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirm-password">Confirm Password</label>
+                <div class="input-wrapper">
+                    <input type="password" id="confirm-password" class="form-control" placeholder="Re-enter password"
+                        required aria-required="true">
+                    <button type="button" class="input-icon" aria-label="Toggle password visibility">
+                        <i class="fa-regular fa-eye" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">Sign Up</button>
+
+            <div class="auth-footer">
+                <p>Already have an account? <a href="login.html">Login here</a></p>
+            </div>
+        </form>
+    </div>
+    <!-- Success Modal -->
+    <div id="signup-success-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <i class="fa-solid fa-circle-check success-icon"></i>
+                <h2>Registration Successful!</h2>
+                <p>Your shop has been registered.</p>
+            </div>
+            <div class="modal-body">
+                <p class="modal-label">Your Unique Owner ID:</p>
+                <div class="id-display-box">
+                    <span id="generated-owner-id">QS-XXXXX</span>
+                    <button id="copy-id-btn" class="copy-btn" title="Copy ID">
+                        <i class="fa-regular fa-copy"></i>
+                    </button>
+                </div>
+                <p class="id-note">Please save this ID. You will need it to login.</p>
+            </div>
+            <div class="modal-footer">
+                <a href="login.html" class="btn-submit btn-modal">Go to Login</a>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

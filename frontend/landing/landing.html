@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuadStock | Smart Kirana & Clothing Inventory</title>
+    <link rel="stylesheet" href="../Shared/Styles/global.css">
+    <link rel="stylesheet" href="landing.css">
+    <!-- script src="../Authentication/script.js" removed to avoid conflicts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#fb923c',
+                        secondary: '#1e293b',
+                        accent: '#16a34a',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-orange-50/30 dark:bg-slate-950 transition-colors duration-300">
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-[100] glass border-b border-orange-200/50 dark:border-gray-800">
+        <!-- Top Indian Flag Accent -->
+        <div class="india-accent absolute top-0 left-0"></div>
+        <div class="w-full px-8 lg:px-12 pt-1">
+            <div class="flex justify-between h-20 items-center">
+                <div class="flex items-center gap-3">
+                    <div class="bg-primary p-1.5 rounded-lg shadow-lg">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
+                    </div>
+                    <a href="landing.html">
+                        <span class="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">Quad<span
+                                class="text-primary">Stock</span></span>
+                    </a>
+                </div>
+
+                <div class="hidden md:flex items-center gap-4">
+                    <a href="#features"
+                        class="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 hover:text-primary transition">Solution</a>
+                    <a href="#solutions"
+                        class="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 hover:text-primary transition">GST
+                        Billing</a>
+                    <div class="h-4 w-px bg-orange-200 dark:bg-gray-700"></div>
+
+
+                    <a href="../Authentication/login.html"
+                        class="ml-4 bg-primary hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide transition shadow-md shadow-orange-500/20">Owner
+                        Login</a>
+                    <a href="../Authentication/signup.html"
+                        class="bg-white hover:bg-gray-50 text-slate-800 border border-gray-200 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide transition shadow-sm">Register
+                        Store</a>
+                    <a href="../Authentication/employee_login.html"
+                        class="bg-accent hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide transition shadow-md shadow-green-500/20">Employee
+                        Login</a>
+                    <button id="theme-toggle"
+                        class="p-2 rounded-lg hover:bg-orange-100 dark:hover:bg-gray-800 transition">
+                        <svg id="sun-icon" class="w-5 h-5 text-yellow-500 hidden" fill="currentColor"
+                            viewBox="0 0 20 20">
+                            <path
+                                d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" />
+                        </svg>
+                        <svg id="moon-icon" class="w-5 h-5 text-slate-700 dark:text-slate-400" fill="currentColor"
+                            viewBox="0 0 20 20">
+                            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Hamburger Menu -->
+                <button id="open-sidebar-btn"
+                    class="md:hidden text-slate-900 dark:text-white p-2 hover:bg-orange-50 dark:hover:bg-gray-800 rounded-lg transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div id="mobile-sidebar-overlay"
+        class="fixed inset-0 bg-black/50 z-40 hidden backdrop-blur-sm transition-opacity duration-300 opacity-0"></div>
+
+    <!-- Mobile Sidebar -->
+    <div id="mobile-sidebar"
+        class="fixed top-0 right-0 h-full w-[280px] bg-white dark:bg-slate-900 z-50 transform translate-x-full transition-transform duration-300 shadow-2xl border-l border-gray-100 dark:border-gray-800">
+        <div class="p-6 flex flex-col h-full">
+            <div class="flex justify-between items-center mb-8">
+                <span class="text-xl font-extrabold text-slate-900 dark:text-white">Quad<span
+                        class="text-primary">Stock</span></span>
+                <button id="close-sidebar-btn"
+                    class="text-gray-500 hover:text-red-500 transition p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="flex flex-col gap-4">
+                <a href="#features"
+                    class="font-bold text-lg text-slate-600 dark:text-slate-300 hover:text-primary transition p-2 rounded-lg hover:bg-orange-50 dark:hover:bg-slate-800/50"
+                    onclick="toggleMobileSidebar()">Solution</a>
+                <a href="#solutions"
+                    class="font-bold text-lg text-slate-600 dark:text-slate-300 hover:text-primary transition p-2 rounded-lg hover:bg-orange-50 dark:hover:bg-slate-800/50"
+                    onclick="toggleMobileSidebar()">GST Billing</a>
+                <div class="h-px bg-gray-100 dark:bg-gray-800 my-2"></div>
+                <a href="../Authentication/login.html"
+                    class="font-bold text-lg text-slate-600 dark:text-slate-300 hover:text-primary transition p-2 rounded-lg hover:bg-orange-50 dark:hover:bg-slate-800/50">Owner
+                    Login</a>
+                <a href="../Authentication/signup.html"
+                    class="bg-primary hover:bg-primary-dark text-white px-4 py-3 rounded-xl text-center font-bold shadow-lg shadow-primary/30 mt-4 transition">Register
+                    Store</a>
+            </div>
+            <div class="mt-auto border-t border-gray-100 dark:border-gray-800 pt-6">
+                <p class="text-[10px] text-center text-slate-400 font-bold uppercase tracking-widest">Proudly Made in
+                    India 🇮🇳</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="relative pt-24 pb-16 md:pt-36 md:pb-24 overflow-hidden">
+        <div class="grid-bg absolute inset-0 z-0"></div>
+        <div class="hero-glow"></div>
+
+        <div class="max-w-7xl mx-auto px-4 text-center relative z-10">
+            <div
+                class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent/10 border border-accent/20 text-accent text-xs font-black mb-8">
+                🇮🇳 MAKE IN INDIA - DIGITAL DUKAN
+            </div>
+            <h1 class="text-4xl md:text-7xl font-black text-slate-900 dark:text-white leading-tight mb-6">
+                Ab Kirana aur Kapda Vyapar <br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">Hoga Digital aur
+                    Asaan.</span>
+            </h1>
+            <p class="text-base md:text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto mb-10">
+                Complete Inventory & Billing solution for your <b>Grocery Store</b> and <b>Clothing Showroom</b>.
+                Track expiry, manage sizes/colors, and generate <b>GST Invoices</b> in seconds.
+            </p>
+
+            <div class="flex flex-col sm:flex-row justify-center gap-4 mb-16 animate-float">
+                <a href="../Authentication/signup.html"
+                    class="bg-primary hover:bg-primary-dark text-white px-10 py-4 rounded-xl text-lg font-bold transition shadow-2xl shadow-primary/40 flex items-center justify-center gap-2">
+                    Create My Store Page
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                </a>
+                <a href="../Authentication/login.html">
+                    <button
+                        class="bg-white dark:bg-slate-900 border border-orange-100 dark:border-gray-800 text-slate-900 dark:text-white px-10 py-4 rounded-xl text-lg font-bold transition hover:bg-orange-50 flex items-center justify-center gap-2">
+                        Start Billing Now
+                    </button></a>
+            </div>
+
+            <!-- Dashboard Preview (Indian Retail Context) -->
+            <div class="relative max-w-5xl mx-auto dashboard-mockup bg-white dark:bg-slate-900 overflow-hidden">
+                <div class="h-8 bg-slate-100 dark:bg-slate-800 flex items-center px-4 gap-2 border-b border-gray-200">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Digital Register -
+                        QuadStock</span>
+                </div>
+                <div class="p-4 md:p-8 bg-white dark:bg-slate-950">
+                    <div class="grid grid-cols-12 gap-6">
+                        <!-- Sidebar-like elements -->
+                        <div class="col-span-3 space-y-3">
+                            <div class="p-3 bg-orange-50 rounded-lg border-l-4 border-primary">
+                                <p class="text-[10px] font-bold text-primary">KIRANA DASHBOARD</p>
+                                <p class="text-xs font-bold text-slate-700">Stock In Hand</p>
+                            </div>
+                            <div class="p-3 bg-slate-50 rounded-lg hover:bg-orange-50 transition cursor-pointer">
+                                <p class="text-xs font-bold text-slate-500">Clothing Variants</p>
+                            </div>
+                            <div class="p-3 bg-slate-50 rounded-lg hover:bg-orange-50 transition cursor-pointer">
+                                <p class="text-xs font-bold text-slate-500">Expiry Tracker</p>
+                            </div>
+                            <div class="p-3 bg-slate-50 rounded-lg hover:bg-orange-50 transition cursor-pointer">
+                                <p class="text-xs font-bold text-slate-500">GST Reports</p>
+                            </div>
+                        </div>
+
+                        <!-- Main Preview -->
+                        <div class="col-span-9 space-y-6 text-left">
+                            <div class="flex justify-between items-end">
+                                <div>
+                                    <h4 class="text-lg font-bold text-slate-800 dark:text-white">Store Overview - Patna
+                                        City Branch</h4>
+                                    <p class="text-xs text-slate-400">Inventory Status as of Today</p>
+                                </div>
+                                <span class="bg-accent/10 text-accent text-[10px] font-bold px-3 py-1 rounded-full">LIVE
+                                    STOCK</span>
+                            </div>
+
+                            <!-- Retail Item List Preview -->
+                            <div class="border border-slate-100 rounded-xl overflow-hidden shadow-sm">
+                                <table class="w-full text-left text-xs">
+                                    <thead class="bg-slate-50 text-slate-500 uppercase">
+                                        <tr>
+                                            <th class="p-3">Item Name</th>
+                                            <th class="p-3">Category</th>
+                                            <th class="p-3">Quantity</th>
+                                            <th class="p-3">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-50">
+                                        <tr>
+                                            <td class="p-3 font-bold">Fortune Mustard Oil 1L</td>
+                                            <td class="p-3">Grocery</td>
+                                            <td class="p-3">124 Pcs</td>
+                                            <td class="p-3"><span class="text-accent font-bold">Healthy</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="p-3 font-bold">Levi's 511 Denims (Blue)</td>
+                                            <td class="p-3">Clothing</td>
+                                            <td class="p-3">12 Pcs</td>
+                                            <td class="p-3"><span class="text-orange-500 font-bold">Low Stock</span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="p-3 font-bold">Maggi Masala 12-Pack</td>
+                                            <td class="p-3">Grocery</td>
+                                            <td class="p-3">5 Pcs</td>
+                                            <td class="p-3"><span class="text-red-500 font-bold">Expiry Warning</span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works (Steps) -->
+    <section class="py-20 bg-orange-50/50 dark:bg-slate-950/50 border-y border-orange-100 dark:border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <h2 class="text-primary font-bold tracking-widest text-sm uppercase mb-3 text-center">Simple Process</h2>
+            <h3 class="text-3xl md:text-4xl font-black text-slate-900 dark:text-white mb-16 text-center">Start in 3 Easy
+                Steps</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+                <!-- Connecting Line (Desktop) -->
+                <div
+                    class="hidden md:block absolute top-12 left-[16%] right-[16%] h-1 bg-gradient-to-r from-orange-200 via-orange-400 to-orange-200 dark:from-gray-800 dark:via-gray-700 dark:to-gray-800 z-0">
+                </div>
+
+                <!-- Step 1 -->
+                <div
+                    class="relative z-10 bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-lg border border-orange-100 dark:border-gray-800 hover:-translate-y-2 transition duration-300">
+                    <div
+                        class="w-24 h-24 bg-orange-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl shadow-inner text-primary font-black border-4 border-white dark:border-slate-700">
+                        1</div>
+                    <h4 class="text-xl font-bold text-slate-900 dark:text-white mb-2">Create Account</h4>
+                    <p class="text-sm text-slate-500">Register your shop with phone number. It takes less than 2
+                        minutes.</p>
+                </div>
+
+                <!-- Step 2 -->
+                <div
+                    class="relative z-10 bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-lg border border-orange-100 dark:border-gray-800 hover:-translate-y-2 transition duration-300">
+                    <div
+                        class="w-24 h-24 bg-green-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl shadow-inner text-accent font-black border-4 border-white dark:border-slate-700">
+                        2</div>
+                    <h4 class="text-xl font-bold text-slate-900 dark:text-white mb-2">Add Stock</h4>
+                    <p class="text-sm text-slate-500">Bulk upload your inventory list or simply scan barcodes to add
+                        items.</p>
+                </div>
+
+                <!-- Step 3 -->
+                <div
+                    class="relative z-10 bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-lg border border-orange-100 dark:border-gray-800 hover:-translate-y-2 transition duration-300">
+                    <div
+                        class="w-24 h-24 bg-blue-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl shadow-inner text-blue-500 font-black border-4 border-white dark:border-slate-700">
+                        3</div>
+                    <h4 class="text-xl font-bold text-slate-900 dark:text-white mb-2">Start Billing</h4>
+                    <p class="text-sm text-slate-500">Generate professional GST bills instantly and print or share on
+                        WhatsApp.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Retail Specific Solutions -->
+    <section id="features" class="py-24 bg-white dark:bg-slate-900 overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+                <div class="fade-up">
+                    <h2 class="text-primary font-bold tracking-widest text-sm uppercase mb-3">Vastra & Kirana Bhandar
+                        Special</h2>
+                    <h3 class="text-3xl md:text-5xl font-black text-slate-900 dark:text-white mb-6">Built for the Indian
+                        Retail Market</h3>
+                    <img src="../Assets/billing_counter.png" alt="App Interface"
+                        class="relative z-10 w-full rounded-xl">
+                    <ul class="space-y-6">
+                        <li class="flex gap-4">
+                            <div class="bg-accent/10 p-3 rounded-xl text-accent"><svg class="w-6 h-6" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg></div>
+                            <div>
+                                <h4 class="font-bold text-slate-900 dark:text-white">Smart Expiry Management</h4>
+                                <p class="text-sm text-slate-500">Auto-alert for products expiring soon. Save money on
+                                    grocery waste.</p>
+                            </div>
+                        </li>
+                        <li class="flex gap-4">
+                            <div class="bg-primary/10 p-3 rounded-xl text-primary"><svg class="w-6 h-6" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M3 10h18M7 15h1m4 0h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                </svg></div>
+                            <div>
+                                <h4 class="font-bold text-slate-900 dark:text-white">GST Ready Billing</h4>
+                                <p class="text-sm text-slate-500">One-click GST invoice generation. Tally-compatible
+                                    reports for your CA.</p>
+                            </div>
+                        </li>
+                        <li class="flex gap-4">
+                            <div class="bg-blue-500/10 p-3 rounded-xl text-blue-500"><svg class="w-6 h-6" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                </svg></div>
+                            <div>
+                                <h4 class="font-bold text-slate-900 dark:text-white">Clothing Variants (Size/Color)</h4>
+                                <p class="text-sm text-slate-500">Manage S, M, L, XL sizes and color varieties for every
+                                    garment effortlessly.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="relative fade-up" style="transition-delay: 200ms">
+                    <div class="market-pattern absolute inset-0 rounded-3xl -rotate-2"></div>
+                    <div class="relative bg-orange-100/50 p-6 rounded-3xl border border-orange-200">
+                        <div class="bg-white p-4 rounded-xl shadow-lg border border-orange-100 mb-4">
+                            <p class="text-[10px] text-slate-400 font-bold">CUSTOMER BILLING</p>
+                            <div class="flex justify-between items-center mt-2">
+                                <span class="text-sm font-bold">1kg Sugar + 5kg Rice</span>
+                                <span class="text-sm font-black text-primary">₹640.00</span>
+                            </div>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow-lg border border-orange-100">
+                            <p class="text-[10px] text-slate-400 font-bold">STOCK UPDATE</p>
+                            <div class="flex items-center gap-3 mt-2">
+                                <span class="w-8 h-8 rounded bg-slate-100 flex items-center justify-center">👕</span>
+                                <span class="text-sm font-bold">Added: 50 Cotton T-Shirts (L)</span>
+                            </div>
+                        </div>
+                        <!-- "Made for Bharat" Badge -->
+                        <div
+                            class="absolute -bottom-4 -right-4 bg-accent text-white p-4 rounded-full font-black text-center shadow-xl rotate-12">
+                            For<br>Bharat
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    </section>
+
+
+
+    <!-- Testimonials (Dukandaar Ki Zubani) -->
+    <section class="py-24 bg-white dark:bg-slate-900">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="text-center mb-16">
+                <span
+                    class="inline-block py-1 px-3 rounded-full bg-orange-100 dark:bg-slate-800 text-primary text-xs font-bold tracking-wider mb-4">TRUSTED
+                    BY 500+ SHOPS</span>
+                <h2 class="text-3xl md:text-5xl font-black text-slate-900 dark:text-white">Dukandaar Ki Zubani</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Card 1 -->
+                <div
+                    class="p-8 rounded-3xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-gray-700 relative">
+                    <div class="text-6xl text-orange-200 absolute top-4 left-6 opacity-50">"</div>
+                    <p class="text-slate-700 dark:text-slate-300 italic text-lg relative z-10 mb-6 font-medium">
+                        "Pehle hisaab-kitaab karne mein rozana 2 ghante lagte thay. QuadStock se ab sab kuch automatic
+                        ho gaya hai. Meri expiry items ka nuksaan bilkul khatam ho gaya."
+                    </p>
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-slate-200 flex items-center justify-center text-xl">👨🏽
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-slate-900 dark:text-white">Rajesh Kumar</h4>
+                            <p class="text-xs text-primary font-bold uppercase">Rajesh General Store, Patna</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div
+                    class="p-8 rounded-3xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-gray-700 relative">
+                    <div class="text-6xl text-orange-200 absolute top-4 left-6 opacity-50">"</div>
+                    <p class="text-slate-700 dark:text-slate-300 italic text-lg relative z-10 mb-6 font-medium">
+                        "Clothing store ke liye sizes aur colors manage karna mushkil tha. Is app ne mera kaam asaan kar
+                        diya. Billing is super fast now!"
+                    </p>
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-slate-200 flex items-center justify-center text-xl">👩🏽
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-slate-900 dark:text-white">Suman Gupta</h4>
+                            <p class="text-xs text-primary font-bold uppercase">Fashion Hub, Muzaffarpur</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="py-24 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-200 dark:border-gray-800">
+        <div class="max-w-4xl mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-black text-slate-900 dark:text-white mb-4">Frequently Asked
+                    Questions</h2>
+                <p class="text-slate-600 dark:text-slate-400">Everything you need to know about QuadStock.</p>
+            </div>
+
+            <div class="space-y-4">
+                <!-- FAQ Item 1 -->
+                <div
+                    class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-gray-700 shadow-sm hover:shadow-md transition">
+                    <h4 class="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+                        <span class="text-primary">Q.</span> Is my shop data safe?
+                    </h4>
+                    <p class="text-slate-600 dark:text-slate-400 text-sm ml-6">
+                        Absolutely. We use bank-grade encryption to store your data. Your customer lists and sales
+                        records are private and only visible to you.
+                    </p>
+                </div>
+
+                <!-- FAQ Item 2 -->
+                <div
+                    class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-gray-700 shadow-sm hover:shadow-md transition">
+                    <h4 class="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+                        <span class="text-primary">Q.</span> Can I use it on my Mobile Phone?
+                    </h4>
+                    <p class="text-slate-600 dark:text-slate-400 text-sm ml-6">
+                        Yes! QuadStock is fully responsive. You can generate bills, check stock, and add items directly
+                        from your Android or iPhone without needing a computer.
+                    </p>
+                </div>
+
+                <!-- FAQ Item 3 -->
+                <div
+                    class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-gray-700 shadow-sm hover:shadow-md transition">
+                    <h4 class="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+                        <span class="text-primary">Q.</span> Do I need a thermal printer?
+                    </h4>
+                    <p class="text-slate-600 dark:text-slate-400 text-sm ml-6">
+                        Not mandatory. You can share digital bills via WhatsApp or SMS instantly. If you want to print
+                        physical receipts, we support all major thermal printers (2 inch & 3 inch) via USB or Bluetooth.
+                    </p>
+                </div>
+
+                <!-- FAQ Item 4 -->
+                <div
+                    class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-gray-700 shadow-sm hover:shadow-md transition">
+                    <h4 class="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+                        <span class="text-primary">Q.</span> Is there any hidden fee in free plan?
+                    </h4>
+                    <p class="text-slate-600 dark:text-slate-400 text-sm ml-6">
+                        No. The Starter plan is completely free for up to 500 items. You only pay if you upgrade to
+                        Premium plans for advanced features like Multi-Store management.
+                    </p>
+                </div>
+            </div>
+
+            <div class="text-center mt-12">
+                <p class="text-slate-500 text-sm mb-4">Still have questions?</p>
+                <a href="../Footer/contact.html"
+                    class="inline-flex items-center gap-2 text-primary font-bold hover:underline">
+                    Contact Support <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="py-24 bg-secondary relative overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 relative z-10">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-12 text-white">
+                <div class="text-center">
+                    <div class="text-5xl font-black mb-2 counter" data-target="100">0</div>
+                    <div class="text-xs font-bold opacity-60 uppercase tracking-widest text-primary">Indian Stores</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-5xl font-black mb-2 counter" data-target="45">0</div>
+                    <div class="text-xs font-bold opacity-60 uppercase tracking-widest text-primary">Time Saved %</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-5xl font-black mb-2 counter" data-target="1000">0</div>
+                    <div class="text-xs font-bold opacity-60 uppercase tracking-widest text-primary">Products Catalog
+                    </div>
+                </div>
+                <div class="text-center">
+                    <div class="text-5xl font-black mb-2 counter" data-target="1">0</div>
+                    <div class="text-xs font-bold opacity-60 uppercase tracking-widest text-primary">Click Billing</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-white pt-24 pb-8">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+                <div>
+                    <div class="flex items-center gap-2 mb-6">
+                        <span class="text-2xl font-black text-white">Quad<span class="text-primary">Stock</span></span>
+                    </div>
+                    <p class="text-slate-500 text-sm">Managing Kirana & Clothing business became easier than ever. Made
+                        with ❤️ in India.</p>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-6">Business Tools</h4>
+                    <ul class="text-slate-500 text-sm space-y-3">
+                        <li><a href="#" class="hover:text-primary transition">GST Billing Soft</a></li>
+                        <li><a href="#" class="hover:text-primary transition">Grocery Inventory</a></li>
+                        <li><a href="#" class="hover:text-primary transition">Garment Stock App</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-6">Quick Links</h4>
+                    <ul class="text-slate-500 text-sm space-y-3">
+                        <li><a href="../Footer/contact.html" class="hover:text-primary transition">Contact
+                                Support</a></li>
+                        <li><a href="../Footer/privacy-policy.html" class="hover:text-primary transition">Privacy
+                                Policy</a></li>
+                        <li><a href="../Footer/portfolio.html" class="hover:text-primary transition">Portfolio</a>
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-6">Contact</h4>
+                    <p class="text-slate-500 text-sm">Patna, Bihar, India<br>support@quadstock.in</p>
+                </div>
+            </div>
+            <div
+                class="text-center text-slate-700 text-[10px] font-bold tracking-[0.2em] border-t border-slate-800 pt-8">
+                POWERING THE BACKBONE OF INDIAN RETAIL
+            </div>
+        </div>
+    </footer>
+
+    <script src="../Shared/Utils/offline.js"></script>
+    <script src="landing.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="../Shared/Auth/guard.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuadStock - Inventory Command Center</title>
+    <!-- Fonts -->
+    <link rel="stylesheet" href="../Shared/Vendor/google-fonts/plus-jakarta-sans.css">
+    <!-- Icons -->
+    <link rel="stylesheet" href="../Shared/Vendor/font-awesome/css/all.min.css">
+    <!-- Global CSS -->
+    <link rel="stylesheet" href="../Shared/Styles/global.css">
+    <!-- CSS -->
+    <link rel="stylesheet" href="inventory.css">
+    <link rel="stylesheet" href="../Shared/Components/quad-modals.css">
+
+    <script src="../Shared/Vendor/html5-qrcode.min.js"></script>
+</head>
+
+<body>
+    <div class="layout-container">
+        <!-- Sidebar (Shared Structure) -->
+        <aside class="sidebar" id="sidebar-target">
+
+            <div class="brand">
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <h2 class="brand-text">QuadStock</h2>
+            </div>
+            <nav class="sidebar-menu">
+                <a href="../Ownerdashboard/dashboard.html" class="menu-item " title="Dashboard">
+                    <i class="fa-solid fa-house"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="../Analytics/analytics.html" class="menu-item " title="Analytics">
+                    <i class="fa-solid fa-chart-simple"></i>
+                    <span>Analytics</span>
+                </a>
+                <a href="../Query/query.html" class="menu-item " title="Query">
+                    <i class="fa-solid fa-clipboard-question"></i>
+                    <span>Query</span>
+                </a>
+                <a href="../Inventory/inventory.html" class="menu-item active" title="Inventory">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                    <span>Inventory</span>
+                </a>
+                <a href="../Employees/employees.html" class="menu-item " title="Employees">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Employees</span>
+                </a>
+                <a href="../smartexpiry/smartexpiry.html" class="menu-item " title="Smart Expiry">
+                    <i class="fa-solid fa-hourglass-end"></i>
+                    <span>Smart Expiry</span>
+                </a>
+
+                <a href="../Complain/complain.html" class="menu-item " title="Complaints">
+                    <div style="position:relative;">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span id="nav-badge-complain" class="nav-badge" style="display:none;">0</span>
+                    </div>
+                    <span>Complaints</span>
+                </a>
+                <a href="../Udhaar/udhaar.html" class="menu-item " title="Pending Payments">
+                    <i class="fa-solid fa-indian-rupee-sign"></i>
+                    <span>Udhaar/Pending</span>
+                </a>
+                <a href="../Settings/settings.html" class="menu-item " title="Settings">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Settings</span>
+                </a>
+                <a href="../landing/landing.html" class="menu-item" title="Logout">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Logout</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer-card">
+                <div class="support-illustration">
+                    <svg viewBox="0 0 100 100" class="illus-svg">
+                        <circle cx="50" cy="35" r="15" fill="#333" />
+                        <path d="M20,80 Q50,70 80,80 V100 H20 Z" fill="#333" />
+                        <rect x="15" y="45" width="25" height="15" rx="2" fill="#555" transform="rotate(-15 27 52)" />
+                    </svg>
+                </div>
+                <a href="../Footer/contact.html" class="btn-support" style="text-decoration: none; display: inline-block; text-align: center;">
+                    <i class="fa-regular fa-life-ring"></i> Support
+                </a>
+            </div>
+
+</aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <div class="top-bar">
+                <div class="header-left">
+                    <button id="mobile-sidebar-toggle" class="mobile-menu-btn">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div>
+                        <h1>Inventory Command Center</h1>
+                        <p class="subtitle">Real-time stock tracking, batch management, and expiry alerts.</p>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <button class="theme-toggle-btn" id="settings-btn" title="Settings">
+                        <i class="fa-solid fa-gear"></i>
+                    </button>
+                    <button class="theme-toggle-btn" id="theme-toggle">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+                    <div class="shop-name-container">
+                        <div
+                            style="width:32px; height:32px; border-radius:50%; background:var(--primary); color:white; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.8rem;">
+                            A</div>
+                        <span class="user-name">Admin</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 1. The Top Deck: Summary Cards -->
+            <div class="summary-deck">
+                <div class="summary-card">
+                    <div class="card-icon icon-blue">
+                        <i class="fa-solid fa-sack-dollar"></i>
+                    </div>
+                    <div class="card-info">
+                        <h3>Total Inventory Value</h3>
+                        <p class="card-value" id="val-total-value">₹0.00</p>
+                        <span class="card-hint">Based on Cost Price</span>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="card-icon icon-orange">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                    </div>
+                    <div class="card-info">
+                        <h3>Expiring Soon</h3>
+                        <p class="card-value" id="val-expiring-soon">0</p>
+                        <span class="card-hint">Within 30 days</span>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="card-icon icon-red">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <div class="card-info">
+                        <h3>Low Stock Alerts</h3>
+                        <p class="card-value" id="val-low-stock">0</p>
+                        <span class="card-hint">Below reorder point</span>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="card-icon icon-red">
+                        <i class="fa-solid fa-circle-xmark"></i>
+                    </div>
+                    <div class="card-info">
+                        <h3>Out of Stock</h3>
+                        <p class="card-value" id="val-out-of-stock">0</p>
+                        <span class="card-hint">Items with 0 quantity</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. The Control Bar: Search & Advanced Filters -->
+            <div class="control-bar-container">
+                <div class="control-bar-top">
+                    <div class="search-box global-search">
+                        <i class="fa-solid fa-search"></i>
+                        <input type="text" id="inventory-search"
+                            placeholder="Search by Product, Brand, or Batch/SKU...">
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn-secondary" id="toggle-view-btn" title="Toggle Full View">
+                            <i class="fa-solid fa-expand"></i>
+                        </button>
+                        <button class="btn-secondary" id="export-btn">
+                            <i class="fa-solid fa-file-export"></i> Export CSV
+                        </button>
+                        <input type="file" id="csv-import" style="display:none;" accept=".csv">
+                        <button class="btn-secondary" id="import-btn">
+                            <i class="fa-solid fa-file-import"></i> Import CSV
+                        </button>
+                        <button class="btn-primary" id="add-product-btn">
+                            <i class="fa-solid fa-plus"></i> Add Product
+                        </button>
+                    </div>
+                </div>
+
+                <div class="control-bar-filters">
+                    <select id="filter-category" class="filter-select">
+                        <option value="">All Categories</option>
+                        <!-- Populated via JS -->
+                    </select>
+                    <select id="filter-brand" class="filter-select">
+                        <option value="">All Brands</option>
+                        <!-- Populated via JS -->
+                    </select>
+                    <select id="filter-stock" class="filter-select">
+                        <option value="">All Stock Status</option>
+                        <option value="in-stock">In Stock</option>
+                        <option value="low-stock">Low Stock</option>
+                        <option value="out-of-stock">Out of Stock</option>
+                    </select>
+                    <select id="filter-expiry" class="filter-select">
+                        <option value="">All Expiry Status</option>
+                        <option value="good">Good</option>
+                        <option value="expiring-soon">Expiring Soon (30 Days)</option>
+                        <option value="expired">Expired</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Inventory Table -->
+            <div class="card table-card">
+                <div class="table-responsive">
+                    <table class="inventory-table">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Product Details</th>
+                                <th>Category / Brand</th>
+                                <th>Batch Info</th>
+                                <th>Stock</th>
+                                <th>Pricing</th>
+                                <th>Expiry</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-table-body">
+                            <!-- Rows will be populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="empty-state" class="empty-state" style="display: none;">
+                    <i class="fa-solid fa-box-open"></i>
+                    <p>No products found matching your criteria.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 3. The "+ Add Product" Form Layout (Sectioned Modal) -->
+    <div id="product-modal" class="modal">
+        <div class="modal-content large-modal">
+            <div class="modal-header">
+                <h3 id="modal-title">Add New Product</h3>
+                <button class="close-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body custom-scrollbar">
+                <form id="product-form">
+                    <input type="hidden" id="product-id">
+
+                    <!-- Section A: Basic Details -->
+                    <div class="form-section">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h4 class="section-title" style="margin-bottom: 0;"><i class="fa-solid fa-box"></i> Basic
+                                Details</h4>
+                            <div class="barcode-input-wrapper" style="display: flex; gap: 8px; align-items: center;">
+                                <i class="fa-solid fa-barcode" style="color: var(--primary);"></i>
+                                <input type="text" id="product-barcode" placeholder="Hardware Scan Here"
+                                    style="width: 180px; padding: 0.4rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem;">
+                            </div>
+                        </div>
+
+
+                        <!-- 1. Category & Sub-Category (First) -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Category</label>
+                                <select id="product-type" required>
+                                    <option value="" disabled selected>Select Category</option>
+                                    <option value="Kirana">Kirana (Grocery)</option>
+                                    <option value="Clothes">Clothes</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Sub-Category</label>
+                                <div class="input-with-action">
+                                    <input type="text" id="product-category" list="category-list"
+                                        placeholder="Select or type new..." required>
+                                    <datalist id="category-list"></datalist>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. Product Name & Brand -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Product Name <span class="required">*</span></label>
+                                <input type="text" id="product-name" required placeholder="e.g. Tata Salt">
+                            </div>
+                            <div class="form-group">
+                                <label>Brand</label>
+                                <div class="input-with-action">
+                                    <input type="text" id="product-brand" list="brand-list"
+                                        placeholder="Select or type brand (e.g. Amul)">
+                                    <datalist id="brand-list"></datalist>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Volume / Weight</label>
+                                <input type="text" id="product-weight" placeholder="e.g. 1Kg, 500ml">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Product Description</label>
+                            <textarea id="product-desc" rows="3"
+                                placeholder="Enter product details, key features, etc."></textarea>
+                        </div>
+
+
+                        <!-- 3. Image Upload Options -->
+                        <div class="form-group">
+                            <label>Product Image</label>
+
+                            <!-- Tab-like layout for options or stacked -->
+                            <div class="image-controls" style="display:flex; flex-direction:column; gap:8px;">
+                                <input type="url" id="product-image" placeholder="Paste Image URL">
+
+                                <div style="display:flex; gap:10px; align-items:center;">
+                                    <span style="font-size:0.8rem; color:var(--text-secondary);">OR</span>
+                                    <input type="file" id="product-image-file" accept="image/*" style="padding:0.4rem;">
+                                </div>
+
+                                <button type="button" id="btn-camera" class="btn-secondary"
+                                    style="justify-content:center;">
+                                    <i class="fa-solid fa-camera"></i> Take Photo
+                                </button>
+                            </div>
+
+                            <!-- Camera & Preview Area -->
+                            <div id="media-container" style="margin-top:10px; text-align:center;">
+                                <!-- Live Camera -->
+                                <div id="camera-interface" style="display:none;">
+                                    <video id="camera-video" width="100%" autoplay playsinline
+                                        style="border-radius:8px; border:1px solid var(--border-color); width: 100%; max-width: 300px;"></video>
+                                    <canvas id="camera-canvas" style="display:none;"></canvas>
+                                    <div class="camera-actions"
+                                        style="margin-top:8px; display:flex; justify-content:center; gap:10px;">
+                                        <button type="button" id="btn-capture"
+                                            class="btn-primary small-btn">Capture</button>
+                                        <button type="button" id="btn-stop-camera"
+                                            class="btn-secondary small-btn">Cancel</button>
+                                    </div>
+                                </div>
+
+                                <!-- Static Preview -->
+                                <div id="preview-interface"
+                                    style="display:none; position:relative; width: fit-content; margin: 0 auto;">
+                                    <img id="image-preview" src=""
+                                        style="max-height:150px; border-radius:8px; border:1px solid var(--border-color); display:block;">
+                                    <button type="button" id="btn-clear-image" title="Remove Image"
+                                        style="position:absolute; top:-8px; right:-8px; background:var(--c-red-text); color:white; border:none; border-radius:50%; width:24px; height:24px; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+                                        &times;
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+
+                        <!-- Section B: Stock & Smart Expiry Tracking -->
+                        <div id="section-stock" class="form-section">
+                            <h4 class="section-title"><i class="fa-solid fa-boxes-stacked"></i> Stock & Batch</h4>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Batch / Lot Number <span class="required">*</span></label>
+                                    <div class="input-with-action">
+                                        <input type="text" id="batch-number" required placeholder="BAT-001">
+                                        <button type="button" id="btn-scan-barcode" class="btn-icon"
+                                            title="Scan Barcode">
+                                            <i class="fa-solid fa-barcode"></i>
+                                        </button>
+                                        <button type="button" id="btn-gen-batch" class="btn-icon"
+                                            title="Generate Batch #"><i
+                                                class="fa-solid fa-wand-magic-sparkles"></i></button>
+                                    </div>
+                                    <!-- Barcode Scanner Container -->
+                                    <div id="barcode-reader"
+                                        style="width: 100%; display:none; margin-top:10px; border-radius:8px; overflow:hidden;">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Stock Quantity <span class="required">*</span></label>
+                                    <div class="input-with-unit">
+                                        <input type="number" id="product-quantity" required min="0" placeholder="0">
+                                        <select id="product-unit" class="unit-select">
+                                            <!-- Populated via JS -->
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+
+
+
+                            <!-- Section for Grocery: MFD, EXP -->
+                            <div id="grocery-dates" class="form-row">
+                                <div class="form-group">
+                                    <label>MFD Date</label>
+                                    <input type="date" id="mfd-date">
+                                </div>
+                                <div class="form-group">
+                                    <label>Expiry Date (EXP)</label>
+                                    <input type="date" id="exp-date">
+                                    <small class="field-hint" id="expiry-hint">Select date to see alert status</small>
+                                </div>
+                            </div>
+
+                            <!-- Section for Clothes: Size & Color -->
+                            <div id="clothes-attributes" class="form-row" style="display:none;">
+                                <div class="form-group">
+                                    <label>Size</label>
+                                    <select id="product-size">
+                                        <option value="" selected>Select Size</option>
+                                        <option value="XS">XS</option>
+                                        <option value="S">S</option>
+                                        <option value="M">M</option>
+                                        <option value="L">L</option>
+                                        <option value="XL">XL</option>
+                                        <option value="XXL">XXL</option>
+                                        <option value="Free Size">Free Size</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Color</label>
+                                    <div class="input-with-action">
+                                        <input type="text" id="product-color" list="color-list" placeholder="e.g. Red">
+                                        <datalist id="color-list">
+                                            <option value="Red">
+                                            <option value="Blue">
+                                            <option value="Green">
+                                            <option value="Black">
+                                            <option value="White">
+                                            <option value="Yellow">
+                                        </datalist>
+                                        <input type="color" id="color-picker"
+                                            style="width:40px; padding:2px; height:42px; cursor:pointer;"
+                                            title="Pick Color">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Low Stock Alert Level</label>
+                                <input type="number" id="reorder-point" min="0" value="10"
+                                    placeholder="Alert when stock < X">
+                            </div>
+                        </div>
+
+                        <!-- Section C: Pricing & Analytics -->
+                        <div id="section-pricing" class="form-section">
+                            <h4 class="section-title"><i class="fa-solid fa-tags"></i> Pricing</h4>
+                            <div class="form-row" style="grid-template-columns: repeat(3, 1fr);">
+                                <div class="form-group">
+                                    <label>Purchase Price (PP)</label>
+                                    <input type="number" id="purchase-price" min="0" step="0.01" placeholder="0.00">
+                                </div>
+                                <div class="form-group">
+                                    <label>Cost Price (CP)</label>
+                                    <input type="number" id="cost-price" required min="0" step="0.01"
+                                        placeholder="0.00">
+                                </div>
+                                <div class="form-group">
+                                    <label>Selling Price (SP)</label>
+                                    <input type="number" id="selling-price" required min="0" step="0.01"
+                                        placeholder="0.00">
+                                </div>
+                            </div>
+                            <div class="margin-display" style="display: flex; justify-content: flex-end; gap: 20px;">
+                                <span>Est. Profit: <strong id="profit-val">-</strong></span>
+                                <span>Est. Margin: <strong id="margin-val">-</strong></span>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <div class="left-actions">
+                                <button type="button" id="btn-split-batch" class="btn-secondary small-btn"
+                                    title="Add another batch for this product">+ Split Batch (Add Another)</button>
+                            </div>
+                            <div class="right-actions">
+                                <button type="button" class="btn-secondary close-modal-btn">Cancel</button>
+                                <button type="submit" class="btn-primary">Save Product</button>
+                            </div>
+                        </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content" style="max-width: 400px; width: 90%;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-gear"></i> System Settings</h3>
+                <button class="close-modal"
+                    onclick="document.getElementById('settings-modal').style.display='none'">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h4 class="section-title">Expiry Alerts (Days)</h4>
+                <div class="form-group">
+                    <label>Alert (Caution)</label>
+                    <input type="number" id="setting-expiry-alert" value="30">
+                    <small style="color:var(--text-secondary); display:block; margin-top:2px;">Show orange icon when
+                        days left <= this</small>
+                </div>
+                <div class="form-group">
+                    <label>Warning (Urgent)</label>
+                    <input type="number" id="setting-expiry-warning" value="14">
+                </div>
+                <div class="form-group">
+                    <label>Critical (Last Week)</label>
+                    <input type="number" id="setting-expiry-critical" value="7">
+                </div>
+                <div class="form-actions" style="margin-top: 20px; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn-secondary"
+                        onclick="document.getElementById('settings-modal').style.display='none'">Cancel</button>
+                    <button type="button" class="btn-primary" id="btn-save-settings">Save Settings</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" class="modal">
+        <div class="modal-content" style="max-width: 400px; text-align: center; padding: 2rem;">
+            <div style="font-size: 3rem; color: var(--c-red-text); margin-bottom: 1rem;">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 style="margin-bottom: 0.5rem;">Delete Batch?</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                Are you sure you want to delete this batch? This action cannot be undone.
+            </p>
+            <div class="form-actions"
+                style="justify-content: center; gap: 1rem; border-top: none; padding-top: 0; margin-top: 0;">
+                <button class="btn-secondary close-delete-modal">Cancel</button>
+                <button class="btn-primary" id="confirm-delete-btn"
+                    style="background: var(--c-red-text); color: white;">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../Shared/Utils/offline.js"></script>
+    <script src="../Shared/Auth/rbac.js"></script>
+    <script src="../Shared/Components/quad-modals.js"></script>
+    <script src="inventory.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const role = urlParams.get('role') || 'owner';
+
+            // Update Dashboard Link
+            const dashboardLink = document.querySelector('a[title="Dashboard"]');
+            if (dashboardLink) {
+                if (role === 'manager') {
+                    dashboardLink.href = "../Managerdashboard/manager_dashboard.html";
+                } else {
+                    dashboardLink.href = "../Ownerdashboard/dashboard.html";
+                }
+            }
+
+            // Update All Role-Dependent Links
+            const modules = ['analytics', 'query', 'inventory', 'smartexpiry', 'employees', 'complain', 'udhaar', 'settings'];
+            modules.forEach(mod => {
+                const link = document.querySelector(`a[href*="${mod}.html"]`);
+                if (link) {
+                    const currentHref = link.getAttribute('href');
+                    // Avoid infinite loop if href is strictly equal to current page without query params
+                    // But we are in inventory.html so inventory link is usually just '#' or 'inventory.html'
+                    if (currentHref.includes('?')) {
+                        if (!currentHref.includes('role=')) link.setAttribute('href', `${currentHref}&role=${role}`);
+                        else link.setAttribute('href', currentHref.replace(/role=[^&]*/, `role=${role}`));
+                    } else {
+                        link.setAttribute('href', `${currentHref}?role=${role}`);
+                    }
+                }
+            });
+
+            if (role === 'manager') {
+                // Update Profile Info
+                const userName = document.querySelector('.user-profile .user-name');
+                if (userName) {
+                    userName.textContent = "Manager";
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

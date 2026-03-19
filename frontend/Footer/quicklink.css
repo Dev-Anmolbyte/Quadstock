@@ -1,0 +1,332 @@
+/* =========================================
+   GLOBAL VARIABLES & THEME (Shared across components)
+   ========================================= */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+    --primary: #F47C25;
+    /* Indian Saffron */
+    --primary-dark: #D66010;
+    --accent: #138808;
+    /* India Green */
+    --bg-light: #FFFBF5;
+    /* Creamy Off-white */
+    --text-main: #372F2A;
+    --text-muted: #70655F;
+    --bg-dark: #1C1917;
+    /* Warm Black */
+    --text-light: #FDE8D8;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+body {
+    background-color: var(--bg-light);
+    color: var(--text-main);
+    transition: background-color 0.3s ease, color 0.3s ease;
+    overflow-x: hidden;
+}
+
+body.dark {
+    background-color: var(--bg-dark);
+    color: var(--text-light);
+
+    /* VITAL: Redefine variables for dark mode so inline styles update automatically */
+    --text-muted: #A8A29E;
+    /* Warm Gray */
+    --text-main: #FDE8D8;
+    --bg-light: #1C1917;
+    /* Map light bg to dark for inversions if needed */
+}
+
+/* Explicit text color for headings/paragraphs in dark mode */
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4 {
+    color: var(--text-light);
+}
+
+.dark p,
+.dark label,
+.dark span {
+    color: #cbd5e1;
+    /* Slate 300 for readability */
+}
+
+/* Common Header/Nav Styles helper */
+.component-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+.dark .component-nav {
+    background: rgba(15, 23, 42, 0.8);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.nav-brand {
+    font-size: 1.5rem;
+    font-weight: 800;
+}
+
+.nav-brand span {
+    color: var(--primary);
+}
+
+.back-link {
+    text-decoration: none;
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: color 0.2s;
+}
+
+.back-link:hover {
+    color: var(--primary);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* =========================================
+   CONTACT SUPPORT PAGE STYLES
+   ========================================= */
+.contact-section {
+    padding: 4rem 0;
+    text-align: center;
+}
+
+.contact-hero h1 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.contact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 3rem;
+}
+
+.contact-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease;
+}
+
+.dark .contact-card {
+    background: #1e293b;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.contact-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--primary);
+}
+
+.icon-box {
+    width: 60px;
+    height: 60px;
+    background: rgba(251, 146, 60, 0.1);
+    color: var(--primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin: 0 auto 1.5rem;
+}
+
+/* Contact Form */
+.support-form {
+    max-width: 600px;
+    margin: 4rem auto;
+    background: white;
+    padding: 2rem;
+    border-radius: 1.5rem;
+}
+
+/* Support Form Dark Mode */
+.dark .support-form {
+    background: #1e293b;
+    border: 1px solid #334155;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    color: var(--text-main);
+    outline: none;
+    transition: all 0.2s;
+}
+
+/* Form Control Dark Mode */
+.dark .form-control {
+    background: #0f172a;
+    border-color: #334155;
+    color: var(--text-light);
+}
+
+.form-control:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(251, 146, 60, 0.15);
+}
+
+.btn-send {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    width: 100%;
+}
+
+.btn-send:hover {
+    background: var(--primary-dark);
+}
+
+/* =========================================
+   PRIVACY POLICY PAGE STYLES
+   ========================================= */
+.policy-content {
+    max-width: 800px;
+    margin: 4rem auto;
+    line-height: 1.7;
+}
+
+.policy-content h1 {
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    color: var(--primary);
+}
+
+.policy-section {
+    margin-bottom: 2.5rem;
+}
+
+.policy-section h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.policy-section p {
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+}
+
+.dark .policy-section p {
+    color: #94a3b8;
+}
+
+/* =========================================
+   PORTFOLIO PAGE STYLES
+   ========================================= */
+.portfolio-header {
+    text-align: center;
+    padding: 4rem 0;
+}
+
+.portfolio-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 2rem;
+    padding-bottom: 4rem;
+}
+
+.project-card {
+    border-radius: 1rem;
+    overflow: hidden;
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.dark .project-card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    /* Increased visibility */
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+}
+
+.project-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.project-thumb {
+    height: 200px;
+    background: #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    font-size: 3rem;
+}
+
+.dark .project-thumb {
+    background: #334155;
+    color: var(--text-muted);
+    /* Use the updated light variable */
+}
+
+.project-info {
+    padding: 1.5rem;
+}
+
+.project-info h3 {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.project-tags {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.tag {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    background: rgba(251, 146, 60, 0.1);
+    color: var(--primary);
+    font-weight: 600;
+}

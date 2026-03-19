@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="../Shared/Auth/guard.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuadStock - Employee Management</title>
+    <link href="../Shared/Vendor/google-fonts/plus-jakarta-sans.css"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../Shared/Vendor/font-awesome/css/all.min.css">
+    <link rel="stylesheet" href="../Shared/Styles/global.css">
+    <link rel="stylesheet" href="../Ownerdashboard/dashboard.css" id="dashboard-css">
+    <link rel="stylesheet" href="employees.css">
+    <link rel="stylesheet" href="staff_details.css">
+    <link rel="stylesheet" href="../Shared/Components/quad-modals.css">
+</head>
+
+<body>
+
+    <div class="layout-container">
+        <!-- Sidebar Injection Point -->
+        <aside class="sidebar" id="sidebar-target">
+
+            <div class="brand">
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <h2 class="brand-text">QuadStock</h2>
+            </div>
+            <nav class="sidebar-menu">
+                <a href="../Ownerdashboard/dashboard.html" class="menu-item " title="Dashboard">
+                    <i class="fa-solid fa-house"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="../Analytics/analytics.html" class="menu-item " title="Analytics">
+                    <i class="fa-solid fa-chart-simple"></i>
+                    <span>Analytics</span>
+                </a>
+                <a href="../Query/query.html" class="menu-item " title="Query">
+                    <i class="fa-solid fa-clipboard-question"></i>
+                    <span>Query</span>
+                </a>
+                <a href="../Inventory/inventory.html" class="menu-item " title="Inventory">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                    <span>Inventory</span>
+                </a>
+                <a href="../Employees/employees.html" class="menu-item active" title="Employees">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Employees</span>
+                </a>
+                <a href="../smartexpiry/smartexpiry.html" class="menu-item " title="Smart Expiry">
+                    <i class="fa-solid fa-hourglass-end"></i>
+                    <span>Smart Expiry</span>
+                </a>
+
+                <a href="../Complain/complain.html" class="menu-item " title="Complaints">
+                    <div style="position:relative;">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span id="nav-badge-complain" class="nav-badge" style="display:none;">0</span>
+                    </div>
+                    <span>Complaints</span>
+                </a>
+                <a href="../Udhaar/udhaar.html" class="menu-item " title="Pending Payments">
+                    <i class="fa-solid fa-indian-rupee-sign"></i>
+                    <span>Udhaar/Pending</span>
+                </a>
+                <a href="../Settings/settings.html" class="menu-item " title="Settings">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Settings</span>
+                </a>
+                <a href="../landing/landing.html" class="menu-item" title="Logout">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Logout</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer-card">
+                <div class="support-illustration">
+                    <svg viewBox="0 0 100 100" class="illus-svg">
+                        <circle cx="50" cy="35" r="15" fill="#333" />
+                        <path d="M20,80 Q50,70 80,80 V100 H20 Z" fill="#333" />
+                        <rect x="15" y="45" width="25" height="15" rx="2" fill="#555" transform="rotate(-15 27 52)" />
+                    </svg>
+                </div>
+                <a href="../Footer/contact.html" class="btn-support" style="text-decoration: none; display: inline-block; text-align: center;">
+                    <i class="fa-regular fa-life-ring"></i> Support
+                </a>
+            </div>
+
+</aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="header-row">
+                <div class="page-title">
+                    <h1>Employee Management</h1>
+                    <p class="text-sm text-muted">Manage access and permissions for your staff.</p>
+                </div>
+                <div class="header-actions">
+                    <button id="theme-toggle" class="theme-toggle-btn"
+                        style="margin-right: 1rem; background:none; border:none; cursor:pointer; font-size:1.2rem; color:var(--text-muted);">
+                        <!-- Icon injected by JS -->
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+                    <button id="btn-add-employee" class="add-btn">
+                        <i class="fa-solid fa-plus"></i> Add Employee
+                    </button>
+                    <!-- User Profile Injection Point -->
+                    <div id="user-profile-target" style="display:inline-block; margin-left:1rem;"></div>
+                </div>
+            </header>
+
+            <!-- Stats Row -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-icon blue-bg">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="label">Total Employees</div>
+                        <h3 id="stat-total">0</h3>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green-bg">
+                        <i class="fa-solid fa-user-check"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="label">Present Today</div>
+                        <h3 id="stat-present">0</h3>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon red-bg">
+                        <i class="fa-solid fa-user-xmark"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="label">Absent / Leave</div>
+                        <h3 id="stat-absent">0</h3>
+                    </div>
+                </div>
+                <!-- On Break Card -->
+                <div class="stat-card">
+                    <div class="stat-icon orange-bg">
+                        <i class="fa-solid fa-mug-hot"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="label">On Break</div>
+                        <h3 id="stat-break">0</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Employee Grid -->
+            <div id="employee-grid" class="employee-grid">
+                <!-- Employee Cards Injected Here -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Employee Modal -->
+    <div id="modal-overlay" class="modal-overlay">
+        <div class="modal-content">
+            <h2 class="text-xl font-bold mb-4">Add New Employee</h2>
+            <form id="add-employee-form">
+
+                <!-- Section 1: Personal Details -->
+                <h3 class="text-sm font-bold text-muted uppercase mb-3"
+                    style="border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">Personal Details</h3>
+                <div class="grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Full Name <span class="text-red-500">*</span></label>
+                        <input type="text" id="emp-name" class="form-input" placeholder="e.g. Rahul Kumar" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Employee Photo</label>
+                        <input type="file" id="emp-photo" class="form-input" accept="image/*">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Aadhaar Number (Optional)</label>
+                    <input type="text" id="emp-aadhaar" class="form-input" placeholder="XXXX-XXXX-XXXX">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Address</label>
+                    <textarea id="emp-address" class="form-input" rows="2"
+                        placeholder="Full residential address"></textarea>
+                </div>
+
+                <!-- Section 2: Contact Info -->
+                <h3 class="text-sm font-bold text-muted uppercase mb-3 mt-4"
+                    style="border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">Contact Information</h3>
+                <div class="grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Phone Number <span class="text-red-500">*</span></label>
+                        <input type="tel" id="emp-phone" class="form-input" placeholder="10-digit mobile"
+                            pattern="[0-9]{10}" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '');"
+                            required title="Please enter exactly 10 digits">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email Address <span class="text-red-500">*</span></label>
+                        <input type="email" id="emp-email" class="form-input" placeholder="email@example.com" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Emergency Contact</label>
+                    <input type="tel" id="emp-emergency" class="form-input" placeholder="Parent/Spouse Name & Number">
+                </div>
+
+                <!-- Section 3: Job & Work Details -->
+                <h3 class="text-sm font-bold text-muted uppercase mb-3 mt-4"
+                    style="border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">Job Details</h3>
+                <div class="grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Role <span class="text-red-500">*</span></label>
+                        <select id="emp-role" class="form-select" required>
+                            <option value="staff">Sales Staff</option>
+                            <option value="manager">Manager</option>
+                            <option value="inventory_manager">Inventory Manager</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Monthly Salary (₹)</label>
+                        <input type="number" id="emp-salary" class="form-input" placeholder="e.g. 15000">
+                    </div>
+                </div>
+
+                <div class="grid-3" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Shift Start</label>
+                        <div style="display:flex; gap:0.5rem;">
+                            <input type="time" id="emp-shift-start" class="form-input" style="flex:1;">
+                            <select id="emp-audit-start" class="form-select" style="width: auto; padding-right: 2rem;">
+                                <option value="AM" selected>AM</option>
+                                <option value="PM">PM</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Shift End</label>
+                        <div style="display:flex; gap:0.5rem;">
+                            <input type="time" id="emp-shift-end" class="form-input" style="flex:1;">
+                            <select id="emp-audit-end" class="form-select" style="width: auto; padding-right: 2rem;">
+                                <option value="AM">AM</option>
+                                <option value="PM" selected>PM</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Target Hours</label>
+                        <input type="number" id="emp-hours" class="form-input" value="9" readonly
+                            style="background: var(--bg-light);">
+                    </div>
+                </div>
+
+                <!-- Section 4: Login Credentials -->
+                <h3 class="text-sm font-bold text-muted uppercase mb-3 mt-4"
+                    style="border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">Login Credentials</h3>
+                <div class="form-group">
+                    <label class="form-label">Login Password</label>
+                    <input type="text" id="emp-password" class="form-input"
+                        placeholder="Leave empty for default (123456)">
+                    <p class="text-xs text-muted mt-1">If set to default, the employee will be prompted to change it at
+                        their first login.</p>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" id="btn-cancel" class="action-btn">Cancel</button>
+                    <button type="submit" class="action-btn"
+                        style="background:var(--primary); color:white; border:none;">Create Employee</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Staff 360 / Detail Modal -->
+    <div id="details-modal-overlay" class="details-modal-overlay">
+        <div class="details-modal-container">
+            <!-- Modal Header -->
+            <header class="details-header">
+                <div class="staff-profile-summary">
+                    <div id="detail-header-initial" class="avatar"
+                        style="width: 80px; height: 80px; font-size: 2rem; border-radius: 20px; display: flex; align-items: center; justify-content: center; overflow: hidden; background-color: var(--primary-light);">
+                        ?</div>
+                    <div class="staff-basic-info">
+                        <h2 id="detail-header-name">Employee Name</h2>
+                        <p><span id="detail-header-id">EMP-001</span> • <span id="detail-header-role">Role</span></p>
+                    </div>
+                </div>
+                <div class="header-controls">
+                    <button id="maximize-details-btn" class="close-details-btn" title="Maximize">
+                        <i class="fa-solid fa-expand"></i>
+                    </button>
+                    <button id="close-details-btn" class="close-details-btn" title="Close">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Navigation Bar (Hidden except in tab-mode/fullscreen) -->
+            <div class="tab-nav-bar">
+                <div class="section-tab-header" data-tab="0">
+                    <i class="fa-solid fa-user-gear"></i>
+                    <h3>Details</h3>
+                </div>
+                <div class="section-tab-header" data-tab="1">
+                    <i class="fa-solid fa-calendar-check"></i>
+                    <h3>Attendance</h3>
+                </div>
+                <div class="section-tab-header" data-tab="2">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <h3>Sales</h3>
+                </div>
+                <div class="section-tab-header" data-tab="3">
+                    <i class="fa-solid fa-rocket"></i>
+                    <h3>Actions</h3>
+                </div>
+            </div>
+
+            <!-- Three Section Row -->
+            <div class="details-sections-row">
+                <!-- Section 1: Details -->
+                <div class="detail-section-col">
+                    <div class="section-tab-header">
+                        <i class="fa-solid fa-user-gear"></i>
+                        <h3>Profile Details</h3>
+                    </div>
+                    <div class="section-body">
+                        <form id="edit-staff-form">
+                            <div class="edit-staff-grid">
+                                <div class="edit-form-group">
+                                    <label class="edit-form-label">Full Name</label>
+                                    <input type="text" id="edit-name" class="edit-form-input">
+                                </div>
+                                <div class="edit-form-group">
+                                    <label class="edit-form-label">Phone Number</label>
+                                    <input type="tel" id="edit-phone" class="edit-form-input" maxlength="10">
+                                </div>
+                                <div class="edit-form-group">
+                                    <label class="edit-form-label">Email Address</label>
+                                    <input type="email" id="edit-email" class="edit-form-input">
+                                </div>
+                                <div class="edit-form-group">
+                                    <label class="edit-form-label">Aadhaar Number</label>
+                                    <input type="text" id="edit-aadhaar" class="edit-form-input">
+                                </div>
+                                <div class="edit-form-group">
+                                    <label class="edit-form-label">Role</label>
+                                    <select id="edit-role" class="edit-form-input">
+                                        <option value="staff">Sales Staff</option>
+                                        <option value="manager">Manager</option>
+                                        <option value="inventory_manager">Inventory Manager</option>
+                                    </select>
+                                </div>
+                                <div class="edit-form-group">
+                                    <label class="edit-form-label">Monthly Salary (₹)</label>
+                                    <input type="number" id="edit-salary" class="edit-form-input">
+                                </div>
+                                <div class="edit-form-group full-width">
+                                    <label class="edit-form-label">Address</label>
+                                    <textarea id="edit-address" class="edit-form-input" rows="3"></textarea>
+                                </div>
+                                <div class="edit-form-group full-width" style="margin-top: 1rem;">
+                                    <button type="button" id="btn-generate-payslip" class="btn-primary-action"
+                                        style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                                        <i class="fa-solid fa-file-invoice-dollar"></i> Generate Monthly Payslip
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Section 2: Attendance -->
+                <div class="detail-section-col">
+                    <div class="section-tab-header">
+                        <i class="fa-solid fa-calendar-check"></i>
+                        <h3>Attendance History</h3>
+                    </div>
+                    <div class="section-body no-scrollbar">
+                        <div class="attendance-wrapper">
+                            <!-- Calendar Header -->
+                            <div class="calendar-header">
+                                <h4 id="calendar-month-year">February 2025</h4>
+                                <div class="calendar-nav">
+                                    <button type="button" id="prev-month" class="cal-nav-btn"><i
+                                            class="fa-solid fa-chevron-left"></i></button>
+                                    <button type="button" id="next-month" class="cal-nav-btn"><i
+                                            class="fa-solid fa-chevron-right"></i></button>
+                                </div>
+                            </div>
+
+                            <!-- New: Monthly Quick Stats -->
+                            <div class="attendance-monthly-stats">
+                                <div class="month-stat-card present">
+                                    <span class="stat-val" id="month-present">0</span>
+                                    <span class="stat-label">Present</span>
+                                </div>
+                                <div class="month-stat-card absent">
+                                    <span class="stat-val" id="month-absent">0</span>
+                                    <span class="stat-label">Absent</span>
+                                </div>
+                                <div class="month-stat-card late">
+                                    <span class="stat-val" id="month-late">0</span>
+                                    <span class="stat-label">Late</span>
+                                </div>
+
+                                <!-- Attendance Timeline (Fix Task 5 - New Feature) -->
+                                <div class="attendance-timeline-container" style="margin-top: 1.5rem;">
+                                    <h4 style="font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-secondary);">
+                                        Daily Timeline</h4>
+                                    <div id="attendance-timeline" class="attendance-timeline"
+                                        style="height: 60px; background: var(--bg-light); border-radius: 8px; position: relative; overflow: hidden;">
+                                        <p class="empty-detail-msg" style="padding-top: 20px;">Select a date to view
+                                            timeline</p>
+                                    </div>
+                                    <div class="timeline-legend"
+                                        style="display: flex; gap: 1rem; margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-secondary);">
+                                        <span><span class="legend-dot" style="background: var(--primary);"></span>
+                                            Working</span>
+                                        <span><span class="legend-dot" style="background: var(--c-orange-text);"></span>
+                                            Break</span>
+                                    </div>
+                                </div>
+                                <div class="month-stat-card holiday">
+                                    <span class="stat-val" id="month-holiday">4</span>
+                                    <span class="stat-label">Holiday</span>
+                                </div>
+                            </div>
+
+                            <!-- Calendar Grid -->
+                            <div class="calendar-grid">
+                                <div class="day-name">Sun</div>
+                                <div class="day-name">Mon</div>
+                                <div class="day-name">Tue</div>
+                                <div class="day-name">Wed</div>
+                                <div class="day-name">Thu</div>
+                                <div class="day-name">Fri</div>
+                                <div class="day-name">Sat</div>
+                                <div id="calendar-days" class="calendar-days-container"></div>
+                            </div>
+
+                            <!-- Day Details Section -->
+                            <div id="attendance-day-details" class="attendance-day-details">
+                                <div class="day-details-header">
+                                    <span id="selected-day-name">Select a date</span>
+                                    <span id="selected-date-full">--/--/----</span>
+                                </div>
+                                <div id="day-stats-content" class="day-stats-content">
+                                    <!-- Dynamic content will go here -->
+                                    <p class="empty-detail-msg">Select a date to view punch logs</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 3: Sales -->
+                <div class="detail-section-col">
+                    <div class="section-tab-header">
+                        <i class="fa-solid fa-chart-line"></i>
+                        <h3>Sales Performance</h3>
+                    </div>
+                    <div class="section-body">
+                        <div class="placeholder-view">
+                            <i class="fa-solid fa-money-bill-trend-up"></i>
+                            <h4>Sales Analytics</h4>
+                            <p>Individual targets and performance.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 4: Actions (New) -->
+                <div class="detail-section-col">
+                    <div class="section-tab-header">
+                        <i class="fa-solid fa-rocket"></i>
+                        <h3>Actions</h3>
+                    </div>
+                    <div class="section-body no-scrollbar">
+                        <div class="actions-wrapper">
+
+                            <!-- Role Management Card -->
+                            <div class="action-card">
+                                <div class="action-header">
+                                    <div class="action-icon blue">
+                                        <i class="fa-solid fa-user-gear"></i>
+                                    </div>
+                                    <div class="action-text">
+                                        <h4>Change Role</h4>
+                                        <p>Modify system access level.</p>
+                                    </div>
+                                </div>
+                                <div class="action-controls">
+                                    <select id="modal-role-select" class="quad-select">
+                                        <option value="staff">Staff</option>
+                                        <option value="manager">Manager</option>
+                                    </select>
+                                    <button id="btn-update-role-modal" class="btn-primary-action">Update</button>
+                                </div>
+                            </div>
+
+                            <!-- Payslip Generation Card -->
+                            <div class="action-card">
+                                <div class="action-header">
+                                    <div class="action-icon green">
+                                        <i class="fa-solid fa-file-invoice-dollar"></i>
+                                    </div>
+                                    <div class="action-text">
+                                        <h4>Generate Payslip</h4>
+                                        <p>Download official salary slip.</p>
+                                    </div>
+                                </div>
+                                <div class="action-controls">
+                                    <button id="btn-generate-payslip" class="btn-primary-action" style="width: 100%;">
+                                        <i class="fa-solid fa-download"></i> Download PDF
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Leave Management Card (Fix Task 6 - New Feature) -->
+                            <div class="action-card">
+                                <div class="action-header">
+                                    <div class="action-icon blue">
+                                        <i class="fa-solid fa-umbrella-beach"></i>
+                                    </div>
+                                    <div class="action-text">
+                                        <h4>Leave Management</h4>
+                                        <p>Manage time off and vacation days.</p>
+                                    </div>
+                                </div>
+                                <div class="action-controls">
+                                    <button id="btn-manage-leave" class="btn-secondary-action" style="width: 100%;">
+                                        <i class="fa-solid fa-calendar-plus"></i> Request Time Off
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Block / Unblock Card -->
+                            <div class="action-card">
+                                <div class="action-header">
+                                    <div class="action-icon orange">
+                                        <i class="fa-solid fa-ban"></i>
+                                    </div>
+                                    <div class="action-text">
+                                        <h4>Access Control</h4>
+                                        <p>Temporarily disable logging in.</p>
+                                    </div>
+                                </div>
+                                <div class="action-controls">
+                                    <button id="btn-block-employee-modal" class="btn-warning-action">
+                                        <i class="fa-solid fa-lock"></i> <span>Block Access</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Danger Zone: Delete -->
+                            <div class="action-card danger">
+                                <div class="action-header">
+                                    <div class="action-icon red">
+                                        <i class="fa-solid fa-triangle-exclamation"></i>
+                                    </div>
+                                    <div class="action-text">
+                                        <h4>Delete Employee</h4>
+                                        <p>Permanently wipe all records.</p>
+                                    </div>
+                                </div>
+                                <div class="action-controls">
+                                    <button id="btn-delete-employee-modal" class="btn-danger-action">
+                                        <i class="fa-solid fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="details-footer">
+                <button id="btn-save-details" class="btn-save-details">Save Changes</button>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../Shared/Components/quad-modals.js"></script>
+    <script src="staff_details.js"></script>
+    <script src="../Shared/Auth/rbac.js"></script>
+    <script src="employees.js" type="module"></script>
+</body>
+
+</html>
