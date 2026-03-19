@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <script src="../Shared/Auth/guard.js"></script>
+    <script src="../Shared/Auth/guard.js" type="module"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QuadStock - Inventory Command Center</title>
@@ -554,7 +554,7 @@
     <script src="../Shared/Utils/offline.js"></script>
     <script src="../Shared/Auth/rbac.js"></script>
     <script src="../Shared/Components/quad-modals.js"></script>
-    <script src="inventory.js"></script>
+    <script src="inventory.js" type="module"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -565,7 +565,7 @@
             const dashboardLink = document.querySelector('a[title="Dashboard"]');
             if (dashboardLink) {
                 if (role === 'manager') {
-                    dashboardLink.href = "../Managerdashboard/manager_dashboard.html";
+                    dashboardLink.href = "../Ownerdashboard/dashboard.html";
                 } else {
                     dashboardLink.href = "../Ownerdashboard/dashboard.html";
                 }

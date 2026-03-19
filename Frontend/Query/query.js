@@ -1,3 +1,5 @@
+import CONFIG from '../Shared/Utils/config.js';
+
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- Authentication & Context ---
@@ -18,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const dashboardCss = document.getElementById('dashboard-css');
 
         if (userRole === 'manager' || userRole === 'staff') {
-            dashboardCss.href = '../Managerdashboard/manager_dashboard.css';
+            dashboardCss.href = '../Ownerdashboard/dashboard.css';
             mainContainer.className = 'layout-container';
 
             sidebarTarget.innerHTML = `
@@ -31,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="nav-section">
                     <h3 class="section-title">Main Menu</h3>
                     <nav class="nav-menu">
-                        <a href="../Managerdashboard/manager_dashboard.html" class="nav-item">
+                        <a href="../Ownerdashboard/dashboard.html" class="nav-item">
                             <i class="fa-solid fa-house-chimney"></i>
                             <span>Dashboard</span>
                         </a>
@@ -100,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         } else {
             dashboardCss.href = '../Ownerdashboard/dashboard.css';
-            mainContainer.className = 'layout-container';
+            mainContainer.className = 'dashboard-container';
 
             sidebarTarget.innerHTML = `
 
@@ -171,17 +173,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 `;
 
-            const displayName = currentUser ? (currentUser.ownerName || currentUser.shopName || 'Owner') : 'Owner';
             document.getElementById('user-profile-target').innerHTML = `
                 <div class="shop-name-container">
                     <i class="fa-solid fa-store" style="color: var(--primary-color); margin-right: 0.5rem;"></i>
                     <span class="shop-name">${(currentUser && currentUser.shopName) || 'QuadStock Store'}</span>
                 </div>
             `;
-
-
-
-
         }
 
         initializeCommonUI();
@@ -201,7 +198,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const themeBtn = document.getElementById('theme-toggle');
 
-        // --- Theme Persistence Logic ---
         function applyTheme(theme) {
             if (theme === 'dark') {
                 document.documentElement.setAttribute('data-theme', 'dark');
@@ -215,7 +211,6 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('theme', theme);
         }
 
-        // Load initial theme
         const savedTheme = localStorage.getItem('theme') || 'light';
         applyTheme(savedTheme);
 
@@ -240,7 +235,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setupLayout();
 
     // --- State and Storage ---
-    const STORAGE_KEY = 'queries';
     const QUICK_REPLIES = [
         { text: "I'll get back to you soon.", icon: "fa-clock" },
         { text: "Query resolved.", icon: "fa-check" },
@@ -249,11 +243,9 @@ document.addEventListener('DOMContentLoaded', () => {
         { text: "Checking with the team.", icon: "fa-users" }
     ];
 
-    let allQueries = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-    let queries = allQueries.filter(q => q.ownerId === ownerId);
+    let queries = [];
     let uploadedImages = []; // Temp storage for modal
     let tempReplyImages = {}; // Temp storage for replies by id: []
-    let expandedQueryIds = new Set(); // Track expanded states
 
     function getCurrentUserName() {
         if (currentUser) return currentUser.ownerName || currentUser.shopName || 'Owner';
@@ -263,23 +255,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const CURRENT_USER = getCurrentUserName();
 
-    if (queries.length === 0 && ownerId === 'OWN-DEMO') { // Only auto-fill for demo or first load
-        queries = [
-            {
-                id: 'qry_' + Date.now(),
-                ownerId: ownerId,
-                staffName: 'Aarav Gupta',
-                role: 'Sales Staff',
-                timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-                subject: 'Leave Procedure Query',
-                description: 'What is the procedure to apply for medical leave?',
-                status: 'open',
-                closedBy: null,
-                replies: [],
-                images: []
+    // --- Dynamic Data Fetching ---
+    async function fetchQueries() {
+        try {
+            const response = await fetch(`${CONFIG.API_BASE_URL}/complaints/all?ownerId=${ownerId}`);
+            const result = await response.json();
+            if (response.ok && result.success) {
+                queries = result.data.filter(q => q.type === 'query');
+                renderQueries();
             }
-        ];
-        saveQueries();
+        } catch (err) {
+            console.error("Query Fetch Error:", err);
+        }
     }
 
     // --- DOM Elements ---
@@ -296,25 +283,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const previewContainer = document.getElementById('image-preview-container');
 
     // --- Image Handling (Modal) ---
-    fileInput.addEventListener('change', (e) => {
-        const files = Array.from(e.target.files);
-        if (uploadedImages.length + files.length > 5) {
-            alert('You can upload a maximum of 5 attachments.');
-            return;
-        }
-
-        files.forEach(file => {
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                uploadedImages.push({ name: file.name, data: ev.target.result });
-                renderImagePreviews();
-            };
-            reader.readAsDataURL(file);
+    if (fileInput) {
+        fileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            if (uploadedImages.length + files.length > 5) {
+                alert('You can upload a maximum of 5 images.');
+                return;
+            }
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    uploadedImages.push({ name: file.name, data: ev.target.result });
+                    renderImagePreviews();
+                };
+                reader.readAsDataURL(file);
+            });
+            fileInput.value = '';
         });
-        fileInput.value = '';
-    });
+    }
 
     function renderImagePreviews() {
+        if (!previewContainer) return;
         previewContainer.innerHTML = '';
         uploadedImages.forEach((img, index) => {
             const wrapper = document.createElement('div');
@@ -338,12 +327,10 @@ document.addEventListener('DOMContentLoaded', () => {
     window.handleReplyImageUpload = function (id, input) {
         const files = Array.from(input.files);
         if (!tempReplyImages[id]) tempReplyImages[id] = [];
-
         if (tempReplyImages[id].length + files.length > 5) {
             alert('You can upload a maximum of 5 images per reply.');
             return;
         }
-
         files.forEach(file => {
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -359,7 +346,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const container = document.getElementById(`reply-preview-${id}`);
         if (!container) return;
         container.innerHTML = '';
-
         const imgs = tempReplyImages[id] || [];
         imgs.forEach((img, index) => {
             const wrapper = document.createElement('div');
@@ -387,7 +373,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const now = new Date();
         const diffMs = now - date;
         const diffHours = diffMs / (1000 * 60 * 60);
-
         if (diffHours < 24) {
             if (diffHours < 1) {
                 const minutes = Math.floor(diffMs / (1000 * 60));
@@ -399,6 +384,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderQueries() {
+        if (!listContainer) return;
         listContainer.innerHTML = '';
         if (userRole === 'staff') {
             listContainer.innerHTML = `
@@ -412,18 +398,15 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             return;
         }
-        const sorted = [...queries].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
+        const sorted = [...queries].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         if (sorted.length === 0) {
             listContainer.innerHTML = `<div style="text-align:center; padding:2rem; color:var(--text-secondary);">No queries yet.</div>`;
             return;
         }
-
         sorted.forEach(q => {
             const card = document.createElement('div');
-            card.className = `query-card status-${q.status}`;
-
-            const timeDisplay = formatTimeDisplay(q.timestamp);
+            card.className = `query-card status-${q.status === 'open' ? 'open' : 'closed'}`;
+            const timeDisplay = formatTimeDisplay(q.createdAt);
             const statusText = q.status === 'open' ? 'Open' : 'Seen';
             const authorInitial = q.staffName.charAt(0).toUpperCase();
 
@@ -440,7 +423,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="reply-bubble">
                         <span class="reply-author-name">${r.author} <span style="font-weight:400; opacity:0.7;">${formatTimeDisplay(r.timestamp)}</span></span>
                         <div class="reply-text">${r.text}</div>
-                        ${r.images && r.images.length > 0 ? `<div class="reply-images">${r.images.map(img => `<img src="${img.data}" class="reply-img-view" onclick="viewImage('${img.data}')">`).join('')}</div>` : ''}
                     </div>
                 </div>
             `).join('');
@@ -449,41 +431,28 @@ document.addEventListener('DOMContentLoaded', () => {
             if (q.status === 'closed') {
                 actionAreaHtml = `
                     <div class="closed-overlay">
-                        <span><i class="fa-solid fa-lock"></i> Query marked as seen by ${q.closedBy}</span>
-                        <button class="btn-action-outline success" onclick="reopenQuery('${q.id}')"><i class="fa-solid fa-unlock"></i> Re-open</button>
+                        <span><i class="fa-solid fa-lock"></i> Query marked as seen by ${q.closedBy || 'Admin'}</span>
+                        <button class="btn-action-outline success" onclick="updateQueryStatus('${q._id}', 'open')"><i class="fa-solid fa-unlock"></i> Re-open</button>
                     </div>
                 `;
             } else {
-                const pillsHtml = QUICK_REPLIES.map(qr => `<div class="quick-pill" onclick="fillReply('${q.id}', '${qr.text.replace(/'/g, "\\'")}')"><i class="fa-solid ${qr.icon}"></i> ${qr.text}</div>`).join('');
+                const pillsHtml = QUICK_REPLIES.map(qr => `<div class="quick-pill" onclick="fillReply('${q._id}', '${qr.text.replace(/'/g, "\\'")}')"><i class="fa-solid ${qr.icon}"></i> ${qr.text}</div>`).join('');
                 actionAreaHtml = `
                     <div class="action-area">
                         <div class="quick-replies">${pillsHtml}</div>
-                        <div id="reply-preview-${q.id}" class="reply-preview-container"></div>
+                        <div id="reply-preview-${q._id}" class="reply-preview-container"></div>
                         <div class="input-row">
-                            <div class="upload-btn-wrapper">
-                                <button class="mini-upload-btn" onclick="document.getElementById('reply-file-${q.id}').click()"><i class="fa-solid fa-camera"></i></button>
-                                <input type="file" id="reply-file-${q.id}" accept="image/*" multiple style="display:none" onchange="handleReplyImageUpload('${q.id}', this)">
-                            </div>
-                            <input type="text" class="main-input" id="reply-input-${q.id}" placeholder="Type your answer..." onkeyup="if(event.key === 'Enter') addReply('${q.id}')">
-                            <button class="btn-send-reply" onclick="addReply('${q.id}')"><i class="fa-solid fa-paper-plane"></i></button>
-                            <button class="btn-action-outline success" onclick="closeQuery('${q.id}')"><i class="fa-solid fa-check"></i> Mark Seen</button>
+                            <input type="text" class="main-input" id="reply-input-${q._id}" placeholder="Type your answer..." onkeyup="if(event.key === 'Enter') addReply('${q._id}')">
+                            <button class="btn-send-reply" onclick="addReply('${q._id}')"><i class="fa-solid fa-paper-plane"></i></button>
+                            <button class="btn-action-outline success" onclick="closeQuery('${q._id}')"><i class="fa-solid fa-check"></i> Mark Seen</button>
                         </div>
                     </div>
                 `;
             }
 
             const hasManyReplies = q.replies.length > 2;
-            const isExpanded = expandedQueryIds.has(q.id);
-            const shouldCollapse = !isExpanded && hasManyReplies;
-
-            const chatListClass = shouldCollapse ? 'reply-list collapsed' : 'reply-list';
-            const btnText = shouldCollapse
-                ? `<i class="fa-solid fa-angles-down"></i> Show all ${q.replies.length} messages`
-                : `<i class="fa-solid fa-angles-up"></i> Show less`;
-
-            const showMoreBtn = hasManyReplies
-                ? `<button class="show-more-replies" onclick="toggleChat(this, '${q.id}')">${btnText}</button>`
-                : '';
+            const chatListClass = hasManyReplies ? 'reply-list collapsed' : 'reply-list';
+            const showMoreBtn = hasManyReplies ? `<button class="show-more-replies" onclick="toggleChat(this)"><i class="fa-solid fa-angles-down"></i> Show all ${q.replies.length} messages</button>` : '';
 
             card.innerHTML = `
                 <div class="card-top-content">
@@ -496,7 +465,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                         </div>
                         <div class="query-meta">
-                            <span class="status-badge ${q.status}">${statusText}</span>
+                            <span class="status-badge ${q.status === 'open' ? 'open' : 'closed'}">${statusText}</span>
                             <span class="time-pill">${timeDisplay}</span>
                         </div>
                     </div>
@@ -516,47 +485,53 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    window.toggleChat = function (btn, id) {
+    window.toggleChat = function (btn) {
         const list = btn.previousElementSibling;
         const isCollapsed = list.classList.toggle('collapsed');
         const count = list.children.length;
-
         if (isCollapsed) {
-            expandedQueryIds.delete(id);
             btn.innerHTML = `<i class="fa-solid fa-angles-down"></i> Show all ${count} messages`;
             list.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         } else {
-            expandedQueryIds.add(id);
             btn.innerHTML = `<i class="fa-solid fa-angles-up"></i> Show less`;
         }
     };
 
-    // --- Window Actions ---
     window.viewImage = (data) => { const w = window.open(""); w.document.write(`<img src="${data}" style="max-width:100%;">`); };
     window.fillReply = (id, text) => { const input = document.getElementById(`reply-input-${id}`); if (input) { input.value = text; input.focus(); } };
 
-    window.addReply = function (id) {
+    window.addReply = async function (id) {
         const input = document.getElementById(`reply-input-${id}`);
         const text = input.value.trim();
-        const imgs = tempReplyImages[id] || [];
-        if (!text && imgs.length === 0) return;
-
-        const query = queries.find(q => q.id === id);
-        if (query && query.status === 'open') {
-            query.replies.push({
-                author: CURRENT_USER,
-                text: text,
-                timestamp: new Date().toISOString(),
-                images: [...imgs]
+        if (!text) return;
+        try {
+            const response = await fetch(`${CONFIG.API_BASE_URL}/complaints/reply/${id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ author: CURRENT_USER, text })
             });
-            tempReplyImages[id] = [];
-            expandedQueryIds.add(id); // Auto-expand when replying
-            saveQueries();
-            renderQueries();
+            if (response.ok) {
+                input.value = '';
+                fetchQueries();
+            }
+        } catch (err) {
+            console.error("Reply Error:", err);
         }
     };
 
-    // --- Confirmation Modal Logic ---
+    window.updateQueryStatus = async function (id, status) {
+        try {
+            const response = await fetch(`${CONFIG.API_BASE_URL}/complaints/status/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status, closedBy: status === 'closed' ? CURRENT_USER : null })
+            });
+            if (response.ok) fetchQueries();
+        } catch (err) {
+            console.error("Status Update Error:", err);
+        }
+    }
+
     const confirmModal = document.getElementById('confirm-modal');
     const confirmProceedBtn = document.getElementById('btn-confirm-proceed');
     const confirmCancelBtn = document.getElementById('btn-confirm-cancel');
@@ -564,91 +539,58 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.closeQuery = (id) => {
         itemToClose = id;
-        confirmModal.classList.add('active');
+        if (confirmModal) confirmModal.classList.add('active');
+        else if (confirm('Mark this query as seen?')) {
+            updateQueryStatus(id, 'closed');
+        }
     };
 
-    if (confirmCancelBtn) {
-        confirmCancelBtn.onclick = () => {
-            confirmModal.classList.remove('active');
-            itemToClose = null;
+    if (confirmCancelBtn) confirmCancelBtn.onclick = () => { confirmModal.classList.remove('active'); itemToClose = null; };
+    if (confirmProceedBtn) confirmProceedBtn.onclick = () => { if (itemToClose) updateQueryStatus(itemToClose, 'closed'); confirmModal.classList.remove('active'); itemToClose = null; };
+    if (confirmModal) confirmModal.onclick = (e) => { if (e.target === confirmModal) { confirmModal.classList.remove('active'); itemToClose = null; } };
+
+    if (raiseBtn) {
+        raiseBtn.onclick = () => {
+            modalOverlay.classList.add('active');
+            staffNameInput.value = CURRENT_USER;
+            subjectInput.value = '';
+            descInput.value = '';
+            uploadedImages = [];
+            renderImagePreviews();
         };
     }
+    if (closeModalBtn) closeModalBtn.onclick = () => modalOverlay.classList.remove('active');
 
-    if (confirmProceedBtn) {
-        confirmProceedBtn.onclick = () => {
-            if (itemToClose) {
-                const q = queries.find(item => item.id === itemToClose);
-                if (q) {
-                    q.status = 'closed';
-                    q.closedBy = CURRENT_USER;
-                    saveQueries();
-                    renderQueries();
+    if (submitQueryBtn) {
+        submitQueryBtn.onclick = async () => {
+            const subject = subjectInput.value.trim();
+            const description = descInput.value.trim();
+            if (subject && description) {
+                try {
+                    const response = await fetch(`${CONFIG.API_BASE_URL}/complaints/add`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            ownerId,
+                            type: 'query',
+                            staffName: CURRENT_USER,
+                            role: userRole,
+                            subject,
+                            description,
+                            images: uploadedImages
+                        })
+                    });
+                    if (response.ok) {
+                        modalOverlay.classList.remove('active');
+                        fetchQueries();
+                    }
+                } catch (err) {
+                    console.error("Submit Error:", err);
                 }
-            }
-            confirmModal.classList.remove('active');
-            itemToClose = null;
+            } else alert('Fill all fields');
         };
     }
+    if (modalOverlay) modalOverlay.onclick = (e) => { if (e.target === modalOverlay) modalOverlay.classList.remove('active'); };
 
-    // Close on overlay click
-    if (confirmModal) {
-        confirmModal.onclick = (e) => {
-            if (e.target === confirmModal) {
-                confirmModal.classList.remove('active');
-                itemToClose = null;
-            }
-        };
-    }
-
-    window.reopenQuery = (id) => {
-        const q = queries.find(item => item.id === id);
-        if (q) { q.status = 'open'; q.closedBy = null; saveQueries(); renderQueries(); }
-    };
-
-    function saveQueries() {
-        // Merge current owner's queries back into the global list
-        const otherQueries = allQueries.filter(q => q.ownerId !== ownerId);
-        const updatedAll = [...otherQueries, ...queries];
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedAll));
-        allQueries = updatedAll; // Sync local state
-    }
-
-    // --- Modal Logic ---
-    raiseBtn.onclick = () => {
-        modalOverlay.classList.add('active');
-        staffNameInput.value = CURRENT_USER;
-        subjectInput.value = '';
-        descInput.value = '';
-        uploadedImages = [];
-        renderImagePreviews();
-    };
-
-    closeModalBtn.onclick = () => modalOverlay.classList.remove('active');
-
-    submitQueryBtn.onclick = () => {
-        const name = staffNameInput.value.trim();
-        const subject = subjectInput.value.trim();
-        const desc = descInput.value.trim();
-        if (name && subject && desc) {
-            queries.unshift({
-                id: 'qry_' + Date.now(),
-                ownerId: ownerId, // Multi-Owner Fix
-                staffName: name,
-                role: roleSelect.value,
-                timestamp: new Date().toISOString(),
-                subject: subject,
-                description: desc,
-                status: 'open',
-                replies: [],
-                images: [...uploadedImages]
-            });
-            saveQueries();
-            renderQueries();
-            modalOverlay.classList.remove('active');
-        } else alert('Fill all fields');
-    };
-
-    modalOverlay.onclick = (e) => { if (e.target === modalOverlay) modalOverlay.classList.remove('active'); };
-
-    renderQueries();
+    fetchQueries();
 });

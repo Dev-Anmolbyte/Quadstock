@@ -126,7 +126,7 @@
                         <div class="stat-icon blue-bg"><i class="fa-solid fa-sack-dollar"></i></div>
                         <div class="stat-info">
                             <p class="label">Total Annual Revenue</p>
-                            <h3>₹10000,000</h3>
+                            <h3 id="dash-stock-value">₹0</h3>
                         </div>
                         <select id="revenue-year-select" class="year-select"></select>
                     </div>
@@ -158,7 +158,7 @@
                         <div class="stat-icon blue-bg"><i class="fa-solid fa-boxes-stacked"></i></div>
                         <div class="stat-info">
                             <p class="label">Total Product in Inventory</p>
-                            <h3>1,250</h3>
+                            <h3 id="dash-inventory-count">0</h3>
                         </div>
                     </div>
 
@@ -167,7 +167,7 @@
                         <div class="stat-icon red-bg"><i class="fa-solid fa-triangle-exclamation"></i></div>
                         <div class="stat-info">
                             <p class="label">Low Stocks in Inventory</p>
-                            <h3>15</h3>
+                            <h3 id="dash-low-stock">0</h3>
                         </div>
                     </div>
 
@@ -203,8 +203,7 @@
                         style="background: linear-gradient(135deg, #138808 0%, #1B5E20 100%); color: white; display:flex; align-items:center; justify-content:space-between; padding:2rem;">
                         <div>
                             <h2 style="margin-bottom:0.5rem; font-size:1.5rem;">Manage Expiries</h2>
-                            <p style="opacity:0.9; margin-bottom:1.5rem;">8 items are expiring soon. Take action to
-                                reduce waste.</p>
+                            <p style="opacity:0.9; margin-bottom:1.5rem;"><span id="dash-expiring-alert">0</span> items are expiring soon. Take action to reduce waste.</p>
                             <a href="../smartexpiry/smartexpiry.html" class="btn-primary"
                                 style="background:white; color:#1B5E20; padding:0.8rem 1.5rem; border-radius:0.5rem; text-decoration:none; font-weight:700;">Check
                                 Expiry <i class="fa-solid fa-arrow-right" style="margin-left:0.5rem;"></i></a>
@@ -296,7 +295,7 @@
                                         <div class="icon-box red-text"><i class="fa-solid fa-hourglass-end"></i></div>
                                         <span>Items Expiring Soon</span>
                                     </div>
-                                    <span class="detail-right" style="color:var(--primary-color); font-weight:600;">View 8 Items</span>
+                                    <span class="detail-right" style="color:var(--primary-color); font-weight:600;">View <span id="dash-expiry-count">0</span> Items</span>
                                 </a>
                             </li>
                             <li>
@@ -306,7 +305,7 @@
                                         </div>
                                         <span>Low Stock Alerts</span>
                                     </div>
-                                    <span class="detail-right" style="color:var(--primary-color); font-weight:600;">Restock 15 Items</span>
+                                    <span class="detail-right" style="color:var(--primary-color); font-weight:600;">Restock <span id="dash-low-stock-count">0</span> Items</span>
                                 </a>
                             </li>
                             <li>
@@ -315,7 +314,7 @@
                                         <div class="icon-box blue-text"><i class="fa-solid fa-clipboard-question"></i></div>
                                         <span>Unresolved Queries</span>
                                     </div>
-                                    <span class="detail-right" style="color:var(--primary-color); font-weight:600;">Reply to 5</span>
+                                    <span class="detail-right" style="color:var(--primary-color); font-weight:600;">Reply to <span id="dash-query-count">0</span></span>
                                 </a>
                             </li>
                             <li>
@@ -324,7 +323,7 @@
                                         <div class="icon-box red-text"><i class="fa-solid fa-circle-exclamation"></i></div>
                                         <span>Open Complaints</span>
                                     </div>
-                                    <span class="detail-right" style="color:var(--primary-color); font-weight:600;">Resolve 3</span>
+                                    <span class="detail-right" style="color:var(--primary-color); font-weight:600;">Resolve <span id="dash-complain-count">0</span></span>
                                 </a>
                             </li>
                         </ul>

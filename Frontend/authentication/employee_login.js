@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     loginBtn.style.background = '#22c55e'; // Green
 
                     if (employee.role === 'manager') {
-                        window.location.href = '../Managerdashboard/manager_dashboard.html';
+                        window.location.href = '../Ownerdashboard/dashboard.html';
                     } else if (employee.role === 'inventory_manager') {
                         window.location.href = '../Inventory/inventory.html';
                     } else {

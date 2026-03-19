@@ -1,22 +1,77 @@
 import { updateDashboardStats, resetNotification } from '../Shared/Utils/dashboard_stats.js';
+import CONFIG from '../Shared/Utils/config.js';
 
-// --- Authentication Check (Start of file) ---
-if (!localStorage.getItem('currentUser')) {
+// --- Authentication Check ---
+const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+const currentEmployee = JSON.parse(localStorage.getItem('currentEmployee'));
+
+const ownerId = (currentUser && currentUser.ownerId) || (currentEmployee && currentEmployee.ownerId);
+
+if (!currentUser && (!currentEmployee || currentEmployee.role !== 'manager')) {
     window.location.href = '../Authentication/login.html';
 }
 
 document.addEventListener('DOMContentLoaded', function () {
+    // --- Live Data Refresh Logic ---
+    async function refreshDashboardData() {
+        if (!ownerId) return;
 
-    // Fetch Owner Info dynamically
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    if (currentUser) {
-        const shopSpans = document.querySelectorAll('.shop-name');
-        shopSpans.forEach(span => {
-            span.textContent = currentUser.shopName || 'QuadStock Store';
-        });
+        try {
+            // 1. Fetch Stats (Inventory + Udhaar)
+            const statsRes = await fetch(`${CONFIG.API_BASE_URL}/stats/owner?ownerId=${ownerId}`);
+            const statsResult = await statsRes.json();
+
+            if (statsRes.ok && statsResult.success) {
+                const d = statsResult.data;
+                const formatter = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' });
+
+                document.getElementById('dash-stock-value').textContent = formatter.format(d.totalStockValue);
+                document.getElementById('dash-inventory-count').textContent = d.totalItems.toLocaleString();
+                document.getElementById('dash-low-stock').textContent = d.lowStockCount;
+                document.getElementById('dash-low-stock-count').textContent = d.lowStockCount;
+                document.getElementById('dash-total-udhaar').textContent = formatter.format(d.totalUdhaarPending);
+                document.getElementById('dash-expiring-alert').textContent = d.expiringSoonCount;
+                document.getElementById('dash-expiry-count').textContent = d.expiringSoonCount;
+            }
+
+            // 2. Fetch Complaints/Queries
+            const compRes = await fetch(`${CONFIG.API_BASE_URL}/complaints/all?ownerId=${ownerId}`);
+            const compResult = await compRes.json();
+
+            if (compRes.ok && compResult.success) {
+                const openComplaints = compResult.data.filter(c => c.type === 'complaint' && c.status === 'pending').length;
+                const openQueries = compResult.data.filter(c => c.type === 'query' && c.status === 'pending').length;
+
+                document.getElementById('dash-complain-count').textContent = openComplaints;
+                document.getElementById('dash-query-count').textContent = openQueries;
+                
+                // Update Nav Badge
+                const navBadge = document.getElementById('nav-badge-complain');
+                if (navBadge) {
+                    const total = openComplaints + openQueries;
+                    navBadge.style.display = total > 0 ? 'flex' : 'none';
+                    navBadge.textContent = total;
+                }
+            }
+
+        } catch (err) {
+            console.error("Dashboard Refresh Error:", err);
+        }
     }
 
-    // Initialize Shared Stats
+    // Initial load and set interval (Every 15s)
+    refreshDashboardData();
+    setInterval(refreshDashboardData, 15000);
+
+    // Fetch User Info dynamically
+    const shopSpans = document.querySelectorAll('.shop-name');
+    const shopName = (currentUser && currentUser.shopName) || (currentEmployee && currentEmployee.shopName) || 'QuadStock Store';
+    
+    shopSpans.forEach(span => {
+        span.textContent = shopName;
+    });
+
+    // Initialize Shared Stats (Legacy Sync if needed)
     updateDashboardStats();
 
     // Attach Notification Reset Listeners
@@ -31,7 +86,7 @@ document.addEventListener('DOMContentLoaded', function () {
         logoutBtn.addEventListener('click', (e) => {
             e.preventDefault();
             localStorage.removeItem('currentUser');
-            // Prevent back navigation
+            localStorage.removeItem('currentEmployee');
             window.location.replace('../Authentication/login.html');
         });
     }
@@ -46,7 +101,6 @@ document.addEventListener('DOMContentLoaded', function () {
             clockEl.innerHTML = `<span style="font-size:0.85em; margin-right:12px; color:#6366f1; font-weight:700; opacity:0.8;">${dateString}</span> <span style="font-weight:800;">${timeString}</span>`;
         }
     }
-    // Clear any existing intervals if re-running script context (though unlikely in standard page load)
     if (window.clockInterval) clearInterval(window.clockInterval);
     window.clockInterval = setInterval(updateClock, 1000);
     updateClock();
@@ -54,17 +108,13 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- Theme Toggle ---
     const themeBtn = document.getElementById('theme-toggle');
     const body = document.body;
-
-    // Load saved theme
     const savedTheme = localStorage.getItem('theme') || 'light';
     body.setAttribute('data-theme', savedTheme);
     if (themeBtn) {
         themeBtn.innerHTML = savedTheme === 'dark' ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
-
         themeBtn.addEventListener('click', () => {
             const currentTheme = body.getAttribute('data-theme');
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-
             body.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
             themeBtn.innerHTML = newTheme === 'dark' ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
@@ -74,16 +124,11 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- Sidebar Toggle ---
     const sidebarToggle = document.getElementById('sidebar-toggle');
     const container = document.querySelector('.layout-container');
-
     if (sidebarToggle) {
         sidebarToggle.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (container) {
-                container.classList.toggle('sidebar-collapsed');
-            } else {
-                // Fallback if structure is different
-                document.body.classList.toggle('sidebar-collapsed');
-            }
+            if (container) container.classList.toggle('sidebar-collapsed');
+            else document.body.classList.toggle('sidebar-collapsed');
         });
     }
 
@@ -112,7 +157,5 @@ document.addEventListener('DOMContentLoaded', function () {
             yearSelect.appendChild(option);
         }
     }
-
-    initCharts();
 });
 

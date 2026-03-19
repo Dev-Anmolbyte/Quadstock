@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="nav-section">
                     <h3 class="section-title">Main Menu</h3>
                     <nav class="nav-menu">
-                        <a href="../Managerdashboard/manager_dashboard.html" class="nav-item">
+                        <a href="../Ownerdashboard/dashboard.html" class="nav-item">
                             <i class="fa-solid fa-house-chimney"></i>
                             <span>Dashboard</span>
                         </a>

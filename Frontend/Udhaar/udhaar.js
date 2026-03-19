@@ -1,36 +1,6 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // --- Theme Toggle ---
-    const themeBtn = document.getElementById('theme-toggle');
-    const body = document.body;
+import CONFIG from '../Shared/Utils/config.js';
 
-    if (localStorage.getItem('theme') === 'dark') {
-        body.setAttribute('data-theme', 'dark');
-        if (themeBtn) themeBtn.innerHTML = '<i class="fa-solid fa-sun"></i>';
-    }
-
-    if (themeBtn) {
-        themeBtn.addEventListener('click', () => {
-            if (body.getAttribute('data-theme') === 'dark') {
-                body.removeAttribute('data-theme');
-                localStorage.setItem('theme', 'light');
-                themeBtn.innerHTML = '<i class="fa-solid fa-moon"></i>';
-            } else {
-                body.setAttribute('data-theme', 'dark');
-                localStorage.setItem('theme', 'dark');
-                themeBtn.innerHTML = '<i class="fa-solid fa-sun"></i>';
-            }
-        });
-    }
-
-    // --- Sidebar Toggle ---
-    const sidebarToggle = document.getElementById('sidebar-toggle');
-    const dashboardContainer = document.querySelector('.layout-container');
-    if (sidebarToggle && dashboardContainer) {
-        sidebarToggle.addEventListener('click', () => {
-            dashboardContainer.classList.toggle('sidebar-collapsed');
-        });
-    }
-
+document.addEventListener('DOMContentLoaded', async () => {
     // --- Authentication & Context ---
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
     const currentEmployee = JSON.parse(localStorage.getItem('currentEmployee'));
@@ -42,53 +12,22 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    // Set Shop Name
-    const shopSpans = document.querySelectorAll('.shop-name');
-    shopSpans.forEach(span => {
-        span.textContent = (currentUser && currentUser.shopName) || 'QuadStock Store';
-    });
+    // --- State & Constants ---
+    let udhaarList = [];
 
-    // --- Udhaar Management Logic ---
-    const allRecords = JSON.parse(localStorage.getItem('udhaarRecords')) || [];
-    let udhaarList = allRecords.filter(r => r.ownerId === currentOwnerId);
-
-
-    // --- Data Migration for Partial Payments Support ---
-    udhaarList = udhaarList.map(record => {
-        if (!record.transactions) {
-            // Convert old format to new format
-            const transactions = [{
-                id: Date.now() + Math.random(),
-                date: record.date,
-                type: 'taken',
-                amount: record.amount,
-                description: record.description || 'Initial Credit'
-            }];
-
-            let balance = record.amount;
-
-            // If it was already marked as paid in the old system
-            if (record.status === 'paid') {
-                transactions.push({
-                    id: Date.now() + Math.random() + 1,
-                    date: new Date().toISOString().split('T')[0],
-                    type: 'payment',
-                    amount: record.amount,
-                    description: 'Settled (Legacy Record)'
-                });
-                balance = 0;
+    async function refreshUdhaarData() {
+        try {
+            const response = await fetch(`${CONFIG.API_BASE_URL}/udhaar/all?ownerId=${currentOwnerId}`);
+            const result = await response.json();
+            if (response.ok) {
+                udhaarList = result.data || [];
+                renderTable();
+                updateStats();
             }
-
-            return {
-                ...record,
-                totalAmount: record.amount, // Original credit amount
-                balance: balance,
-                transactions: transactions
-            };
+        } catch (err) {
+            console.error("Fetch Udhaar Error:", err);
         }
-        return record;
-    });
-    saveData(); // Save migrated structure
+    }
 
     // DOM Elements
     const udhaarTableBody = document.getElementById('udhaar-table-body');
@@ -148,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Form Submit (Add New Record)
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
         const initialAmount = parseFloat(document.getElementById('u-amount').value);
@@ -157,19 +96,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const note = document.getElementById('u-desc').value;
         const contact = document.getElementById('u-contact').value;
 
-        // Validation
-        if (!dueDate) {
-            alert('Please select an Expected Payment Date.');
-            return;
-        }
-
-        if (contact && contact.length !== 10) {
-            alert('Contact number must be exactly 10 digits.');
-            return;
-        }
+        if (!dueDate) return alert('Please select an Expected Payment Date.');
+        if (contact && contact.length !== 10) return alert('Contact number must be exactly 10 digits.');
 
         const newRecord = {
-            id: Date.now().toString(),
             ownerId: currentOwnerId,
             date: date,
             dueDate: dueDate,
@@ -179,7 +109,6 @@ document.addEventListener('DOMContentLoaded', () => {
             balance: initialAmount,
             status: 'pending',
             transactions: [{
-                id: Date.now().toString() + '_1',
                 date: date,
                 type: 'taken',
                 amount: initialAmount,
@@ -187,15 +116,24 @@ document.addEventListener('DOMContentLoaded', () => {
             }]
         };
 
-        udhaarList.unshift(newRecord);
-        saveData();
-        renderTable();
-        updateStats();
+        try {
+            const response = await fetch(`${CONFIG.API_BASE_URL}/udhaar/add`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newRecord)
+            });
 
-        // Reset and close
-        form.reset();
-        if (dateInput) dateInput.valueAsDate = new Date();
-        modal.classList.remove('active');
+            if (response.ok) {
+                refreshUdhaarData();
+                form.reset();
+                if (dateInput) dateInput.valueAsDate = new Date();
+                modal.classList.remove('active');
+            } else {
+                alert("Failed to save record.");
+            }
+        } catch (err) {
+            console.error("Save Error:", err);
+        }
     });
 
     // Search
@@ -291,8 +229,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 </td>
                 <td><span class="status-badge ${statusClass}">${statusText}</span></td>
                 <td>
-                    <button class="action-btn" onclick="viewDetails('${item.id}')" title="View Details" style="color:#6366f1;"><i class="fa-solid fa-eye"></i></button>
-                    <button class="action-btn delete" onclick="deleteRecord('${item.id}')" title="Delete Record"><i class="fa-solid fa-trash"></i></button>
+                    <button class="action-btn" onclick="viewDetails('${item._id}')" title="View Details" style="color:#6366f1;"><i class="fa-solid fa-eye"></i></button>
+                    <button class="action-btn delete" onclick="deleteRecord('${item._id}')" title="Delete Record"><i class="fa-solid fa-trash"></i></button>
                      ${item.contact ? `<a href="https://wa.me/${item.contact}?text=Hello ${item.name}, regarding your pending payment of ${formattedBalance} due on ${dueDateStr}." target="_blank" class="action-btn" style="color:#25D366;"><i class="fa-brands fa-whatsapp"></i></a>` : ''}
                 </td>
             `;
@@ -309,7 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Details & Partial Payment Modal ---
     window.viewDetails = (id) => {
-        const record = udhaarList.find(r => r.id === id);
+        const record = udhaarList.find(r => r._id === id);
         if (!record) return;
 
         // Create or get modal
@@ -397,8 +335,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('udhaarHistoryModal').classList.remove('active');
     };
 
-    window.addPayment = (id) => {
-        const record = udhaarList.find(r => r.id === id);
+    window.addPayment = async (id) => {
+        const record = udhaarList.find(r => r._id === id);
         const amountInput = document.getElementById('pay-amount');
         const dateInput = document.getElementById('pay-date');
         const modeInput = document.getElementById('pay-mode');
@@ -408,43 +346,51 @@ document.addEventListener('DOMContentLoaded', () => {
         const amount = parseFloat(amountInput.value);
         if (amount <= 0 || amount > record.balance) return alert(`Amount must be between 1 and ${record.balance}`);
 
-        const mode = modeInput ? modeInput.value : 'Cash';
-
-        // Add Transaction
-        record.transactions.push({
-            id: Date.now().toString(),
+        const paymentData = {
+            amount,
             date: dateInput.value,
-            type: 'payment',
-            amount: amount,
-            mode: mode,
-            description: `Partial Payment (${mode})`
-        });
+            mode: modeInput ? modeInput.value : 'Cash'
+        };
 
-        // Update Balance
-        record.balance -= amount;
+        try {
+            const response = await fetch(`${CONFIG.API_BASE_URL}/udhaar/payment/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(paymentData)
+            });
 
-        // Update Status ? handled in renderTable logic dynamically based on balance
-        // Just save
-        saveData();
+            if (response.ok) {
+                await refreshUdhaarData();
+                viewDetails(id); 
+            }
+        } catch (err) {
+            console.error("Payment Error:", err);
+        }
+    };
 
-        // Refresh View
-        viewDetails(id);
-        renderTable();
-        updateStats();
+    window.deleteRecord = async (id) => {
+        if (userRole === 'staff') return alert('Access Denied: Staff cannot delete records.');
+
+        if (confirm('Are you sure you want to delete this record irrecoverably?')) {
+            try {
+                const response = await fetch(`${CONFIG.API_BASE_URL}/udhaar/delete/${id}`, {
+                    method: 'DELETE'
+                });
+                if (response.ok) refreshUdhaarData();
+            } catch (err) {
+                console.error("Delete Error:", err);
+            }
+        }
     };
 
     function renderTimeline(transactions) {
         if (!transactions || transactions.length === 0) return '<p>No history</p>';
-
-        // Sort by date desc
         const sorted = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
-
         return sorted.map(t => {
             const isPayment = t.type === 'payment';
             const color = isPayment ? '#22c55e' : '#ef4444';
             const icon = isPayment ? 'fa-arrow-down' : 'fa-arrow-up';
             const dateStr = new Date(t.date).toLocaleDateString('en-GB');
-
             return `
                 <div style="display:flex; gap:1rem; margin-bottom:1.25rem;">
                     <div style="display:flex; flex-direction:column; align-items:center;">
@@ -468,22 +414,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateStats() {
-        // Calculate Total Outstanding
         const totalPending = udhaarList.reduce((sum, item) => sum + item.balance, 0);
-
         const countPending = udhaarList.filter(item => item.balance > 0).length;
-
-        totalAmountEl.textContent = formatCurrency(totalPending);
-        pendingCountEl.textContent = countPending;
+        const totalAmountEl = document.getElementById('total-udhaar-amount');
+        const pendingCountEl = document.getElementById('pending-count');
+        if (totalAmountEl) totalAmountEl.textContent = formatCurrency(totalPending);
+        if (pendingCountEl) pendingCountEl.textContent = countPending;
     }
 
-    // Legacy functions or direct calls
+    function formatCurrency(val) {
+        return new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR'
+        }).format(val);
+    }
+
     window.markAsPaid = (id) => {
-        // Now redirects to view details to add full payment
-        const record = udhaarList.find(r => r.id === id);
+        const record = udhaarList.find(r => r._id === id);
         if (record) {
             viewDetails(id);
-            // Pre-fill full amount
             setTimeout(() => {
                 const input = document.getElementById('pay-amount');
                 if (input) input.value = record.balance;
@@ -491,18 +440,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    window.deleteRecord = (id) => {
-        if (userRole === 'staff') {
-            alert('Access Denied: Staff cannot delete records.');
-            return;
-        }
-
-        if (confirm('Are you sure you want to delete this record irrecoverably?')) {
-            udhaarList = udhaarList.filter(r => r.id !== id);
-            saveData();
-            renderTable();
-            updateStats();
-        }
-    };
+    // Init
+    refreshUdhaarData();
 });
 

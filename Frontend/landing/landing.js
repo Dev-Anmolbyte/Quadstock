@@ -1,4 +1,38 @@
-document.addEventListener('DOMContentLoaded', () => {
+import CONFIG from '../Shared/Utils/config.js';
+
+document.addEventListener('DOMContentLoaded', async () => {
+    // --- Public Stats Fetching ---
+    async function fetchStats() {
+        try {
+            const response = await fetch(`${CONFIG.API_BASE_URL}/stats/public`);
+            const result = await response.json();
+            if (response.ok && result.success) {
+                const { totalStores, totalProducts, timeSavedPercent } = result.data;
+                
+                // Map to counter elements
+                const counterMap = {
+                    'Indian Stores': totalStores,
+                    'Time Saved %': timeSavedPercent,
+                    'Products Catalog': totalProducts,
+                    'Click Billing': 1 // Static/Placeholder
+                };
+
+                document.querySelectorAll('.counter').forEach(counter => {
+                    const label = counter.nextElementSibling?.textContent?.trim();
+                    if (label && counterMap[label] !== undefined) {
+                        counter.setAttribute('data-target', counterMap[label]);
+                    }
+                });
+            }
+        } catch (err) {
+            console.error("Public Stats Error:", err);
+            // Fallback to static values already in HTML
+        }
+    }
+    
+    // Initial Fetch
+    await fetchStats();
+
     // --- Theme Toggle ---
     const themeToggleBtn = document.getElementById('theme-toggle');
     const sunIcon = document.getElementById('sun-icon');
@@ -47,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const target = +counter.getAttribute('data-target');
             const updateCounter = () => {
                 const count = +counter.innerText;
-                const increment = target / 50;
+                const increment = Math.max(1, target / 50); // Ensure increment is at least 1
                 if (count < target) {
                     counter.innerText = Math.ceil(count + increment);
                     setTimeout(updateCounter, 20);

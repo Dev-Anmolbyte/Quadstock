@@ -1,5 +1,6 @@
-document.addEventListener('DOMContentLoaded', function () {
+import CONFIG from '../Shared/Utils/config.js';
 
+document.addEventListener('DOMContentLoaded', function () {
     // --- Authentication & Context ---
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
     const currentEmployee = JSON.parse(localStorage.getItem('currentEmployee'));
@@ -11,10 +12,46 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
     }
 
+    // --- Live Data Refresh Logic ---
+    async function refreshAnalyticsData() {
+        if (!ownerId) return;
+
+        try {
+            const response = await fetch(`${CONFIG.API_BASE_URL}/stats/owner?ownerId=${ownerId}`);
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                const d = result.data;
+                const formatter = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' });
+
+                // Update Overview Cards
+                const totalStockValueEl = document.querySelector('.stat-card:nth-child(1) h3');
+                const totalItemsEl = document.querySelector('.stat-card:nth-child(2) h3');
+                const totalUdhaarEl = document.querySelector('.stat-card:nth-child(4) h3');
+
+                if (totalStockValueEl) totalStockValueEl.textContent = formatter.format(d.totalStockValue);
+                if (totalItemsEl) totalItemsEl.textContent = d.totalItems.toLocaleString();
+                if (totalUdhaarEl) totalUdhaarEl.textContent = formatter.format(d.totalUdhaarPending);
+
+                // Update Other Counts
+                const lowStockSummary = document.querySelector('#low-stock-summary h3');
+                const expirySoonSummary = document.querySelector('#expiry-soon-summary h3');
+                if (lowStockSummary) lowStockSummary.textContent = d.lowStockCount;
+                if (expirySoonSummary) expirySoonSummary.textContent = d.expiringSoonCount;
+            }
+        } catch (err) {
+            console.error("Analytics Refresh Error:", err);
+        }
+    }
+
+    // Start Auto-Refresh (15s)
+    refreshAnalyticsData();
+    setInterval(refreshAnalyticsData, 15000);
+
     // Set Shop Name
     const shopSpans = document.querySelectorAll('.shop-name');
     shopSpans.forEach(span => {
-        span.textContent = (currentUser && currentUser.shopName) || 'QuadStock Store';
+        span.textContent = (currentUser && currentUser.shopName) || (currentEmployee && currentEmployee.shopName) || 'QuadStock Store';
     });
 
     // --- Digital Clock ---
@@ -55,22 +92,9 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // --- Scoped Data Loading ---
-    const inventory = JSON.parse(localStorage.getItem(`inventory_${ownerId}`)) || [];
-    const udhaarList = (JSON.parse(localStorage.getItem('udhaarRecords')) || []).filter(r => r.ownerId === ownerId);
+    // --- Scoped Data Loading (Deprecated for Analytics Summary) ---
+    // Previously used local storage counts, now handled by refreshAnalyticsData fetch.
 
-    // Update summary cards with real scoped data
-    function updateSummaryCards() {
-        const totalItemsEl = document.querySelector('.stat-card:nth-child(2) h3');
-        if (totalItemsEl) totalItemsEl.innerText = inventory.length;
-
-        const totalUdhaarEl = document.querySelector('.stat-card:nth-child(4) h3');
-        if (totalUdhaarEl) {
-            const totalPending = udhaarList.reduce((sum, r) => sum + (r.balance || 0), 0);
-            totalUdhaarEl.innerText = '₹' + totalPending.toLocaleString();
-        }
-    }
-    updateSummaryCards();
 
     // --- Submenu Logic ---
     window.toggleSubmenu = function (element) {

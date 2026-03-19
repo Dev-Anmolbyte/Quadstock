@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!target) return;
 
         let menuHtml = `
-            <a href="${role === 'manager' ? '../Managerdashboard/manager_dashboard.html' : 'staff_dashboard.html'}" class="menu-item active" title="Dashboard">
+            <a href="${role === 'manager' ? '../Ownerdashboard/dashboard.html' : 'staff_dashboard.html'}" class="menu-item active" title="Dashboard">
                 <i class="fa-solid fa-house-chimney"></i>
                 <span>Dashboard</span>
             </a>

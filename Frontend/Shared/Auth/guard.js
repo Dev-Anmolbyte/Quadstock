@@ -137,15 +137,9 @@
     const empData = currentEmployee ? JSON.parse(currentEmployee) : null;
     const role = (currentUser ? 'owner' : (empData ? empData.role : null));
 
-    // 1. Owner Dashboard Protection
-    if (path.includes('/ownerdashboard/') && !currentUser) {
-        showAccessDenied('Only the store owner can access the main dashboard. Please login as Owner.', '../authentication/login.html');
-        return;
-    }
-
-    // 2. Manager Dashboard Protection
-    if (path.includes('/managerdashboard/') && (!empData || empData.role !== 'manager')) {
-        showAccessDenied('Managerial access required.', '../authentication/employee_login.html');
+    // 1. Dashboard Protection (Owner + Manager)
+    if (path.includes('/ownerdashboard/') && !['owner', 'manager'].includes(role)) {
+        showAccessDenied('Only owners and managers can access this dashboard. Please login with correct credentials.', '../authentication/login.html');
         return;
     }
 

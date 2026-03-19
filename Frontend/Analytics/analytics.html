@@ -547,7 +547,7 @@
     </div>
 
     <script src="../Shared/Utils/offline.js"></script>
-    <script src="analytics.js"></script>
+    <script src="analytics.js" type="module"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
@@ -557,7 +557,7 @@
             const dashboardLink = document.querySelector('a[title="Dashboard"]');
             if (dashboardLink) {
                 if (role === 'manager') {
-                    dashboardLink.href = "../Managerdashboard/manager_dashboard.html";
+                    dashboardLink.href = "../Ownerdashboard/dashboard.html";
                 } else {
                     dashboardLink.href = "../Ownerdashboard/dashboard.html";
                 }

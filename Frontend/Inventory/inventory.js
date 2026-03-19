@@ -1,67 +1,42 @@
-document.addEventListener('DOMContentLoaded', () => {
+import CONFIG from '../Shared/Utils/config.js';
+
+document.addEventListener('DOMContentLoaded', async () => {
     // --- 0. Authentication & Context ---
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
     const currentEmployee = JSON.parse(localStorage.getItem('currentEmployee'));
 
-    // Security: Derive role strictly from session data. Ignore URL overrides to prevent privilege escalation.
     const role = (currentUser ? 'owner' : (currentEmployee ? currentEmployee.role : null));
     const ownerId = (currentUser && currentUser.ownerId) || (currentEmployee && currentEmployee.ownerId);
 
-    // If no context, redirect to login
     if (!role || !ownerId) {
         window.location.href = '../Authentication/login.html';
         return;
     }
 
-    // Set User Profile Name dynamically
-    const shopSpans = document.querySelectorAll('.shop-name');
-    shopSpans.forEach(span => {
-        span.textContent = (currentUser && currentUser.shopName) || 'QuadStock Store';
-
-    });
-
-    // Set dynamic Initial Icon
-    const userImage = document.querySelector('.user-profile img');
-    if (userImage) {
-        let nameToUse = 'O';
-        if (currentUser) nameToUse = currentUser.ownerName || 'O';
-        else if (currentEmployee) nameToUse = currentEmployee.name || 'M';
-        userImage.src = `https://ui-avatars.com/api/?name=${nameToUse}&background=F47C25&color=fff`;
-    }
-
-    if (role === 'staff') {
-
-        // Hide Restricted Actions
-        const btnAdd = document.getElementById('add-product-btn');
-        if (btnAdd) btnAdd.style.display = 'none';
-
-        // Hide Edit/Delete functionality via CSS injection
-        const style = document.createElement('style');
-        style.innerHTML = `
-            .edit-btn, .delete-btn, .edit-group-btn, .import-btn { display: none !important; }
-        `;
-        document.head.appendChild(style);
-    } else {
-        // Ensure buttons are visible for Non-Staff (Owner, Manager, Inventory Manager)
-        const btnAdd = document.getElementById('add-product-btn');
-        if (btnAdd) btnAdd.style.display = 'flex';
-        const btnImport = document.getElementById('import-btn');
-        if (btnImport) btnImport.style.display = 'flex';
-    }
-
     // --- 1. State & Constants ---
-    // Standard Global Storage with Immediate Tenant Filtering
-    const GLOBAL_KEY = 'quadstock_inventory';
-    const allInventory = JSON.parse(localStorage.getItem(GLOBAL_KEY)) || [];
-    let inventory = allInventory.filter(item => item.ownerId === ownerId);
-
+    let inventory = []; // Fetched state via backend
     let isEditing = false;
     let currentEditId = null;
     let cameraStream = null;
     let productToDeleteId = null;
-    const deleteModal = document.getElementById('delete-modal');
-    const btnConfirmDelete = document.getElementById('confirm-delete-btn');
-    const btnCloseDeleteModal = document.querySelectorAll('.close-delete-modal');
+
+    // Fetch Inventory from DB
+    async function refreshInventoryData() {
+        try {
+            const response = await fetch(`${CONFIG.API_BASE_URL}/inventory/all?ownerId=${ownerId}`);
+            const result = await response.json();
+            if (response.ok) {
+                inventory = result.data || [];
+                renderTable();
+                calculateDashboardStats();
+            } else {
+                console.error("Fetch Inventory Failed:", result.message);
+            }
+        } catch (err) {
+            console.error("Network Error:", err);
+            // Fallback to local if server down (optional, but let's stick to real backend)
+        }
+    }
 
     // Filters State
     let filters = {
@@ -184,7 +159,9 @@ document.addEventListener('DOMContentLoaded', () => {
     populateSelects();
     updateBrandList();
     calculateDashboardStats(); // Run once on load
-    renderTable(); // Initial Render
+    refreshInventoryData(); // Trigger refreshInventoryData() at the end of the script to populate the dashboard on load.
+    // Initial Render is now handled by refreshInventoryData()
+    // renderTable(); // Initial Render
 
     // --- 4. Event Listeners ---
     // Safe Event Listener Helper
@@ -684,7 +661,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    function saveProduct(closeAfterSave = true) {
+    async function saveProduct(closeAfterSave = true) {
         if (role !== 'owner' && role !== 'manager' && role !== 'inventory_manager') {
             QuadModals.alert("Access Denied", "Authorization failed for this operation.", "error");
             return;
@@ -714,130 +691,90 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const productData = {
-            id: isEditing ? currentEditId : Date.now().toString(),
             name: inputName.value,
             brand: inputBrand.value,
-            type: inputType.value,
+            type: currentType,
             category: inputCategory.value,
             description: inputDesc.value,
-            image: imgPreview.src || inputImageURL.value, // Prefer preview (file/camera)
+            image: imgPreview.src || inputImageURL.value, 
             barcode: inputBarcode.value,
-            ownerId: (currentUser && currentUser.ownerId) || (currentEmployee && currentEmployee.ownerId),
-
+            ownerId: ownerId,
             batchNumber: inputBatch.value,
             quantity: parseInt(inputQty.value) || 0,
             unit: inputUnit.value,
-
-            // Conditional Fields
             mfd: currentType === 'Clothes' ? null : inputMfd.value,
             exp: currentType === 'Clothes' ? null : inputExp.value,
             size: currentType === 'Clothes' ? inputSize.value : null,
             color: currentType === 'Clothes' ? inputColor.value : null,
             weight: currentType === 'Kirana' ? inputWeight.value : null,
-
             reorderPoint: parseInt(inputReorder.value) || 10,
-
             pp: parseFloat(inputPP.value) || 0,
             cp: parseFloat(inputCP.value) || 0,
             price: parseFloat(inputSP.value) || 0
         };
 
-        if (isEditing) {
-            const index = inventory.findIndex(i => i.id === currentEditId);
-            if (index !== -1) inventory[index] = productData;
-        } else {
-            inventory.unshift(productData);
-        }
-
-        // Persist with Global Hub Pattern
         try {
-            const currentGlobal = JSON.parse(localStorage.getItem(GLOBAL_KEY)) || [];
-            const otherOwners = currentGlobal.filter(item => item.ownerId !== ownerId);
-            const updatedGlobal = [...otherOwners, ...inventory];
-            localStorage.setItem(GLOBAL_KEY, JSON.stringify(updatedGlobal));
-        } catch (e) {
-            QuadModals.alert("Storage Full", "Could not save. Please use smaller images or clear old data.", "error");
-            console.error('LocalStorage Hub Save Error:', e);
-        }
-
-
-        // Update UI
-        calculateDashboardStats();
-        renderTable();
-
-        // Scroll to top to show the newly added item (since we use unshift)
-        if (!isEditing) {
-            const tableCard = document.querySelector('.table-card');
-            // 1. Bring the table section into view (in case user was scrolled away)
-            if (tableCard) {
-                // Use a small timeout to let the modal close animation finish/start
-                setTimeout(() => {
-                    tableCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }, 300);
+            let response;
+            if (isEditing) {
+                // Update
+                response = await fetch(`${CONFIG.API_BASE_URL}/inventory/update/${currentEditId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(productData)
+                });
+            } else {
+                // Create
+                response = await fetch(`${CONFIG.API_BASE_URL}/inventory/add`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(productData)
+                });
             }
 
-            // 2. Reset internal table scroll to show the first item
-            const tableContainer = document.querySelector('.table-responsive');
-            if (tableContainer) {
-                tableContainer.scrollTop = 0;
+            const result = await response.json();
+            if (response.ok) {
+                QuadModals.showToast(isEditing ? "Product Updated!" : "Product Added!", "success");
+                refreshInventoryData();
+                if (closeAfterSave) closeModal();
+            } else {
+                alert(`Error: ${result.message}`);
             }
-        }
 
-        if (closeAfterSave) closeModal();
+        } catch (err) {
+            console.error("Save Product Error:", err);
+            alert("Server connection failed.");
+        }
     }
 
-    function deleteProduct(id) {
-        // Role Security
+    async function deleteProduct(id) {
         if (role === 'staff') {
             QuadModals.alert("Access Denied", "Staff members cannot delete products.", "error");
             return;
         }
 
-        productToDeleteId = id;
-        if (deleteModal) {
-            deleteModal.classList.add('show');
-            deleteModal.style.display = 'flex';
-        } else {
-            // Fallback if modal not in DOM for some reason
-            if (confirm('Delete this batch?')) {
-                executeDeletion(id);
-            }
-        }
-    }
+        const confirmed = await QuadModals.confirm(
+            "Delete Product",
+            "Are you sure you want to remove this item? This action cannot be undone.",
+            { isDanger: true, confirmText: 'Delete' }
+        );
 
+        if (!confirmed) return;
 
-    function executeDeletion(id) {
-        inventory = inventory.filter(i => i.id !== id);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(inventory));
-        calculateDashboardStats();
-        renderTable();
-    }
-
-
-    // Delete Modal Listeners
-    if (btnConfirmDelete) {
-        btnConfirmDelete.addEventListener('click', () => {
-            if (productToDeleteId) {
-                executeDeletion(productToDeleteId);
-                if (deleteModal) {
-                    deleteModal.classList.remove('show');
-                    setTimeout(() => { deleteModal.style.display = 'none'; }, 300);
-                }
-                productToDeleteId = null;
-            }
-        });
-    }
-
-    if (btnCloseDeleteModal) {
-        btnCloseDeleteModal.forEach(btn => {
-            btn.addEventListener('click', () => {
-                if (deleteModal) {
-                    deleteModal.classList.remove('show');
-                    setTimeout(() => { deleteModal.style.display = 'none'; }, 300);
-                    productToDeleteId = null;
-                }
+        try {
+            const response = await fetch(`${CONFIG.API_BASE_URL}/inventory/delete/${id}`, {
+                method: 'DELETE'
             });
-        });
+
+            if (response.ok) {
+                QuadModals.showToast("Product deleted successfully", "info");
+                refreshInventoryData();
+            } else {
+                alert("Failed to delete product.");
+            }
+        } catch (err) {
+            console.error("Delete Error:", err);
+            alert("Network error.");
+        }
     }
 
     // --- 7. Dashboard Logic ---
@@ -1030,13 +967,13 @@ document.addEventListener('DOMContentLoaded', () => {
             </td>
             <td>
                 ${(item.quantity <= (item.reorderPoint || 10)) ? `
-                    <button class="action-btn order-btn" data-id="${item.id}" title="Quick Order (WhatsApp)" 
+                    <button class="action-btn order-btn" data-id="${item._id}" title="Quick Order (WhatsApp)" 
                             style="color: #25D366; background: rgba(37, 211, 102, 0.1);">
                         <i class="fa-brands fa-whatsapp"></i>
                     </button>
                 ` : ''}
-                <button class="action-btn edit-btn" data-id="${item.id}" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
-                <button class="action-btn delete-btn" data-id="${item.id}" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                <button class="action-btn edit-btn" data-id="${item._id}" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
+                <button class="action-btn delete-btn" data-id="${item._id}" title="Delete"><i class="fa-solid fa-trash"></i></button>
             </td>
         `;
         tableBody.appendChild(tr);
@@ -1167,13 +1104,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 </td>
                 <td>
                     ${(item.quantity <= (item.reorderPoint || 10)) ? `
-                        <button class="action-btn order-btn" data-id="${item.id}" title="Quick Order (WhatsApp)" 
+                        <button class="action-btn order-btn" data-id="${item._id}" title="Quick Order (WhatsApp)" 
                                 style="color: #25D366; background: rgba(37, 211, 102, 0.1);">
                             <i class="fa-brands fa-whatsapp"></i>
                         </button>
                     ` : ''}
-                    <button class="action-btn edit-btn" data-id="${item.id}" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
-                    <button class="action-btn delete-btn" data-id="${item.id}" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                    <button class="action-btn edit-btn" data-id="${item._id}" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button class="action-btn delete-btn" data-id="${item._id}" title="Delete"><i class="fa-solid fa-trash"></i></button>
                 </td>
             `;
             tableBody.appendChild(trChild);
@@ -1194,7 +1131,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (role === 'manager') {
-            if (dashboardCss) dashboardCss.href = '../Managerdashboard/manager_dashboard.css';
+            if (dashboardCss) dashboardCss.href = '../Ownerdashboard/dashboard.css';
             if (mainContainer) mainContainer.className = 'layout-container';
 
             sidebarTarget.innerHTML = `
@@ -1207,7 +1144,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="nav-section">
                     <h3 class="section-title">Main Menu</h3>
                     <nav class="nav-menu">
-                        <a href="../Managerdashboard/manager_dashboard.html" class="nav-item">
+                        <a href="../Ownerdashboard/dashboard.html" class="nav-item">
                             <i class="fa-solid fa-house-chimney"></i>
                             <span>Dashboard</span>
                         </a>
@@ -1283,7 +1220,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } else if (role === 'inventory_manager') {
             // Inventory Manager Sidebar (Restricted)
-            if (dashboardCss) dashboardCss.href = '../Managerdashboard/manager_dashboard.css'; // Use unified dashboard css for layout
+            if (dashboardCss) dashboardCss.href = '../Ownerdashboard/dashboard.css'; // Use unified dashboard css for layout
             if (mainContainer) mainContainer.className = 'layout-container';
 
             sidebarTarget.innerHTML = `
@@ -1453,7 +1390,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation(); // Prevent row expand
                 const id = e.target.closest('button').dataset.id;
-                const item = inventory.find(i => i.id === id);
+                const item = inventory.find(i => i._id === id);
                 if (item) openModal(item);
             })
         );
@@ -1470,7 +1407,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const id = e.target.closest('button').dataset.id;
-                const item = inventory.find(i => i.id === id);
+                const item = inventory.find(i => i._id === id);
                 if (item) {
                     const message = `Hello, I need to order more of ${item.name} (${item.brand || 'No Brand'}). Current stock is ${item.quantity} ${item.unit}.`;
                     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;

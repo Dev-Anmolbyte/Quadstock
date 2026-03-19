@@ -94,7 +94,72 @@ const loginUser = async (req, res) => {
     }
 }
 
+const updateProfile = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { ownerName, shopName, ownerEmail, phoneNumber } = req.body;
+
+        // Check for duplicates
+        if (ownerEmail || phoneNumber) {
+            const existing = await User.findOne({
+                _id: { $ne: id },
+                $or: [
+                    ownerEmail ? { ownerEmail } : null,
+                    phoneNumber ? { phoneNumber } : null
+                ].filter(Boolean)
+            });
+            if (existing) {
+                return res.status(409).json({ success: false, message: "Email or phone number already in use" });
+            }
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(
+            id,
+            { ownerName, shopName, ownerEmail, phoneNumber, updatedAt: Date.now() },
+            { new: true }
+        ).select("-password -__v");
+
+        if (!updatedUser) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        return res.status(200).json({
+            success: true,
+            data: updatedUser,
+            message: "Profile updated successfully"
+        });
+
+    } catch (error) {
+        console.error("Profile Update Error:", error);
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+const updatePassword = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { currentPassword, newPassword } = req.body;
+
+        const user = await User.findById(id);
+        if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) return res.status(401).json({ success: false, message: "Incorrect current password" });
+
+        user.password = await bcrypt.hash(newPassword, 10);
+        await user.save();
+
+        res.status(200).json({ success: true, message: "Password updated successfully" });
+
+    } catch (error) {
+        console.error("Password Update Error:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 export {
     registerUser,
     loginUser,
+    updateProfile,
+    updatePassword
 }

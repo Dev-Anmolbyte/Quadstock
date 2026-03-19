@@ -1,3 +1,5 @@
+import CONFIG from '../Shared/Utils/config.js';
+
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- Authentication & Context ---
@@ -18,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const dashboardCss = document.getElementById('dashboard-css');
 
         if (userRole === 'manager' || userRole === 'staff') {
-            dashboardCss.href = '../Managerdashboard/manager_dashboard.css';
+            dashboardCss.href = '../Ownerdashboard/dashboard.css';
             mainContainer.className = 'layout-container';
 
             sidebarTarget.innerHTML = `
@@ -31,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="nav-section">
                     <h3 class="section-title">Main Menu</h3>
                     <nav class="nav-menu">
-                        <a href="../Managerdashboard/manager_dashboard.html" class="nav-item">
+                        <a href="../Ownerdashboard/dashboard.html" class="nav-item">
                             <i class="fa-solid fa-house-chimney"></i>
                             <span>Dashboard</span>
                         </a>
@@ -171,7 +173,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 `;
 
-            const displayName = currentUser ? (currentUser.ownerName || currentUser.shopName || 'Owner') : 'Owner';
             document.getElementById('user-profile-target').innerHTML = `
                 <div class="shop-name-container">
                     <i class="fa-solid fa-store" style="color: var(--primary-color); margin-right: 0.5rem;"></i>
@@ -197,7 +198,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const themeBtn = document.getElementById('theme-toggle');
 
-        // --- Theme Persistence Logic ---
         function applyTheme(theme) {
             if (theme === 'dark') {
                 document.documentElement.setAttribute('data-theme', 'dark');
@@ -211,7 +211,6 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('theme', theme);
         }
 
-        // Load initial theme
         const savedTheme = localStorage.getItem('theme') || 'light';
         applyTheme(savedTheme);
 
@@ -236,7 +235,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setupLayout();
 
     // --- State and Storage ---
-    const STORAGE_KEY = 'quadstock_complaints';
     const QUICK_REPLIES = [
         { text: "I'm looking into this.", icon: "fa-magnifying-glass" },
         { text: "Approved.", icon: "fa-check" },
@@ -245,8 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { text: "Noted, thank you.", icon: "fa-clipboard-check" }
     ];
 
-    let allComplaints = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-    let complaints = allComplaints.filter(c => c.ownerId === ownerId);
+    let complaints = [];
     let uploadedImages = []; // Temp storage for modal
     let tempReplyImages = {}; // Temp storage for replies by id: []
 
@@ -258,23 +255,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const CURRENT_USER = getCurrentUserName();
 
-    if (complaints.length === 0 && ownerId === 'OWN-DEMO') {
-        complaints = [
-            {
-                id: 'cmp_' + Date.now(),
-                ownerId: ownerId,
-                staffName: 'Aarav Gupta',
-                role: 'Sales Staff',
-                timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-                subject: 'Air Conditioning issue',
-                description: 'The AC in the main showroom is leaking water.',
-                status: 'open',
-                closedBy: null,
-                replies: [],
-                images: []
+    // --- Dynamic Data Fetching ---
+    async function fetchComplaints() {
+        try {
+            const response = await fetch(`${CONFIG.API_BASE_URL}/complaints/all?ownerId=${ownerId}`);
+            const result = await response.json();
+            if (response.ok && result.success) {
+                complaints = result.data.filter(c => c.type === 'complaint');
+                renderComplaints();
             }
-        ];
-        saveComplaints();
+        } catch (err) {
+            console.error("Complaint Fetch Error:", err);
+        }
     }
 
     // --- DOM Elements ---
@@ -413,7 +405,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const sorted = [...complaints].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        const sorted = [...complaints].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
         if (sorted.length === 0) {
             listContainer.innerHTML = `<div style="text-align:center; padding:2rem; color:var(--text-secondary);">No complaints yet.</div>`;
@@ -422,9 +414,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         sorted.forEach(c => {
             const card = document.createElement('div');
-            card.className = `complaint-card status-${c.status}`;
+            card.className = `complaint-card status-${c.status === 'open' ? 'open' : 'closed'}`;
 
-            const timeDisplay = formatTimeDisplay(c.timestamp);
+            const timeDisplay = formatTimeDisplay(c.createdAt);
             const statusText = c.status === 'open' ? 'Open' : 'Closed';
             const authorInitial = c.staffName.charAt(0).toUpperCase();
 
@@ -441,7 +433,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="reply-bubble">
                         <span class="reply-author-name">${r.author} <span style="font-weight:400; opacity:0.7;">${formatTimeDisplay(r.timestamp)}</span></span>
                         <div class="reply-text">${r.text}</div>
-                        ${r.images && r.images.length > 0 ? `<div class="reply-images">${r.images.map(img => `<img src="${img.data}" class="reply-img-view" onclick="viewImage('${img.data}')">`).join('')}</div>` : ''}
                     </div>
                 </div>
             `).join('');
@@ -450,24 +441,20 @@ document.addEventListener('DOMContentLoaded', () => {
             if (c.status === 'closed') {
                 actionAreaHtml = `
                     <div class="closed-overlay">
-                        <span><i class="fa-solid fa-lock"></i> Thread closed by ${c.closedBy}</span>
-                        <button class="btn-action-outline success" onclick="reopenComplaint('${c.id}')"><i class="fa-solid fa-unlock"></i> Re-open</button>
+                        <span><i class="fa-solid fa-lock"></i> Thread closed by ${c.closedBy || 'Admin'}</span>
+                        <button class="btn-action-outline success" onclick="updateComplaintStatus('${c._id}', 'open')"><i class="fa-solid fa-unlock"></i> Re-open</button>
                     </div>
                 `;
             } else {
-                const pillsHtml = QUICK_REPLIES.map(q => `<div class="quick-pill" onclick="fillReply('${c.id}', '${q.text.replace(/'/g, "\\'")}')"><i class="fa-solid ${q.icon}"></i> ${q.text}</div>`).join('');
+                const pillsHtml = QUICK_REPLIES.map(q => `<div class="quick-pill" onclick="fillReply('${c._id}', '${q.text.replace(/'/g, "\\'")}')"><i class="fa-solid ${q.icon}"></i> ${q.text}</div>`).join('');
                 actionAreaHtml = `
                     <div class="action-area">
                         <div class="quick-replies">${pillsHtml}</div>
-                        <div id="reply-preview-${c.id}" class="reply-preview-container"></div>
+                        <div id="reply-preview-${c._id}" class="reply-preview-container"></div>
                         <div class="input-row">
-                            <div class="upload-btn-wrapper">
-                                <button class="mini-upload-btn" onclick="document.getElementById('reply-file-${c.id}').click()"><i class="fa-solid fa-camera"></i></button>
-                                <input type="file" id="reply-file-${c.id}" accept="image/*" multiple style="display:none" onchange="handleReplyImageUpload('${c.id}', this)">
-                            </div>
-                            <input type="text" class="main-input" id="reply-input-${c.id}" placeholder="Type your reply..." onkeyup="if(event.key === 'Enter') addReply('${c.id}')">
-                            <button class="btn-send-reply" onclick="addReply('${c.id}')"><i class="fa-solid fa-paper-plane"></i></button>
-                            <button class="btn-action-outline danger" onclick="closeComplaint('${c.id}')"><i class="fa-solid fa-check"></i> Close</button>
+                            <input type="text" class="main-input" id="reply-input-${c._id}" placeholder="Type your reply..." onkeyup="if(event.key === 'Enter') addReply('${c._id}')">
+                            <button class="btn-send-reply" onclick="addReply('${c._id}')"><i class="fa-solid fa-paper-plane"></i></button>
+                            <button class="btn-action-outline danger" onclick="closeComplaint('${c._id}')"><i class="fa-solid fa-check"></i> Close</button>
                         </div>
                     </div>
                 `;
@@ -488,7 +475,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                         </div>
                         <div class="complaint-meta">
-                            <span class="status-badge ${c.status}">${statusText}</span>
+                            <span class="status-badge ${c.status === 'open' ? 'open' : 'closed'}">${statusText}</span>
                             <span class="time-pill">${timeDisplay}</span>
                         </div>
                     </div>
@@ -525,25 +512,38 @@ document.addEventListener('DOMContentLoaded', () => {
     window.viewImage = (data) => { const w = window.open(""); w.document.write(`<img src="${data}" style="max-width:100%;">`); };
     window.fillReply = (id, text) => { const input = document.getElementById(`reply-input-${id}`); if (input) { input.value = text; input.focus(); } };
 
-    window.addReply = function (id) {
+    window.addReply = async function (id) {
         const input = document.getElementById(`reply-input-${id}`);
         const text = input.value.trim();
-        const imgs = tempReplyImages[id] || [];
-        if (!text && imgs.length === 0) return;
+        if (!text) return;
 
-        const complaint = complaints.find(c => c.id === id);
-        if (complaint && complaint.status === 'open') {
-            complaint.replies.push({
-                author: CURRENT_USER,
-                text: text,
-                timestamp: new Date().toISOString(),
-                images: [...imgs]
+        try {
+            const response = await fetch(`${CONFIG.API_BASE_URL}/complaints/reply/${id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ author: CURRENT_USER, text })
             });
-            tempReplyImages[id] = [];
-            saveComplaints();
-            renderComplaints();
+            if (response.ok) {
+                input.value = '';
+                fetchComplaints();
+            }
+        } catch (err) {
+            console.error("Reply Error:", err);
         }
     };
+
+    window.updateComplaintStatus = async function (id, status) {
+        try {
+            const response = await fetch(`${CONFIG.API_BASE_URL}/complaints/status/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status, closedBy: status === 'closed' ? CURRENT_USER : null })
+            });
+            if (response.ok) fetchComplaints();
+        } catch (err) {
+            console.error("Status Update Error:", err);
+        }
+    }
 
     // --- Confirmation Modal Logic ---
     const confirmModal = document.getElementById('confirm-modal');
@@ -555,13 +555,7 @@ document.addEventListener('DOMContentLoaded', () => {
         itemToClose = id;
         if (confirmModal) confirmModal.classList.add('active');
         else if (confirm('Close this complaint?')) {
-            const c = complaints.find(item => item.id === id);
-            if (c) {
-                c.status = 'closed';
-                c.closedBy = CURRENT_USER;
-                saveComplaints();
-                renderComplaints();
-            }
+            updateComplaintStatus(id, 'closed');
         }
     };
 
@@ -574,43 +568,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (confirmProceedBtn) {
         confirmProceedBtn.onclick = () => {
-            if (itemToClose) {
-                const c = complaints.find(item => item.id === itemToClose);
-                if (c) {
-                    c.status = 'closed';
-                    c.closedBy = CURRENT_USER;
-                    saveComplaints();
-                    renderComplaints();
-                }
-            }
+            if (itemToClose) updateComplaintStatus(itemToClose, 'closed');
             confirmModal.classList.remove('active');
             itemToClose = null;
         };
     }
 
-    // Close on overlay click
     if (confirmModal) {
-        confirmModal.onclick = (e) => {
-            if (e.target === confirmModal) {
-                confirmModal.classList.remove('active');
-                itemToClose = null;
-            }
-        };
+        confirmModal.onclick = (e) => { if (e.target === confirmModal) { confirmModal.classList.remove('active'); itemToClose = null; } };
     }
 
-    window.reopenComplaint = (id) => {
-        const c = complaints.find(item => item.id === id);
-        if (c) { c.status = 'open'; c.closedBy = null; saveComplaints(); renderComplaints(); }
-    };
-
-    function saveComplaints() {
-        const otherComplaints = allComplaints.filter(c => c.ownerId !== ownerId);
-        const updatedAll = [...otherComplaints, ...complaints];
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedAll));
-        allComplaints = updatedAll;
-    }
-
-    // --- Modal Logic ---
+    // --- Modal Logic for Raising Complaint ---
     if (raiseBtn) {
         raiseBtn.onclick = () => {
             modalOverlay.classList.add('active');
@@ -625,26 +593,31 @@ document.addEventListener('DOMContentLoaded', () => {
     if (closeModalBtn) closeModalBtn.onclick = () => modalOverlay.classList.remove('active');
 
     if (submitComplaintBtn) {
-        submitComplaintBtn.onclick = () => {
-            const name = staffNameInput.value.trim();
+        submitComplaintBtn.onclick = async () => {
             const subject = subjectInput.value.trim();
-            const desc = descInput.value.trim();
-            if (name && subject && desc) {
-                complaints.unshift({
-                    id: 'cmp_' + Date.now(),
-                    ownerId: ownerId,
-                    staffName: name,
-                    role: roleSelect.value,
-                    timestamp: new Date().toISOString(),
-                    subject: subject,
-                    description: desc,
-                    status: 'open',
-                    replies: [],
-                    images: [...uploadedImages]
-                });
-                saveComplaints();
-                renderComplaints();
-                modalOverlay.classList.remove('active');
+            const description = descInput.value.trim();
+            if (subject && description) {
+                try {
+                    const response = await fetch(`${CONFIG.API_BASE_URL}/complaints/add`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            ownerId,
+                            type: 'complaint',
+                            staffName: CURRENT_USER,
+                            role: userRole,
+                            subject,
+                            description,
+                            images: uploadedImages
+                        })
+                    });
+                    if (response.ok) {
+                        modalOverlay.classList.remove('active');
+                        fetchComplaints();
+                    }
+                } catch (err) {
+                    console.error("Submit Error:", err);
+                }
             } else alert('Fill all fields');
         };
     }
@@ -653,5 +626,5 @@ document.addEventListener('DOMContentLoaded', () => {
         modalOverlay.onclick = (e) => { if (e.target === modalOverlay) modalOverlay.classList.remove('active'); };
     }
 
-    renderComplaints();
+    fetchComplaints();
 });
