@@ -37,6 +37,21 @@ class StatsService {
         const udhaarRecords = await Udhaar.find({ storeId });
         const totalUdhaarPending = udhaarRecords.reduce((acc, u) => acc + (u.balance || 0), 0);
 
+        // 3. User (Staff) Stats
+        const totalUsers = await User.countDocuments({ storeId, role: 'staff' });
+
+        // 4. Top 4 Products (by inventory value = price * quantity)
+        const topProducts = products
+            .map(p => ({
+                name: p.name,
+                image: p.image || null,
+                quantity: p.quantity,
+                price: p.price,
+                totalValue: (p.price || 0) * (p.quantity || 0)
+            }))
+            .sort((a, b) => b.totalValue - a.totalValue)
+            .slice(0, 4);
+
         return {
             totalItems: products.length,
             totalStockValue,
@@ -44,7 +59,19 @@ class StatsService {
             outOfStockCount,
             expiringSoonCount,
             totalUdhaarPending,
-            refreshAt: new Date().toISOString()
+            totalUsers,
+            topProducts,
+            totalRevenue: 0, // Placeholder until Order module is ready
+            totalSold: 0,    // Placeholder until Order module is ready
+            refreshAt: new Date().toISOString(),
+            expiringSoonList: expiringSoonProducts
+                .map(p => ({
+                    name: p.name,
+                    exp: p.exp,
+                    daysLeft: Math.ceil((new Date(p.exp) - new Date()) / (1000 * 60 * 60 * 24))
+                }))
+                .sort((a, b) => a.daysLeft - b.daysLeft)
+                .slice(0, 5)
         };
     }
 }

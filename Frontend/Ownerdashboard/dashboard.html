@@ -19,327 +19,233 @@
 
 <body>
     <div class="layout-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="brand">
-                <button id="sidebar-toggle" class="sidebar-toggle">
-                    <i class="fa-solid fa-bars"></i>
-                </button>
-                <h2 class="brand-text">QuadStock</h2>
-            </div>
+        <!-- Sidebar (populated by sidebar.js) -->
+        <aside class="sidebar"></aside>
 
-            <nav class="sidebar-menu">
-                <a href="dashboard.html" class="menu-item active" title="Dashboard">
-                    <i class="fa-solid fa-house"></i>
-                    <span>Dashboard</span>
-                </a>
-                <a href="../Analytics/analytics.html" class="menu-item" title="Analytics">
-                    <i class="fa-solid fa-chart-simple"></i>
-                    <span>Analytics</span>
-                </a>
-                <a href="../Query/query.html" class="menu-item" title="Query">
-                    <i class="fa-solid fa-clipboard-question"></i>
-                    <span>Query</span>
-                </a>
-                <a href="../Inventory/inventory.html" class="menu-item" title="Inventory">
-                    <i class="fa-solid fa-boxes-stacked"></i>
-                    <span>Inventory</span>
-                </a>
-                <a href="../Employees/employees.html" class="menu-item" title="Employees">
-                    <i class="fa-solid fa-users"></i>
-                    <span>Employees</span>
-                </a>
-                <a href="../smartexpiry/smartexpiry.html" class="menu-item" title="Smart Expiry">
-                    <i class="fa-solid fa-hourglass-end"></i>
-                    <span>Smart Expiry</span>
-                </a>
-
-                <a href="../Complain/complain.html" class="menu-item" title="Complaints">
-                    <div style="position:relative;">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
-                        <span id="nav-badge-complain" class="nav-badge" style="display:none;">0</span>
-                    </div>
-                    <span>Complaints</span>
-                </a>
-                <a href="../Udhaar/udhaar.html" class="menu-item" title="Pending Payments">
-                    <i class="fa-solid fa-indian-rupee-sign"></i>
-                    <span>Udhaar/Pending</span>
-                </a>
-                <a href="../Settings/settings.html" class="menu-item" title="Settings">
-                    <i class="fa-solid fa-gear"></i>
-                    <span>Settings</span>
-                </a>
-                <a href="../landing/landing.html" class="menu-item" title="Logout">
-                    <i class="fa-solid fa-right-from-bracket"></i>
-                    <span>Logout</span>
-                </a>
-            </nav>
-
-            <div class="sidebar-footer-card">
-                <div class="support-illustration">
-                    <!-- Simple SVG person illustration -->
-                    <svg viewBox="0 0 100 100" class="illus-svg">
-                        <circle cx="50" cy="35" r="15" fill="#333" />
-                        <path d="M20,80 Q50,70 80,80 V100 H20 Z" fill="#333" />
-                        <rect x="15" y="45" width="25" height="15" rx="2" fill="#555" transform="rotate(-15 27 52)" />
-                    </svg>
-                </div>
-                <a href="../Footer/contact.html" class="btn-support"
-                    style="text-decoration: none; display: inline-block; text-align: center;">
-                    <i class="fa-regular fa-life-ring"></i> Support
-                </a>
-            </div>
-        </aside>
-
-        <!-- Main Content -->
+        <!-- Main Content Area -->
         <main class="main-content">
-            <!-- Top Bar (Clock & Actions) -->
-            <div class="top-bar">
-                <div class="digital-clock" id="digital-clock">
-                    00:00:00 AM
-                </div>
-
-                <div class="header-right">
-                    <button class="theme-toggle-btn" id="theme-toggle" title="Toggle Theme" aria-label="Toggle theme">
-                        <i class="fa-solid fa-moon"></i>
-                    </button>
-
-                    <div class="shop-name-container">
-                        <i class="fa-solid fa-store" style="color: var(--primary-color); margin-right: 0.5rem;"></i>
-                        <span class="shop-name">Loading...</span>
-                        <span id="store-id-badge" class="badge blue" style="margin-left: 0.5rem; font-size: 0.7rem; font-weight: 600; padding: 0.2rem 0.5rem; display: none;">ID: ...</span>
-                    </div>
-
-                </div>
-            </div>
-
-            <!-- Header Title -->
-            <header class="top-header">
-                <div class="header-left">
-                    <h1>Dashboard</h1>
-                </div>
-            </header>
+            <!-- Top Bar injected by sidebar.js -->
 
             <div class="content-scrollable">
-                <!-- Stats Row -->
-                <div class="stats-row">
-                    <!-- Card 1 -->
-                    <div class="stat-card">
-                        <div class="stat-icon blue-bg"><i class="fa-solid fa-sack-dollar"></i></div>
+                <!-- Welcome Banner -->
+                <div class="welcome-header">
+                    <h1 id="welcome-store-name">Dashboard</h1>
+                    <p>Welcome back! Here's what's happening today in your store.</p>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="stats-row" style="margin-bottom: 2.5rem;">
+                    <!-- Card 1: Inventory Value -->
+                    <div class="card stat-card">
+                        <div class="stat-top">
+                            <div class="stat-icon indigo"><i class="fa-solid fa-wallet"></i></div>
+                            <select id="revenue-year-select" class="year-select"></select>
+                        </div>
                         <div class="stat-info">
-                            <p class="label">Total Annual Revenue</p>
+                            <p class="label">Inventory Value</p>
                             <h3 id="dash-stock-value">₹0</h3>
                         </div>
-                        <select id="revenue-year-select" class="year-select"></select>
                     </div>
-                    <!-- Card 2 -->
-                    <div class="stat-card">
-                        <div class="stat-icon purple-bg"><i class="fa-solid fa-cart-shopping"></i></div>
+
+                    <!-- Card 2: Monthly Revenue -->
+                    <div class="card stat-card">
+                        <div class="stat-top">
+                            <div class="stat-icon rose"><i class="fa-solid fa-chart-line-up"></i></div>
+                            <select id="revenue-month-select" class="month-select"></select>
+                        </div>
                         <div class="stat-info">
                             <p class="label">Monthly Revenue</p>
-                            <h3>₹600,000</h3>
+                            <h3 id="dash-monthly-revenue">₹0</h3>
                         </div>
-                        <select id="revenue-month-select" class="month-select"></select>
                     </div>
-                    <!-- Card 3 -->
-                    <div class="stat-card">
-                        <div class="stat-icon pink-bg"><i class="fa-solid fa-box-open"></i></div>
-                        <div class="stat-info">
-                            <p class="label">Products Sold</p>
-                            <h3>20000</h3>
+
+                    <!-- Card 3: Orders -->
+                    <div class="card stat-card">
+                        <div class="stat-top">
+                            <div class="stat-icon emerald"><i class="fa-solid fa-bag-shopping"></i></div>
+                            <select id="products-period-select" class="period-select">
+                                <option value="monthly">Monthly</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="today">Today</option>
+                            </select>
                         </div>
-                        <select id="products-period-select" class="period-select">
-                            <option value="today">Today</option>
-                            <option value="yesterday">Yesterday</option>
-                            <option value="weekly">Weekly</option>
-                            <option value="monthly">Monthly</option>
-                        </select>
-                    </div>
-                    <!-- Card 4 -->
-                    <div class="stat-card">
-                        <div class="stat-icon blue-bg"><i class="fa-solid fa-boxes-stacked"></i></div>
                         <div class="stat-info">
-                            <p class="label">Total Product in Inventory</p>
+                            <p class="label">Total Orders</p>
+                            <h3 id="dash-total-sold">0</h3>
+                        </div>
+                    </div>
+
+                    <!-- Card 4: Inventory Count -->
+                    <div class="card stat-card">
+                        <div class="stat-top">
+                            <div class="stat-icon indigo"><i class="fa-solid fa-boxes-stacked"></i></div>
+                        </div>
+                        <div class="stat-info">
+                            <p class="label">Total Products</p>
                             <h3 id="dash-inventory-count">0</h3>
                         </div>
                     </div>
 
-                    <!-- New Card 5 -->
-                    <div class="stat-card" style="cursor:pointer;" onclick="window.location.href='../Inventory/inventory.html'">
-                        <div class="stat-icon red-bg"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <!-- Card 5: Low Stock -->
+                    <div class="card stat-card" style="cursor:pointer;" onclick="window.location.href='../Inventory/inventory.html'">
+                        <div class="stat-top">
+                            <div class="stat-icon amber"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                            <span class="badge orange">Urgent</span>
+                        </div>
                         <div class="stat-info">
-                            <p class="label">Low Stocks in Inventory</p>
+                            <p class="label">Low stock items</p>
                             <h3 id="dash-low-stock">0</h3>
                         </div>
                     </div>
 
-                    <!-- New Card 6: Total Udhaar Pending -->
-                    <div class="stat-card" style="cursor:pointer;" onclick="window.location.href='../Udhaar/udhaar.html'">
-                        <div class="stat-icon red-bg"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+                    <!-- Card 6: Udhaar -->
+                    <div class="card stat-card" style="cursor:pointer;" onclick="window.location.href='../Udhaar/udhaar.html'">
+                        <div class="stat-top">
+                            <div class="stat-icon rose"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+                        </div>
                         <div class="stat-info">
-                            <p class="label">Total Udhaar Pending</p>
+                            <p class="label">Udhaar Pending</p>
                             <h3 id="dash-total-udhaar">₹0</h3>
+                        </div>
+                    </div>
+
+                    <!-- Card 7: Staff -->
+                    <div class="card stat-card" style="cursor:pointer;" onclick="window.location.href='../Employees/employees.html'">
+                        <div class="stat-top">
+                            <div class="stat-icon emerald"><i class="fa-solid fa-users"></i></div>
+                        </div>
+                        <div class="stat-info">
+                            <p class="label">Total Staff</p>
+                            <h3 id="dash-staff-count">0</h3>
                         </div>
                     </div>
                 </div>
 
                 <!-- Action Banners -->
-                <div class="action-banners"
-                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
-                    <!-- Analytics Teaser (Saffron) -->
-                    <div class="card"
-                        style="background: linear-gradient(135deg, #F47C25 0%, #E65100 100%); color: white; display:flex; align-items:center; justify-content:space-between; padding:2rem;">
-                        <div>
-                            <h2 style="margin-bottom:0.5rem; font-size:1.5rem;">View Deep Analytics</h2>
-                            <p style="opacity:0.9; margin-bottom:1.5rem;">Get detailed insights into revenue, stock
-                                trends, and store performance.</p>
-                            <a href="../Analytics/analytics.html" class="btn-primary"
-                                style="background:white; color:#E65100; padding:0.8rem 1.5rem; border-radius:0.5rem; text-decoration:none; font-weight:700;">Go
-                                to Analytics <i class="fa-solid fa-arrow-right" style="margin-left:0.5rem;"></i></a>
+                <div class="action-banners">
+                    <!-- Analytics Teaser -->
+                    <div class="card action-card orange">
+                        <div class="action-info">
+                            <h2>Deep Analytics</h2>
+                            <p>Insights into revenue, stock trends, and store performance.</p>
+                            <a href="../Analytics/analytics.html" class="btn-action">
+                                Go to Analytics <i class="fa-solid fa-arrow-right"></i>
+                            </a>
                         </div>
-                        <i class="fa-solid fa-chart-pie" style="font-size:5rem; opacity:0.3;"></i>
+                        <i class="fa-solid fa-chart-pie action-icon"></i>
                     </div>
 
-                    <!-- Smart Expiry Teaser (Green) -->
-                    <div class="card"
-                        style="background: linear-gradient(135deg, #138808 0%, #1B5E20 100%); color: white; display:flex; align-items:center; justify-content:space-between; padding:2rem;">
-                        <div>
-                            <h2 style="margin-bottom:0.5rem; font-size:1.5rem;">Manage Expiries</h2>
-                            <p style="opacity:0.9; margin-bottom:1.5rem;"><span id="dash-expiring-alert">0</span> items are expiring soon. Take action to reduce waste.</p>
-                            <a href="../smartexpiry/smartexpiry.html" class="btn-primary"
-                                style="background:white; color:#1B5E20; padding:0.8rem 1.5rem; border-radius:0.5rem; text-decoration:none; font-weight:700;">Check
-                                Expiry <i class="fa-solid fa-arrow-right" style="margin-left:0.5rem;"></i></a>
+                    <!-- Smart Expiry Teaser -->
+                    <div class="card action-card green">
+                        <div class="action-info">
+                            <h2>Manage Expiries</h2>
+                            <p><span id="dash-expiring-alert">0</span> items are expiring soon. Take action now.</p>
+                            <a href="../smartexpiry/smartexpiry.html" class="btn-action">
+                                Check Expiry <i class="fa-solid fa-arrow-right"></i>
+                            </a>
                         </div>
-                        <i class="fa-solid fa-hourglass-end" style="font-size:5rem; opacity:0.3;"></i>
+                        <i class="fa-solid fa-hourglass-end action-icon"></i>
                     </div>
                 </div>
 
-                <!-- Middle Section: Products Table & Quick Details -->
+                <!-- Middle Section: Tables & Alerts -->
                 <div class="middle-section">
-                    <!-- Top Products Table -->
+                    <!-- High Value Stock -->
                     <div class="card table-card">
                         <div class="card-header">
-                            <h3>Top Products</h3>
-                            <a href="#" class="link-arrow"><i class="fa-solid fa-arrow-right"></i></a>
+                            <h3>High Value Stock</h3>
+                            <a href="../Inventory/inventory.html" class="link-arrow"><i class="fa-solid fa-chevron-right"></i></a>
                         </div>
                         <div class="table-responsive">
-                            <table>
+                            <table class="glass-table">
                                 <thead>
                                     <tr>
                                         <th>PRODUCT</th>
                                         <th>AVAILABILITY</th>
-                                        <th>TOTAL</th>
+                                        <th style="text-align: right;">TOTAL</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>
-                                            <div class="prod-cell">
-                                                <div class="prod-img bg-red-100"><img
-                                                        src="../Assets/product_placeholder.png" alt="img"
-                                                        onerror="this.style.display='none'"></div>
-                                                <span>Women's Vintage Peacoat</span>
-                                            </div>
-                                        </td>
-                                        <td><span class="badge blue">220 In Stock</span></td>
-                                        <td class="price">₹29,192</td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <div class="prod-cell">
-                                                <div class="prod-img bg-yellow-100"><img
-                                                        src="../Assets/product_placeholder.png" alt="img"
-                                                        onerror="this.style.display='none'"></div>
-                                                <span>Women's Oatmeal Sweater</span>
-                                            </div>
-                                        </td>
-                                        <td><span class="badge red">Out of Stock</span></td>
-                                        <td class="price">₹23,654</td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <div class="prod-cell">
-                                                <div class="prod-img bg-gray-100"><img
-                                                        src="../Assets/product_placeholder.png" alt="img"
-                                                        onerror="this.style.display='none'"></div>
-                                                <span>Women's Denim Shirt</span>
-                                            </div>
-                                        </td>
-                                        <td><span class="badge orange">4 In Stock</span></td>
-                                        <td class="price">₹21,404</td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <div class="prod-cell">
-                                                <div class="prod-img bg-red-100"><img
-                                                        src="../Assets/product_placeholder.png" alt="img"
-                                                        onerror="this.style.display='none'"></div>
-                                                <span>Women's Vintage Peacoat</span>
-                                            </div>
-                                        </td>
-                                        <td><span class="badge orange">2 In Stock</span></td>
-                                        <td class="price">₹19,100</td>
-                                    </tr>
+                                <tbody id="top-products-tbody">
+                                    <!-- Dynamic Rows -->
                                 </tbody>
                             </table>
                         </div>
                     </div>
 
-                    <!-- Quick Details -->
-                    <div class="card quick-details-card">
+                    <!-- Soon Expiry Table -->
+                    <div class="card table-card highlight-danger">
                         <div class="card-header">
-                            <h3>Urgent Attention</h3>
+                            <h3>Soon Expiry</h3>
+                            <a href="../smartexpiry/smartexpiry.html" class="link-arrow red"><i class="fa-solid fa-chevron-right"></i></a>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="glass-table">
+                                <tbody id="expiring-soon-tbody">
+                                    <!-- Dynamic content -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Alerts Center -->
+                    <div class="card alerts-card">
+                        <div class="card-header">
+                            <h3>Focus Areas</h3>
                         </div>
                         <ul class="details-list">
                             <li>
-                                <a href="../smartexpiry/smartexpiry.html" style="display: flex; justify-content: space-between; align-items: center; text-decoration: none; width: 100%; color: inherit; cursor: pointer;">
-                                    <div class="detail-left">
-                                        <div class="icon-box red-text"><i class="fa-solid fa-hourglass-end"></i></div>
-                                        <span>Items Expiring Soon</span>
+                                <a href="../Query/query.html" class="alert-item">
+                                    <div class="item-left">
+                                        <div class="icon-box blue"><i class="fa-solid fa-message-question"></i></div>
+                                        <span>Queries</span>
                                     </div>
-                                    <span class="detail-right" style="color:var(--primary-color); font-weight:600;">View <span id="dash-expiry-count">0</span> Items</span>
+                                    <span class="badge blue" id="dash-query-count">0</span>
                                 </a>
                             </li>
                             <li>
-                                <a href="../Inventory/inventory.html" style="display: flex; justify-content: space-between; align-items: center; text-decoration: none; width: 100%; color: inherit; cursor: pointer;">
-                                    <div class="detail-left">
-                                        <div class="icon-box orange-text"><i class="fa-solid fa-triangle-exclamation"></i>
-                                        </div>
-                                        <span>Low Stock Alerts</span>
+                                <a href="../Complain/complain.html" class="alert-item">
+                                    <div class="item-left">
+                                        <div class="icon-box red"><i class="fa-solid fa-circle-exclamation"></i></div>
+                                        <span>Complaints</span>
                                     </div>
-                                    <span class="detail-right" style="color:var(--primary-color); font-weight:600;">Restock <span id="dash-low-stock-count">0</span> Items</span>
+                                    <span class="badge red" id="dash-complain-count">0</span>
                                 </a>
                             </li>
                             <li>
-                                <a href="../Query/query.html" style="display: flex; justify-content: space-between; align-items: center; text-decoration: none; width: 100%; color: inherit; cursor: pointer;">
-                                    <div class="detail-left">
-                                        <div class="icon-box blue-text"><i class="fa-solid fa-clipboard-question"></i></div>
-                                        <span>Unresolved Queries</span>
+                                <a href="../Udhaar/udhaar.html" class="alert-item">
+                                    <div class="item-left">
+                                        <div class="icon-box amber"><i class="fa-solid fa-hand-holding-indian-rupee"></i></div>
+                                        <span>Pending Payments</span>
                                     </div>
-                                    <span class="detail-right" style="color:var(--primary-color); font-weight:600;">Reply to <span id="dash-query-count">0</span></span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="../Complain/complain.html" style="display: flex; justify-content: space-between; align-items: center; text-decoration: none; width: 100%; color: inherit; cursor: pointer;">
-                                    <div class="detail-left">
-                                        <div class="icon-box red-text"><i class="fa-solid fa-circle-exclamation"></i></div>
-                                        <span>Open Complaints</span>
-                                    </div>
-                                    <span class="detail-right" style="color:var(--primary-color); font-weight:600;">Resolve <span id="dash-complain-count">0</span></span>
+                                    <span class="badge orange">Review</span>
                                 </a>
                             </li>
                         </ul>
                     </div>
                 </div>
 
-                <!-- Bottom Section: Charts Removed -->
-                <!-- <div class="bottom-section"> ... </div> -->
+                <!-- Bottom Section: Sales Charts -->
+                <div class="bottom-section" style="margin-top: 2rem;">
+                    <div class="card chart-card" style="padding: 1.5rem; height: 350px;">
+                        <div class="card-header" style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+                            <h3>Store Analytics Overview</h3>
+                            <span style="font-size: 0.8rem; opacity: 0.7;">Weekly Trends</span>
+                        </div>
+                        <div style="height: 250px; position: relative;">
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
 
     <script src="../Shared/Utils/offline.js"></script>
     <script src="../Shared/Auth/rbac.js"></script>
+    <!-- Shared sidebar + top bar + clock + theme -->
+    <script>window.ACTIVE_PAGE = 'dashboard';</script>
+    <script src="../Shared/Components/sidebar.js"></script>
+    <!-- Page-specific logic -->
     <script src="dashboard.js" type="module"></script>
 </body>
 

@@ -4,15 +4,13 @@ import apiRequest from '../Shared/Utils/api.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     // --- Authentication & Context ---
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    const currentEmployee = JSON.parse(localStorage.getItem('currentEmployee'));
-    const userRole = (currentUser && currentUser.role) || (currentEmployee && currentEmployee.role) || 'staff';
-    const currentOwnerId = (currentUser && currentUser.ownerId) || (currentEmployee && currentEmployee.ownerId);
-
-    if (!currentOwnerId) {
-        window.location.href = '../Authentication/employee_login.html';
+    const ctx = window.authContext;
+    if (!ctx || !ctx.isAuthenticated) {
+        window.location.href = '../Authentication/login.html';
         return;
     }
+
+    const { role: userRole, ownerRefId: currentOwnerId, user } = ctx;
 
     // --- State & Constants ---
     let udhaarList = [];

@@ -1,6 +1,7 @@
 import { initInteractiveBackground } from '../Shared/Components/interactive-bg.js';
+import CONFIG from '../Shared/Utils/config.js';
 
-const API_BASE = 'http://localhost:3000/api';
+const API_BASE = CONFIG.API_BASE_URL;
 
 document.addEventListener('DOMContentLoaded', () => {
     // ── Background ────────────────────────────────────────────────────────────

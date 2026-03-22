@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <script src="../Shared/Auth/guard.js" type="module"></script>
+    <script src="../Shared/Auth/guard.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QuadStock - Inventory Command Center</title>
@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="../Shared/Vendor/font-awesome/css/all.min.css">
     <!-- Global CSS -->
     <link rel="stylesheet" href="../Shared/Styles/global.css">
-    <!-- CSS -->
+    <link rel="stylesheet" href="../Ownerdashboard/dashboard.css">
     <link rel="stylesheet" href="inventory.css">
     <link rel="stylesheet" href="../Shared/Components/quad-modals.css">
 
@@ -21,104 +21,12 @@
 
 <body>
     <div class="layout-container">
-        <!-- Sidebar (Shared Structure) -->
-        <aside class="sidebar" id="sidebar-target">
-
-            <div class="brand">
-                <button id="sidebar-toggle" class="sidebar-toggle">
-                    <i class="fa-solid fa-bars"></i>
-                </button>
-                <h2 class="brand-text">QuadStock</h2>
-            </div>
-            <nav class="sidebar-menu">
-                <a href="../Ownerdashboard/dashboard.html" class="menu-item " title="Dashboard">
-                    <i class="fa-solid fa-house"></i>
-                    <span>Dashboard</span>
-                </a>
-                <a href="../Analytics/analytics.html" class="menu-item " title="Analytics">
-                    <i class="fa-solid fa-chart-simple"></i>
-                    <span>Analytics</span>
-                </a>
-                <a href="../Query/query.html" class="menu-item " title="Query">
-                    <i class="fa-solid fa-clipboard-question"></i>
-                    <span>Query</span>
-                </a>
-                <a href="../Inventory/inventory.html" class="menu-item active" title="Inventory">
-                    <i class="fa-solid fa-boxes-stacked"></i>
-                    <span>Inventory</span>
-                </a>
-                <a href="../Employees/employees.html" class="menu-item " title="Employees">
-                    <i class="fa-solid fa-users"></i>
-                    <span>Employees</span>
-                </a>
-                <a href="../smartexpiry/smartexpiry.html" class="menu-item " title="Smart Expiry">
-                    <i class="fa-solid fa-hourglass-end"></i>
-                    <span>Smart Expiry</span>
-                </a>
-
-                <a href="../Complain/complain.html" class="menu-item " title="Complaints">
-                    <div style="position:relative;">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
-                        <span id="nav-badge-complain" class="nav-badge" style="display:none;">0</span>
-                    </div>
-                    <span>Complaints</span>
-                </a>
-                <a href="../Udhaar/udhaar.html" class="menu-item " title="Pending Payments">
-                    <i class="fa-solid fa-indian-rupee-sign"></i>
-                    <span>Udhaar/Pending</span>
-                </a>
-                <a href="../Settings/settings.html" class="menu-item " title="Settings">
-                    <i class="fa-solid fa-gear"></i>
-                    <span>Settings</span>
-                </a>
-                <a href="../landing/landing.html" class="menu-item" title="Logout">
-                    <i class="fa-solid fa-right-from-bracket"></i>
-                    <span>Logout</span>
-                </a>
-            </nav>
-            <div class="sidebar-footer-card">
-                <div class="support-illustration">
-                    <svg viewBox="0 0 100 100" class="illus-svg">
-                        <circle cx="50" cy="35" r="15" fill="#333" />
-                        <path d="M20,80 Q50,70 80,80 V100 H20 Z" fill="#333" />
-                        <rect x="15" y="45" width="25" height="15" rx="2" fill="#555" transform="rotate(-15 27 52)" />
-                    </svg>
-                </div>
-                <a href="../Footer/contact.html" class="btn-support" style="text-decoration: none; display: inline-block; text-align: center;">
-                    <i class="fa-regular fa-life-ring"></i> Support
-                </a>
-            </div>
-
-</aside>
+        <!-- Sidebar (populated by sidebar.js) -->
+        <aside class="sidebar"></aside>
 
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Top Bar -->
-            <div class="top-bar">
-                <div class="header-left">
-                    <button id="mobile-sidebar-toggle" class="mobile-menu-btn">
-                        <i class="fa-solid fa-bars"></i>
-                    </button>
-                    <div>
-                        <h1>Inventory Command Center</h1>
-                        <p class="subtitle">Real-time stock tracking, batch management, and expiry alerts.</p>
-                    </div>
-                </div>
-                <div class="header-right">
-                    <button class="theme-toggle-btn" id="settings-btn" title="Settings">
-                        <i class="fa-solid fa-gear"></i>
-                    </button>
-                    <button class="theme-toggle-btn" id="theme-toggle">
-                        <i class="fa-solid fa-moon"></i>
-                    </button>
-                    <div class="shop-name-container">
-                        <div
-                            style="width:32px; height:32px; border-radius:50%; background:var(--primary); color:white; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.8rem;">
-                            A</div>
-                        <span class="user-name">Admin</span>
-                    </div>
-                </div>
-            </div>
+            <!-- Top Bar injected by sidebar.js -->
 
             <!-- 1. The Top Deck: Summary Cards -->
             <div class="summary-deck">
@@ -554,6 +462,8 @@
     <script src="../Shared/Utils/offline.js"></script>
     <script src="../Shared/Auth/rbac.js"></script>
     <script src="../Shared/Components/quad-modals.js"></script>
+    <script>window.ACTIVE_PAGE = 'inventory';</script>
+    <script src="../Shared/Components/sidebar.js"></script>
     <script src="inventory.js" type="module"></script>
 
     <script>

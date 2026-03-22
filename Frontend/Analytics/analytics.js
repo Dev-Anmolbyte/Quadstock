@@ -1,26 +1,18 @@
 import CONFIG from '../Shared/Utils/config.js';
+import { apiRequest } from '../Shared/Utils/api.js';
 
 document.addEventListener('DOMContentLoaded', function () {
     // --- Authentication & Context ---
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
     const currentEmployee = JSON.parse(localStorage.getItem('currentEmployee'));
     const userRole = (currentUser && currentUser.role) || (currentEmployee && currentEmployee.role) || 'staff';
-    const ownerId = (currentUser && currentUser.ownerId) || (currentEmployee && currentEmployee.ownerId);
-
-    if (!ownerId) {
-        window.location.href = '../Authentication/employee_login.html';
-        return;
-    }
-
+    
     // --- Live Data Refresh Logic ---
     async function refreshAnalyticsData() {
-        if (!ownerId) return;
-
         try {
-            const response = await fetch(`${CONFIG.API_BASE_URL}/stats/owner?ownerId=${ownerId}`);
-            const result = await response.json();
-
-            if (response.ok && result.success) {
+            const result = await apiRequest('/stats/owner');
+            
+            if (result.success) {
                 const d = result.data;
                 const formatter = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' });
 
@@ -54,43 +46,7 @@ document.addEventListener('DOMContentLoaded', function () {
         span.textContent = (currentUser && currentUser.shopName) || (currentEmployee && currentEmployee.shopName) || 'QuadStock Store';
     });
 
-    // --- Digital Clock ---
-    function updateClock() {
-        const now = new Date();
-        const dateString = now.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' });
-        const timeString = now.toLocaleTimeString('en-US', { hour12: true });
-        const clockEl = document.getElementById('digital-clock');
-        if (clockEl) {
-            clockEl.innerHTML = `<span style="font-size:0.8em; margin-right:10px; color:#4f46e5;">${dateString}</span> ${timeString}`;
-        }
-    }
-    setInterval(updateClock, 1000);
-    updateClock();
-
-    // --- Theme Toggle ---
-    const themeBtn = document.getElementById('theme-toggle');
-    const body = document.body;
-
-    function applyTheme(theme) {
-        if (theme === 'dark') {
-            body.setAttribute('data-theme', 'dark');
-            if (themeBtn) themeBtn.innerHTML = '<i class="fa-solid fa-sun"></i>';
-        } else {
-            body.removeAttribute('data-theme');
-            if (themeBtn) themeBtn.innerHTML = '<i class="fa-solid fa-moon"></i>';
-        }
-    }
-
-    applyTheme(localStorage.getItem('theme') || 'light');
-
-    if (themeBtn) {
-        themeBtn.addEventListener('click', () => {
-            const newTheme = body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-            localStorage.setItem('theme', newTheme);
-            applyTheme(newTheme);
-            setTimeout(initCharts, 50);
-        });
-    }
+    // Clock, Theme, and Sidebar handled by shared sidebar.js
 
     // --- Scoped Data Loading (Deprecated for Analytics Summary) ---
     // Previously used local storage counts, now handled by refreshAnalyticsData fetch.
@@ -522,15 +478,7 @@ document.addEventListener('DOMContentLoaded', function () {
         console.error('Error initializing charts:', e);
     }
 
-    // Sidebar Collapse Support (if implemented in other dashboards)
-    const sidebarToggle = document.getElementById('sidebar-toggle');
-    const dashboardContainer = document.querySelector('.layout-container');
-    if (sidebarToggle && dashboardContainer) {
-        sidebarToggle.addEventListener('click', () => {
-            dashboardContainer.classList.toggle('sidebar-collapsed');
-            setTimeout(initCharts, 350);
-        });
-    }
+    // Sidebar toggle handled by shared sidebar.js
 
     // --- Dynamic Entrance Animations ---
     function applyEntranceAnimations() {

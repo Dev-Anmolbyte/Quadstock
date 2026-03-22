@@ -3,71 +3,19 @@ import CONFIG from '../Shared/Utils/config.js';
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- Authentication & Context ---
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    const currentEmployee = JSON.parse(localStorage.getItem('currentEmployee'));
-    const ownerId = (currentUser && currentUser.ownerId) || (currentEmployee && currentEmployee.ownerId);
-
-    if (!ownerId) {
-        window.location.href = '../Authentication/employee_login.html';
+    const ctx = window.authContext;
+    if (!ctx || !ctx.isAuthenticated) {
+        window.location.href = '../Authentication/login.html';
         return;
     }
 
-    const userRole = (currentUser && currentUser.role) || (currentEmployee && currentEmployee.role) || 'staff';
+    const { role: userRole, ownerRefId: ownerId, user } = ctx;
 
     // --- Initialize Data ---
     window.loadSettings();
     handleRoleAccess();
 
-    // --- Sidebar & Theme Toggle (Reused Logic) ---
-    const sidebarToggle = document.getElementById('sidebar-toggle');
-    const container = document.querySelector('.layout-container');
-    if (sidebarToggle) {
-        sidebarToggle.addEventListener('click', () => {
-            if (container) {
-                container.classList.toggle('sidebar-collapsed');
-            } else {
-                document.body.classList.toggle('sidebar-collapsed');
-            }
-        });
-    }
-
-    const themeBtn = document.getElementById('theme-toggle');
-    const html = document.documentElement;
-
-    // Apply saved theme
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    document.body.setAttribute('data-theme', savedTheme);
-    
-    // Update Shop Name
-    const shopName = (currentUser && currentUser.shopName) || (currentEmployee && currentEmployee.shopName) || 'QuadStock';
-    const brandTexts = document.querySelectorAll('.brand-text');
-    brandTexts.forEach(el => el.textContent = shopName);
-updateThemeIcon(savedTheme);
-
-    if (themeBtn) {
-        themeBtn.addEventListener('click', () => {
-            const current = html.getAttribute('data-theme');
-            const newTheme = current === 'dark' ? 'light' : 'dark';
-            html.setAttribute('data-theme', newTheme);
-            document.body.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            updateThemeIcon(newTheme);
-        });
-    }
-
-    function updateThemeIcon(theme) {
-        if (themeBtn) themeBtn.innerHTML = theme === 'dark' ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
-    }
-
-    // --- Logout Logic ---
-    document.getElementById('logout-btn').addEventListener('click', () => {
-        showModal('warning', 'Logout', 'Are you sure you want to logout?', () => {
-            localStorage.removeItem('currentUser');
-            localStorage.removeItem('currentEmployee');
-            window.location.href = '../landing/landing.html';
-        });
-    });
+    // Sidebar, Theme, Clock and Logout handled by shared sidebar.js
 
     // --- Settings Functions ---
 

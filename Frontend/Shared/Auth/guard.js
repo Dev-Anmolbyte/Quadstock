@@ -30,13 +30,32 @@
     }
 
     // --- 3. Session & Token Verification ---
-    const sessionUser = localStorage.getItem('currentUser');
-    const sessionToken = localStorage.getItem('authToken');
-    const sessionEmployee = localStorage.getItem('currentEmployee');
+    let sessionUser = null;
+    let sessionEmployee = null;
+    let sessionToken = localStorage.getItem('authToken');
+
+    try {
+        const userStr = localStorage.getItem('currentUser');
+        const empStr = localStorage.getItem('currentEmployee');
+        if (userStr) sessionUser = JSON.parse(userStr);
+        if (empStr) sessionEmployee = JSON.parse(empStr);
+    } catch (e) {
+        console.warn('Session parsing failed, clearing malformed data.');
+        localStorage.clear();
+    }
 
     const isOwnerLoggedIn    = !!(sessionUser && sessionToken);
     const isEmployeeLoggedIn = !!(sessionEmployee && sessionToken && !sessionUser);
     const isAuthenticated    = isOwnerLoggedIn || isEmployeeLoggedIn;
+
+    // --- 3.1 Provide Global Context ---
+    window.authContext = {
+        isAuthenticated,
+        role: isOwnerLoggedIn ? 'owner' : (isEmployeeLoggedIn ? sessionEmployee.role : 'guest'),
+        ownerRefId: isOwnerLoggedIn ? sessionUser._id : (isEmployeeLoggedIn ? sessionEmployee.ownerId : null),
+        token: sessionToken,
+        user: isOwnerLoggedIn ? sessionUser : (isEmployeeLoggedIn ? sessionEmployee : null)
+    };
 
 
     if (isPublic) {
@@ -99,7 +118,14 @@
     // Owners have full access — no further restriction needed
 
     // --- 6. Final Unlock ---
-    // If everything passed, make the page visible
     document.documentElement.style.visibility = 'visible';
-})();
 
+    // Apply saved theme immediately (before page paints to prevent flash)
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    document.body.setAttribute('data-theme', savedTheme);
+
+    // NOTE: Clock, theme toggle button, and store name are handled by
+    // the inline <script> at the bottom of each page (after DOM is fully ready).
+
+})();

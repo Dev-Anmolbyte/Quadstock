@@ -3,24 +3,15 @@ import CONFIG from '../Shared/Utils/config.js';
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- Authentication & Context ---
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    const currentEmployee = JSON.parse(localStorage.getItem('currentEmployee'));
-    const ownerId = (currentUser && currentUser.ownerId) || (currentEmployee && currentEmployee.ownerId);
-
-    if (!ownerId) {
+    const ctx = window.authContext;
+    if (!ctx || !ctx.isAuthenticated) {
         window.location.href = '../Authentication/login.html';
         return;
     }
 
-    // Apply saved theme
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    document.body.setAttribute('data-theme', savedTheme);
-    
-    // Update Shop Name
-    const shopName = (currentUser && currentUser.shopName) || (currentEmployee && currentEmployee.shopName) || 'QuadStock';
-    const brandTexts = document.querySelectorAll('.brand-text');
-    brandTexts.forEach(el => el.textContent = shopName);
+    const { role: userRole, ownerRefId: ownerId, user } = ctx;
+
+    // Theme, Shop name and Clock are now handled by guard.js
 
     const INVENTORY_KEY = `inventory_${ownerId}`;
     let inventory = [];
@@ -35,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function initialize() {
         fetchInventory();
         setupEventListeners();
-        startClock();
+        // Clock handled by sidebar.js
     }
 
     async function fetchInventory() {
@@ -200,33 +191,9 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // Sidebar Toggle
-        const sideToggle = document.getElementById('sidebar-toggle');
-        const container = document.querySelector('.dashboard-container');
-        if (sideToggle && container) {
-            sideToggle.addEventListener('click', () => container.classList.toggle('sidebar-collapsed'));
-        }
-
-        // Theme Toggle
-        const themeBtn = document.getElementById('theme-toggle');
-        if (themeBtn) {
-            themeBtn.addEventListener('click', () => {
-                const current = document.documentElement.getAttribute('data-theme');
-                const next = current === 'dark' ? 'light' : 'dark';
-                document.documentElement.setAttribute('data-theme', next);
-                localStorage.setItem('theme', next);
-            });
-        }
+        // Sidebar and Theme handled by shared sidebar.js
     }
 
-    function startClock() {
-        const clockEl = document.getElementById('digital-clock');
-        if (clockEl) {
-            setInterval(() => {
-                clockEl.textContent = new Date().toLocaleTimeString('en-US', { hour12: true });
-            }, 1000);
-        }
-    }
 
     initialize(); // Setup UI & first fetch
     setInterval(fetchInventory, 15000); // Live refresh every 15s

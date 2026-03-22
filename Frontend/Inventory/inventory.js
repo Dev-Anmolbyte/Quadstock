@@ -1,17 +1,14 @@
-import apiRequest from '../Shared/Utils/api.js';
+import { apiRequest } from '../Shared/Utils/api.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     // --- 0. Authentication & Context ---
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    const currentEmployee = JSON.parse(localStorage.getItem('currentEmployee'));
-
-    const role = (currentUser ? 'owner' : (currentEmployee ? currentEmployee.role : null));
-    const ownerId = (currentUser && currentUser.ownerId) || (currentEmployee && currentEmployee.ownerId);
-
-    if (!role || !ownerId) {
+    const ctx = window.authContext;
+    if (!ctx || !ctx.isAuthenticated) {
         window.location.href = '../Authentication/login.html';
         return;
     }
+
+    const { role, ownerRefId: ownerId, user } = ctx;
 
     // --- 1. State & Constants ---
     let inventory = []; // Fetched state via backend
@@ -1547,33 +1544,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // --- 9. Helper: Sidebar & Theme (Standard) ---
-    function initTheme() {
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        document.body.setAttribute('data-theme', savedTheme);
-        updateThemeIcon(savedTheme);
-    }
-
-    function updateThemeIcon(theme) {
-        const icon = themeToggle.querySelector('i');
-        if (theme === 'dark') {
-            icon.classList.remove('fa-moon');
-            icon.classList.add('fa-sun');
-        } else {
-            icon.classList.remove('fa-sun');
-            icon.classList.add('fa-moon');
-        }
-    }
-
-    if (themeToggle) {
-        themeToggle.addEventListener('click', () => {
-            const currentTheme = document.body.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            document.body.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            updateThemeIcon(newTheme);
-        });
-    }
+    // Theme toggle handled by shared sidebar.js
 
     // --- Settings Modal Logic ---
     const settingsBtn = document.getElementById('settings-btn');
@@ -1605,54 +1576,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             alert('Settings Saved!');
             renderTable(); // Re-render to update colored dots
             calculateDashboardStats();
-        });
-    }
-
-
-
-    function setupSidebar() {
-        const sidebarToggle = document.getElementById('sidebar-toggle');
-        const container = document.querySelector('.layout-container');
-        const mobileBtn = document.getElementById('mobile-sidebar-toggle');
-
-        // Desktop Toggle
-        if (sidebarToggle) {
-            // Remove any existing listeners by cloning (optional but safer not to stack)
-            const newToggle = sidebarToggle.cloneNode(true);
-            sidebarToggle.parentNode.replaceChild(newToggle, sidebarToggle);
-
-            newToggle.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (window.innerWidth > 768) {
-                    if (container) container.classList.toggle('sidebar-collapsed');
-                } else {
-                    // On mobile, if this button is visible (it shouldn't be), just toggle active
-                    sidebar.classList.toggle('active');
-                }
-            });
-        }
-
-        // Mobile Header Toggle
-        if (mobileBtn) {
-            // Clone to remove old listeners
-            const newMobileBtn = mobileBtn.cloneNode(true);
-            mobileBtn.parentNode.replaceChild(newMobileBtn, mobileBtn);
-
-            newMobileBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                sidebar.classList.toggle('active');
-            });
-        }
-
-        // Close when clicking outside on mobile
-        document.addEventListener('click', (e) => {
-            if (window.innerWidth <= 768 &&
-                sidebar.classList.contains('active') &&
-                !sidebar.contains(e.target) &&
-                e.target.id !== 'mobile-sidebar-toggle') {
-                sidebar.classList.remove('active');
-            }
-        });
+        });    // Sidebar setup handled by shared sidebar.js
     }
 
 
@@ -1764,7 +1688,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    setupSidebar();
+    // Sidebar setup handled by shared sidebar.js
 });
 
 
