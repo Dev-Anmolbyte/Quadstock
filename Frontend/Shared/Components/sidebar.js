@@ -49,6 +49,7 @@
                 <button class="sidebar-toggle" id="sidebar-toggle" title="Toggle Sidebar">
                     <i class="fa-solid fa-bars"></i>
                 </button>
+                <span class="brand-text">QuadStock</span>
             </div>
 
             <nav class="sidebar-menu">
