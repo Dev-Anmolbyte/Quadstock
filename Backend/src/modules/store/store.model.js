@@ -23,6 +23,8 @@ const storeSchema = new Schema(
         },
         address: { type: String, trim: true },
         phoneNumber: { type: String, trim: true },
+        highStockThreshold: { type: Number, default: 100 },
+        healthyExpiryThreshold: { type: Number, default: 30 },
     },
     {
         timestamps: true

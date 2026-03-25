@@ -123,7 +123,12 @@
     // Apply saved theme immediately (before page paints to prevent flash)
     const savedTheme = localStorage.getItem('theme') || 'light';
     document.documentElement.setAttribute('data-theme', savedTheme);
-    document.body.setAttribute('data-theme', savedTheme);
+    if (document.body) document.body.setAttribute('data-theme', savedTheme);
+
+    // Apply sidebar state immediately to prevent layout jumps
+    if (localStorage.getItem('sidebarCollapsed') === '1') {
+        document.documentElement.classList.add('sidebar-collapsed');
+    }
 
     // NOTE: Clock, theme toggle button, and store name are handled by
     // the inline <script> at the bottom of each page (after DOM is fully ready).

@@ -34,6 +34,11 @@ class StatsService {
         });
         const expiringSoonCount = expiringSoonProducts.length;
 
+        const expiredCount = products.filter(p => {
+            if (!p.exp) return false;
+            return new Date(p.exp) < now;
+        }).length;
+
         // 2. Udhaar Stats
         const udhaarRecords = await Udhaar.find({ storeId });
         const totalUdhaarPending = udhaarRecords.reduce((acc, u) => acc + (u.balance || 0), 0);
@@ -82,6 +87,7 @@ class StatsService {
             lowStockCount,
             outOfStockCount,
             expiringSoonCount,
+            expiredCount,
             totalUdhaarPending,
             totalUsers,
             topProducts,

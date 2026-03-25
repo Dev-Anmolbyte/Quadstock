@@ -49,7 +49,7 @@
                     <div class="stat-card">
                         <div class="stat-icon yellow-bg"><i class="fa-solid fa-hourglass-half"></i></div>
                         <div class="stat-info">
-                            <p class="label">Expiring (30 Days)</p>
+                            <p class="label" id="label-warning-days">Expiring (30 Days)</p>
                             <h3 id="stat-30days">0</h3>
                         </div>
                     </div>
@@ -57,7 +57,7 @@
                         <div class="stat-icon green-bg"><i class="fa-solid fa-check-circle"></i></div>
                         <div class="stat-info">
                             <p class="label">Healthy Stock</p>
-                            <h3>1,205</h3>
+                            <h3 id="stat-healthy">0</h3>
                         </div>
                     </div>
                 </div>
@@ -65,6 +65,7 @@
                 <!-- Filters -->
                 <div class="filter-bar">
                     <button class="filter-btn active" data-filter="all">All Items</button>
+                    <button class="filter-btn" data-filter="high-stock"><i class="fa-solid fa-arrow-trend-up"></i> High Stock</button>
                     <button class="filter-btn" data-filter="7days"><i class="dot dot-red"></i> Expiring in 7
                         Days</button>
                     <button class="filter-btn" data-filter="14days"><i class="dot dot-orange"></i> Expiring in 14
@@ -89,19 +90,21 @@
                             <option value="name-asc">Name (A-Z)</option>
                             <option value="quantity-desc">Quantity (High to Low)</option>
                         </select>
+                        <button id="settings-btn" class="filter-btn" style="margin-left: 10px; padding: 0.6rem; border-radius: 0.8rem;" title="Configure High Stock Threshold">
+                            <i class="fa-solid fa-gear"></i>
+                        </button>
                     </div>
                 </div>
 
                 <!-- Bulk Actions -->
                 <div class="bulk-actions" id="bulk-actions">
-                    <span style="font-weight: 700; font-size: 0.9rem; margin-right: auto;">
-                        <span id="selected-count">0</span> Items Selected
-                    </span>
+                    <div class="selected-info">
+                        <strong><span id="selected-count">0</span> Items</strong>
+                        <span>Selected</span>
+                    </div>
                     <button class="action-btn btn-discount"><i class="fa-solid fa-tags"></i> Apply Discount</button>
-                    <button class="action-btn btn-return"><i class="fa-solid fa-truck-ramp-box"></i> Return to
-                        Vendor</button>
-                    <button class="action-btn btn-dispose"><i class="fa-solid fa-trash-can"></i> Dispose /
-                        Write-off</button>
+                    <button class="action-btn btn-return"><i class="fa-solid fa-truck-ramp-box"></i> Return to Vendor</button>
+                    <button class="action-btn btn-dispose"><i class="fa-solid fa-trash-can"></i> Dispose / Write-off</button>
                 </div>
 
                 <!-- Timeline List -->

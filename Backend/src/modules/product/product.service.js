@@ -20,7 +20,7 @@ class ProductService {
 
         if (!finalCategoryId) throw new ApiError(400, "Category is required");
 
-        let imageUrl = null;
+        let imageUrl = rest.image || null;
         if (file) {
             const upload = await uploadOnCloudinary(file.path);
             if (upload) imageUrl = upload.url;
@@ -54,8 +54,17 @@ class ProductService {
             .limit(parseInt(limit))
             .sort({ createdAt: -1 });
 
+        const mappedProducts = products.map(p => {
+            const productObj = p.toObject();
+            return {
+                ...productObj,
+                id: productObj._id,
+                categoryName: p.categoryId?.name || ''
+            };
+        });
+
         return {
-            products,
+            products: mappedProducts,
             total,
             page: parseInt(page),
             pages: Math.ceil(total / limit)

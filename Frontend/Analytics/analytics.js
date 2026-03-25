@@ -47,11 +47,7 @@ document.addEventListener('DOMContentLoaded', function () {
     refreshAnalyticsData();
     setInterval(refreshAnalyticsData, 15000);
 
-    // Set Shop Name
-    const shopSpans = document.querySelectorAll('.shop-name');
-    shopSpans.forEach(span => {
-        span.textContent = (currentUser && currentUser.shopName) || (currentEmployee && currentEmployee.shopName) || 'QuadStock Store';
-    });
+
 
     // Clock, Theme, and Sidebar handled by shared sidebar.js
 

@@ -110,12 +110,12 @@
         // Desktop Toggle
         if (desktopToggle && container) {
             desktopToggle.addEventListener('click', function () {
-                container.classList.toggle('sidebar-collapsed');
-                const isCollapsed = container.classList.contains('sidebar-collapsed');
+                document.documentElement.classList.toggle('sidebar-collapsed');
+                const isCollapsed = document.documentElement.classList.contains('sidebar-collapsed');
                 localStorage.setItem('sidebarCollapsed', isCollapsed ? '1' : '0');
             });
             if (localStorage.getItem('sidebarCollapsed') === '1') {
-                container.classList.add('sidebar-collapsed');
+                document.documentElement.classList.add('sidebar-collapsed');
             }
         }
 

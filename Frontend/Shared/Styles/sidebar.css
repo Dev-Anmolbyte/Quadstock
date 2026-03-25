@@ -33,7 +33,7 @@
     flex-direction: column;
     padding: 1.5rem 1rem;
     overflow: hidden;
-    transition: var(--transition-base);
+    transition: var(--trans-sidebar);
     z-index: 1001;
 }
 
@@ -44,6 +44,7 @@
     gap: 1rem;
     margin-bottom: 2.5rem;
     padding: 0 0.5rem;
+    transition: var(--trans-sidebar);
 }
 
 .brand-text {
@@ -52,7 +53,8 @@
     color: var(--primary);
     white-space: nowrap;
     opacity: 1;
-    transition: var(--transition-base);
+    transform: translateX(0);
+    transition: var(--trans-text);
 }
 
 /* Toggle Button (Desktop) */
@@ -99,7 +101,7 @@
     color: var(--text-secondary);
     font-weight: 600;
     font-size: 0.95rem;
-    transition: var(--transition-base);
+    transition: var(--trans-sidebar);
     white-space: nowrap;
 }
 
@@ -107,6 +109,13 @@
     font-size: 1.2rem;
     width: 24px;
     text-align: center;
+    transition: font-size 0.3s ease;
+}
+
+.menu-item span {
+    opacity: 1;
+    transform: translateX(0);
+    transition: var(--trans-text);
 }
 
 .menu-item:hover {
@@ -127,6 +136,7 @@
 
 .menu-item.logout:hover {
     background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
 }
 
 /* Main Content Area */
@@ -243,22 +253,30 @@
 
 /* Collapsed Sidebar Logic (Desktop) */
 .sidebar-collapsed .sidebar {
-    width: 85px;
+    width: var(--sidebar-collapsed-width);
     padding: 1.5rem 0.75rem;
 }
 
 .sidebar-collapsed .brand-text,
 .sidebar-collapsed .menu-item span {
-    display: none;
+    opacity: 0;
+    width: 0;
+    transform: translateX(-10px);
+    pointer-events: none;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
 }
 
 .sidebar-collapsed .menu-item {
-    justify-content: center;
-    padding: 0.85rem 0;
+    padding: 0.85rem 0.5rem 0.85rem 1.15rem; /* ~18.5px left paddle smoothly slides to center */
+    gap: 0;
 }
 
+
 .sidebar-collapsed .brand {
-    justify-content: center;
+    padding: 0 0.75rem; /* ~12px left padding to perfectly slot the toggle button */
+    gap: 0;
 }
 
 /* Responsive Mobile Layout */

@@ -8,7 +8,8 @@ import CONFIG from "./config.js";
  * - LocalStorage session sync
  */
 export const apiRequest = async (endpoint, options = {}) => {
-    const defaultHeaders = {
+    const isFormData = options.body instanceof FormData;
+    const defaultHeaders = isFormData ? {} : {
         'Content-Type': 'application/json',
     };
 

@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function () {
     async function refreshDashboardData() {
         try {
             const m = document.getElementById('revenue-month-select')?.value || new Date().getMonth() + 1;
-            const y = document.getElementById('revenue-year-select')?.value || new Date().getFullYear();
+            const y = new Date().getFullYear();
 
             // 1. Fetch Stats (Inventory + Udhaar + Selection)
             const statsResult = await apiRequest(`/stats/owner?month=${m}&year=${y}`);
@@ -62,6 +62,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.getElementById('dash-total-udhaar').textContent = formatter.format(d.totalUdhaarPending);
                 document.getElementById('dash-staff-count').textContent = d.totalUsers.toLocaleString();
                 document.getElementById('dash-expiring-alert').textContent = d.expiringSoonCount;
+                const expiredEl = document.getElementById('dash-expired-count');
+                if (expiredEl) expiredEl.textContent = d.expiredCount;
 
                 // Update Top Products Table
                 const tbody = document.getElementById('top-products-tbody');
@@ -253,18 +255,6 @@ document.addEventListener('DOMContentLoaded', function () {
         monthSelect.addEventListener('change', refreshDashboardData);
     }
 
-    const yearSelect = document.getElementById('revenue-year-select');
-    if (yearSelect) {
-        const currentYear = new Date().getFullYear();
-        for (let i = 0; i < 5; i++) {
-            const year = currentYear - i;
-            const option = document.createElement('option');
-            option.value = year;
-            option.textContent = year;
-            yearSelect.appendChild(option);
-        }
 
-        yearSelect.addEventListener('change', refreshDashboardData);
-    }
 });
 

@@ -585,8 +585,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             inputName.value = item.name;
             inputBrand.value = item.brand || '';
             inputType.value = item.type || 'Kirana';
-            inputCategory.value = item.category || '';
             populateSubCategories(item.type);
+            inputCategory.value = item.categoryName || item.category || '';
             toggleAttributes(item.type);
 
             inputPP.value = item.pp || '';
@@ -712,19 +712,48 @@ document.addEventListener('DOMContentLoaded', async () => {
             price: parseFloat(inputSP.value) || 0
         };
 
+        const formData = new FormData();
+        Object.keys(productData).forEach(key => {
+            if (key === 'image') return; // Handle image separately
+            if (productData[key] !== null && productData[key] !== undefined) {
+                formData.append(key, productData[key]);
+            }
+        });
+
+        // Handle Image
+        const imgSrc = imgPreview.src || inputImageURL.value;
+        if (imgSrc && imgSrc.startsWith('data:image')) {
+            try {
+                const arr = imgSrc.split(',');
+                const mime = arr[0].match(/:(.*?);/)[1];
+                const bstr = atob(arr[1]);
+                let n = bstr.length;
+                const u8arr = new Uint8Array(n);
+                while(n--){
+                    u8arr[n] = bstr.charCodeAt(n);
+                }
+                const blob = new Blob([u8arr], {type: mime});
+                formData.append('image', blob, 'product_image.jpg');
+            } catch (e) {
+                console.error("Error converting image string to blob", e);
+            }
+        } else if (imgSrc && imgSrc.startsWith('http')) {
+             formData.append('image', imgSrc);
+        }
+
         try {
             let result;
             if (isEditing) {
                 // Update - RESTful PUT /products/:id
                 result = await apiRequest(`/products/${currentEditId}`, {
                     method: 'PUT',
-                    body: JSON.stringify(productData)
+                    body: formData
                 });
             } else {
                 // Create - RESTful POST /products/
                 result = await apiRequest('/products/', {
                     method: 'POST',
-                    body: JSON.stringify(productData)
+                    body: formData
                 });
             }
 
@@ -736,7 +765,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         } catch (err) {
             console.error("Save Product Error:", err);
-            alert("Server connection failed or unauthorized.");
+            // Provide more specific error feedback
+            const errorMsg = err.message || "Server connection failed or unauthorized.";
+            QuadModals.alert("Save Failed", errorMsg, "error");
         }
     }
 

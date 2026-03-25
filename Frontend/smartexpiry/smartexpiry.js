@@ -15,6 +15,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let stats = { expired: 0, critical: 0, warning: 0, healthy: 0 };
     let activeFilter = 'all';
     let searchQuery = '';
+    let highStockThreshold = 100; // default from backend
+    let healthyExpiryThreshold = 30; // default warning threshold
 
     function initialize() {
         fetchInventory();
@@ -24,11 +26,23 @@ document.addEventListener('DOMContentLoaded', () => {
     async function fetchInventory() {
         try {
             const token = localStorage.getItem('authToken');
-            const response = await fetch(`${CONFIG.API_BASE_URL}/products?limit=1000`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const result = await response.json();
-            if (response.ok && result.success) {
+            
+            // Fetch store settings & products simultaneously 
+            const [storeRes, invRes] = await Promise.all([
+                fetch(`${CONFIG.API_BASE_URL}/store/details`, { headers: { 'Authorization': `Bearer ${token}` } }),
+                fetch(`${CONFIG.API_BASE_URL}/products?limit=1000`, { headers: { 'Authorization': `Bearer ${token}` } })
+            ]);
+
+            try {
+                const storeResult = await storeRes.json();
+                if (storeResult.success) {
+                    if (storeResult.data.highStockThreshold !== undefined) highStockThreshold = storeResult.data.highStockThreshold;
+                    if (storeResult.data.healthyExpiryThreshold !== undefined) healthyExpiryThreshold = storeResult.data.healthyExpiryThreshold;
+                }
+            } catch(e) { console.error("Could not parse store threshold", e); }
+
+            const result = await invRes.json();
+            if (invRes.ok && result.success) {
                 // Ensure dates are parsed and we only show items with exp dates
                 inventory = result.data.filter(item => item.exp).map(item => ({
                     ...item,
@@ -62,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (daysLeft <= 0) stats.expired++;
             else if (daysLeft <= 7) stats.critical++;
-            else if (daysLeft <= 30) stats.warning++;
+            else if (daysLeft <= healthyExpiryThreshold) stats.warning++;
             else stats.healthy++;
         });
     }
@@ -71,12 +85,20 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('stat-expired').textContent = stats.expired;
         document.getElementById('stat-7days').textContent = stats.critical;
         document.getElementById('stat-30days').textContent = stats.warning;
+        document.getElementById('stat-healthy').textContent = stats.healthy;
+
+        // Dynamic Label Updates
+        const labelWarning = document.getElementById('label-warning-days');
+        if (labelWarning) labelWarning.textContent = `Expiring (${healthyExpiryThreshold} Days)`;
+        
+        const filterWarning = document.querySelector('[data-filter="30days"]');
+        if (filterWarning) filterWarning.innerHTML = `<i class="dot dot-yellow"></i> Expiring in ${healthyExpiryThreshold} Days`;
     }
 
     function getStatusClass(daysLeft) {
         if (daysLeft <= 0) return 'expired';
         if (daysLeft <= 7) return 'warning';
-        if (daysLeft <= 30) return 'soon';
+        if (daysLeft <= healthyExpiryThreshold) return 'soon';
         return 'healthy';
     }
 
@@ -86,21 +108,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let filtered = inventory.filter(item => {
             const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                (item.barcode && item.barcode.toLowerCase().includes(searchQuery.toLowerCase()));
+                (item.batchNumber && item.batchNumber.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                (item.category && item.category.toLowerCase().includes(searchQuery.toLowerCase()));
 
             const daysLeft = Math.ceil((item.expiryDate - new Date()) / (1000 * 60 * 60 * 24));
 
             if (activeFilter === 'expired') return matchesSearch && daysLeft <= 0;
+            if (activeFilter === 'high-stock') return matchesSearch && item.quantity >= highStockThreshold;
             if (activeFilter === '7days') return matchesSearch && daysLeft > 0 && daysLeft <= 7;
             if (activeFilter === '14days') return matchesSearch && daysLeft > 7 && daysLeft <= 14;
-            if (activeFilter === '30days') return matchesSearch && daysLeft > 14 && daysLeft <= 30;
+            if (activeFilter === '30days') return matchesSearch && daysLeft > 7 && daysLeft <= healthyExpiryThreshold;
             return matchesSearch;
         });
 
-        filtered.sort((a, b) => a.expiryDate - b.expiryDate);
+        // Sorting
+        const sortVal = document.getElementById('sort-select')?.value || 'expiry-asc';
+        filtered.sort((a, b) => {
+            if (sortVal === 'expiry-asc') return a.expiryDate - b.expiryDate;
+            if (sortVal === 'expiry-desc') return b.expiryDate - a.expiryDate;
+            if (sortVal === 'name-asc') return a.name.localeCompare(b.name);
+            if (sortVal === 'quantity-desc') return b.quantity - a.quantity;
+            return 0;
+        });
 
         if (filtered.length === 0) {
-            listContainer.innerHTML = `<div style="padding:2rem; text-align:center; color: var(--text-secondary);">No products match the selected criteria.</div>`;
+            listContainer.innerHTML = `<div style="padding:4rem; text-align:center; color: var(--text-secondary); background: var(--bg-card); border-radius: 1.5rem; border: 1px dashed var(--border-soft);">
+                <i class="fa-solid fa-folder-open" style="font-size: 3rem; opacity: 0.2; margin-bottom: 1rem; display: block;"></i>
+                No products match the selected criteria.
+            </div>`;
             return;
         }
 
@@ -108,29 +143,44 @@ document.addEventListener('DOMContentLoaded', () => {
             const daysLeft = Math.ceil((item.expiryDate - new Date()) / (1000 * 60 * 60 * 24));
             const statusClass = getStatusClass(daysLeft);
             let dayText = daysLeft <= 0 ? 'Expired' : `${daysLeft} Days left`;
-            let badgeColor = daysLeft <= 0 ? 'red' : (daysLeft <= 7 ? 'orange' : (daysLeft <= 30 ? 'yellow' : 'blue'));
+            let badgeColor = daysLeft <= 0 ? 'red' : (daysLeft <= 7 ? 'orange' : (daysLeft <= healthyExpiryThreshold ? 'yellow' : 'blue'));
 
             const isChecked = selectedItems.has(item._id) ? 'checked' : '';
 
             // discount info
             let discountHtml = item.discount > 0 
-                ? `<span style="color:var(--c-green-text); font-size: 0.8rem; margin-left: 10px;">${item.discountType === 'percentage' ? item.discount+'%' : '₹'+item.discount} Discount</span>`
+                ? `<span class="badge green" style="background: rgba(16, 185, 129, 0.1); color: #10b981; margin-left:10px;">-${item.discountType === 'percentage' ? item.discount+'%' : '₹'+item.discount}</span>`
+                : '';
+
+            // high stock info
+            let highStockBadge = item.quantity >= highStockThreshold 
+                ? `<span class="badge blue" style="background: rgba(99, 102, 241, 0.1); color: #6366f1; margin-left:10px;"><i class="fa-solid fa-arrow-trend-up"></i> High Stock</span>`
                 : '';
 
             const el = document.createElement('div');
             el.className = `timeline-item ${statusClass}`;
-            // Simple inline layout to match timeline styles usually used
+            
             el.innerHTML = `
-                <div style="display:flex; align-items:center; gap: 1rem; width: 100%; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 15px;">
+                <div class="item-check-wrapper">
                     <input type="checkbox" class="item-check" data-id="${item._id}" ${isChecked}>
-                    <div class="item-info" style="flex:1;">
-                        <h4>${item.name} ${discountHtml}</h4>
-                        <p>Batch: ${item.batchNumber || 'N/A'} | Qty: ${item.quantity} ${item.unit || 'pcs'}</p>
-                        <p>Expiry: ${item.expiryDate.toLocaleDateString()}</p>
+                </div>
+                <div class="item-content">
+                    <div class="item-main">
+                        <h4>${item.name} ${discountHtml} ${highStockBadge}</h4>
+                        <div class="item-meta">
+                            <span><i class="fa-solid fa-barcode"></i> Batch: ${item.batchNumber || 'N/A'}</span>
+                            <span style="margin-left:15px;"><i class="fa-solid fa-cubes"></i> Qty: ${item.quantity} ${item.unit || 'pcs'}</span>
+                        </div>
                     </div>
-                    <div>
+                    <div class="item-expiry-info">
+                        <span>EXPIRY DATE</span>
+                        ${item.expiryDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    </div>
+                    <div class="status-section">
                         <div class="days-badge ${badgeColor}">${dayText}</div>
-                        <button class="btn-icon" onclick="viewHistory('${item._id}')" title="Discount History" style="margin-top:10px; font-size:0.8rem; cursor:pointer; background:none; border:none; color:var(--c-blue-text); display:flex; margin-left:auto;"><i class="fa-solid fa-clock-rotate-left"></i> History</button>
+                        <a class="history-link" onclick="viewHistory('${item._id}')">
+                            <i class="fa-solid fa-clock-rotate-left"></i> History
+                        </a>
                     </div>
                 </div>
             `;
@@ -151,8 +201,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateBulkActions() {
-        document.getElementById('selected-count').textContent = selectedItems.size;
-        document.getElementById('bulk-actions').style.display = 'flex'; // always show it based on html layout but selectedItems size highlights it
+        const bulkBar = document.getElementById('bulk-actions');
+        const countSpan = document.getElementById('selected-count');
+        
+        if (countSpan) countSpan.textContent = selectedItems.size;
+        
+        if (selectedItems.size > 0) {
+            bulkBar.classList.add('visible');
+        } else {
+            bulkBar.classList.remove('visible');
+        }
     }
 
     function setupEventListeners() {
@@ -173,6 +231,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 searchQuery = e.target.value;
                 renderTimeline();
             });
+        }
+
+        // Sort
+        const sortSelect = document.getElementById('sort-select');
+        if (sortSelect) {
+            sortSelect.addEventListener('change', renderTimeline);
+        }
+        
+        // High Stock Settings Modal
+        const settingsBtn = document.getElementById('settings-btn');
+        if (settingsBtn) {
+            settingsBtn.addEventListener('click', showSettingsModal);
         }
 
         // Apply Discount
@@ -251,6 +321,71 @@ document.addEventListener('DOMContentLoaded', () => {
                 showToast("Server error", "error");
             }
         });
+
+        modal.classList.add('visible');
+    }
+
+    function showSettingsModal() {
+        const modal = document.getElementById('action-modal');
+        document.getElementById('modal-title').textContent = "Smart Expiry Settings";
+        document.getElementById('modal-body').innerHTML = `
+            <p style="margin-bottom:15px; font-size:0.9rem; color:var(--text-secondary);">Configure the thresholds. These settings are saved to your store database.</p>
+            <div style="margin-bottom:15px;">
+                <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.85rem;">High Stock Threshold (Quantity)</label>
+                <input type="number" id="setting-high-stock" value="${highStockThreshold}" min="1" style="width:100%; padding:0.75rem; border-radius:10px; border:1px solid var(--border-color); background:var(--bg-white); color:var(--text-primary);">
+            </div>
+            <div style="margin-bottom:15px;">
+                <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.85rem;">Healthy Stock Threshold (Days to Expiry Warning)</label>
+                <input type="number" id="setting-healthy-expiry" value="${healthyExpiryThreshold}" min="8" style="width:100%; padding:0.75rem; border-radius:10px; border:1px solid var(--border-color); background:var(--bg-white); color:var(--text-primary);" placeholder="e.g. 30">
+                <p style="font-size:0.75rem; color:var(--text-secondary); margin-top:5px;">Products expiring in more than this many days are considered "Healthy". Default is 30.</p>
+            </div>
+        `;
+        
+        const confirmBtn = document.getElementById('modal-confirm');
+        const newConfirmBtn = confirmBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+        newConfirmBtn.textContent = "Save Settings";
+        
+        newConfirmBtn.addEventListener('click', async () => {
+            const valStock = parseInt(document.getElementById('setting-high-stock').value);
+            const valExpiry = parseInt(document.getElementById('setting-healthy-expiry').value);
+            
+            if (isNaN(valStock) || valStock < 1 || isNaN(valExpiry) || valExpiry < 8) {
+                showToast("Please enter valid thresholds", "error");
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('authToken');
+                const req = await fetch(`${CONFIG.API_BASE_URL}/store/update`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        highStockThreshold: valStock,
+                        healthyExpiryThreshold: valExpiry 
+                    })
+                });
+
+                const res = await req.json();
+                if (res.success) {
+                    highStockThreshold = valStock;
+                    healthyExpiryThreshold = valExpiry;
+                    showToast("Thresholds updated in database!", "success");
+                    closeModal();
+                    processInventory(); // Re-calculates stats & re-renders list precisely
+                } else {
+                    showToast(res.message || "Failed to update settings", "error");
+                }
+            } catch (err) {
+                showToast("Server error", "error");
+            }
+        });
+
+        const cancelBtn = document.getElementById('modal-cancel');
+        const newCancelBtn = cancelBtn.cloneNode(true);
+        cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+        newCancelBtn.textContent = "Cancel";
+        newCancelBtn.addEventListener('click', closeModal);
 
         modal.classList.add('visible');
     }

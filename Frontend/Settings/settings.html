@@ -28,6 +28,10 @@
         <main class="main-content">
             <!-- Top Bar injected by sidebar.js -->
 
+            <div class="page-header">
+                <h1 class="page-title">Store Configurations</h1>
+                <p class="page-subtitle">Personalize your system preferences, business rules, and smart aesthetics.</p>
+            </div>
 
             <div class="settings-grid">
 
@@ -93,6 +97,33 @@
                             </div>
                         </div>
                         <button class="btn-save" onclick="savePreferences()">Update Preferences</button>
+                    </div>
+                </section>
+
+                <!-- Smart Expiry Configuration -->
+                <section class="settings-card">
+                    <div class="card-header">
+                        <div class="icon-box" style="background: linear-gradient(135deg, #f59e0b, #d97706);"><i class="fa-solid fa-boxes-stacked"></i></div>
+                        <h3>Smart Expiry Config</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>High Stock Threshold (Qty)</label>
+                            <div class="input-with-icon">
+                                <i class="fa-solid fa-arrow-trend-up"></i>
+                                <input type="number" id="high-stock-limit" min="1" value="100">
+                            </div>
+                            <small>Highlights products exceeding this quantity as "High Stock".</small>
+                        </div>
+                        <div class="form-group">
+                            <label>Healthy Stock Threshold (Days)</label>
+                            <div class="input-with-icon">
+                                <i class="fa-regular fa-calendar-check"></i>
+                                <input type="number" id="healthy-expiry-limit" min="8" value="30">
+                            </div>
+                            <small>Wait until this many days before expiry to show warnings.</small>
+                        </div>
+                        <button class="btn-save" style="background: linear-gradient(135deg, #f59e0b, #d97706);" onclick="saveExpirySettings()">Sync to Database</button>
                     </div>
                 </section>
 

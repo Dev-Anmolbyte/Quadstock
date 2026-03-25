@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Settings Functions ---
 
-    window.loadSettings = function () {
+    window.loadSettings = async function () {
         const settings = JSON.parse(localStorage.getItem(`appSettings_${ownerId}`)) || getDefaultSettings();
 
         // Profile (Real Dynamic Data from Session)
@@ -43,6 +43,25 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('app-language').value = region.language;
         document.getElementById('date-format').value = region.dateFormat;
         document.getElementById('time-format').value = region.timeFormat;
+
+        // Smart Expiry (Fetch from actual backend)
+        try {
+            const token = localStorage.getItem('authToken');
+            const res = await fetch(`${CONFIG.API_BASE_URL}/store/details`, { 
+                headers: { 'Authorization': `Bearer ${token}` } 
+            });
+            const dbData = await res.json();
+            if (dbData.success) {
+                if (dbData.data.highStockThreshold !== undefined) {
+                    document.getElementById('high-stock-limit').value = dbData.data.highStockThreshold;
+                }
+                if (dbData.data.healthyExpiryThreshold !== undefined) {
+                    document.getElementById('healthy-expiry-limit').value = dbData.data.healthyExpiryThreshold;
+                }
+            }
+        } catch (e) {
+            console.error("Failed to sync backend thresholds", e);
+        }
     }
 
     window.saveProfile = async function () {
@@ -115,6 +134,43 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         saveToStorage(settings);
         showModal('success', 'Saved', 'Region & Time settings updated.');
+    }
+
+    window.saveExpirySettings = async function () {
+        if (userRole === 'staff') {
+            showModal('error', 'Access Denied', 'Staff members cannot update global store thresholds.');
+            return;
+        }
+
+        const highStock = parseInt(document.getElementById('high-stock-limit').value);
+        const healthyExpiry = parseInt(document.getElementById('healthy-expiry-limit').value);
+        
+        if (isNaN(highStock) || highStock < 1 || isNaN(healthyExpiry) || healthyExpiry < 8) {
+             showModal('error', 'Invalid Format', 'Please enter valid threshold numerals before saving.');
+             return;
+        }
+
+        try {
+            const token = localStorage.getItem('authToken');
+            const response = await fetch(`${CONFIG.API_BASE_URL}/store/update`, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    highStockThreshold: highStock, 
+                    healthyExpiryThreshold: healthyExpiry 
+                })
+            });
+
+            const result = await response.json();
+            if (response.ok && result.success) {
+                showModal('success', 'Database Synced', 'Store thresholds updated synchronously everywhere!');
+            } else {
+                showModal('error', 'Sync Failed', result.message || 'Error saving to database.');
+            }
+        } catch (err) {
+            console.error("Backend Save Error:", err);
+            showModal('error', 'Connection Error', 'Could not reach QuadStock core servers.');
+        }
     }
 
     window.changePassword = async function () {

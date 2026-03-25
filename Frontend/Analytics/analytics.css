@@ -76,14 +76,7 @@ body {
     overflow: hidden;
 }
 
-.layout-container {
-    display: flex;
-    height: 100vh;
-    padding: 1rem;
-    gap: 1rem;
-    width: 100%;
-    transition: gap 0.3s ease;
-}
+
 
 /* Sidebar Styling Reused */
 /* Removed conflicting sidebar styles - using dashboard.css instead */
@@ -741,83 +734,19 @@ body {
     gap: 0.5rem;
 }
 
-/* Main Content area */
+/* Main Content Area */
 .main-content {
     flex: 1;
-    background: var(--bg-white);
-    border-radius: 1.5rem;
-    padding: 2rem;
     display: flex;
     flex-direction: column;
     overflow-y: auto;
-    box-shadow: var(--card-shadow);
+    overflow-x: hidden;
+    background-color: var(--bg-body);
 }
 
-.top-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-    flex-wrap: wrap;
-    /* Allow wrapping on smaller screens */
-    gap: 1rem;
-}
-
-.digital-clock {
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 1.1rem;
-    /* Slightly smaller base size */
-    font-weight: 700;
-    color: #F47C25;
-    background: #eef2ff;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    white-space: nowrap;
-    /* Prevent time from breaking */
-    text-align: center;
-    flex-grow: 1;
-    /* Allow it to take available space */
-    max-width: fit-content;
-    display: flex;
-    /* alignment */
-    align-items: center;
-    justify-content: center;
-}
-
-
-
-.header-right {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-}
-
-.theme-toggle-btn {
-    background: var(--bg-white);
-    border: 1px solid var(--border-color);
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: var(--text-secondary);
-}
-
-.user-profile {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.4rem 1rem 0.4rem 0.4rem;
-    border: 1px solid #f3f4f6;
-    border-radius: 2rem;
-}
-
-.user-profile img {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
+.content-scrollable {
+    padding: 2rem;
+    flex: 1;
 }
 
 /* Stats Row */
