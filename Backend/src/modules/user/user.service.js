@@ -107,7 +107,7 @@ class UserService {
         user.refreshToken = refreshToken;
         await user.save({ validateBeforeSave: false });
 
-        const loggedInUser = await User.findById(user._id).select("-password -refreshToken");
+        const loggedInUser = await User.findById(user._id).populate("storeId").select("-password -refreshToken");
 
         return { user: loggedInUser, accessToken, refreshToken };
     }
@@ -121,7 +121,7 @@ class UserService {
                 }
             },
             {
-                new: true
+                returnDocument: 'after'
             }
         );
     }

@@ -65,11 +65,14 @@
         const topBarHTML = `
             <div class="top-bar" id="shared-top-bar">
                 <div class="header-left">
+                    <button class="menu-toggle-btn mobile-only" id="mobile-menu-toggle" title="Open Menu">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
                     <div class="store-identity">
                         <i class="fa-solid fa-store store-identity-icon"></i>
-                        <div>
-                            <div class="shop-name-topbar shop-name">QuadStock</div>
-                            <div class="store-id-text" id="store-id-badge" style="display:none;">ID: ...</div>
+                        <div class="shop-name-topbar shop-name">
+                            <div class="topbar-line">Store :- <span id="topbar-store-name">QuadStock</span></div>
+                            <div class="topbar-line">Store id :- <span id="topbar-store-id">...</span></div>
                         </div>
                     </div>
                 </div>
@@ -98,40 +101,101 @@
             mainContent.insertAdjacentHTML('afterbegin', topBarHTML);
         }
 
-        // ── 5. SIDEBAR TOGGLE ────────────────────────────────────────────────────
-        const toggleBtn = document.getElementById('sidebar-toggle');
+        // ── 5. SIDEBAR TOGGLE & MOBILE DRAWER ───────────────────────────────────
+        const desktopToggle = document.getElementById('sidebar-toggle');
+        const mobileToggle = document.getElementById('mobile-menu-toggle');
         const container = document.querySelector('.layout-container');
-        if (toggleBtn && container) {
-            toggleBtn.addEventListener('click', function () {
+        const sidebarEl = document.querySelector('aside.sidebar');
+
+        // Desktop Toggle
+        if (desktopToggle && container) {
+            desktopToggle.addEventListener('click', function () {
                 container.classList.toggle('sidebar-collapsed');
-                // Persist collapsed state
                 const isCollapsed = container.classList.contains('sidebar-collapsed');
                 localStorage.setItem('sidebarCollapsed', isCollapsed ? '1' : '0');
             });
-            // Restore collapsed state
             if (localStorage.getItem('sidebarCollapsed') === '1') {
                 container.classList.add('sidebar-collapsed');
             }
         }
 
+        // Mobile Toggle (Slide out Drawer)
+        if (mobileToggle && sidebarEl) {
+            mobileToggle.addEventListener('click', function (e) {
+                e.stopPropagation();
+                sidebarEl.classList.toggle('mobile-active');
+            });
+
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', function (e) {
+                if (window.innerWidth <= 768 && sidebarEl.classList.contains('mobile-active')) {
+                    if (!sidebarEl.contains(e.target) && !mobileToggle.contains(e.target)) {
+                        sidebarEl.classList.remove('mobile-active');
+                    }
+                }
+            });
+
+            // Close sidebar when clicking a menu item on mobile
+            sidebarEl.querySelectorAll('.menu-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    if (window.innerWidth <= 768) {
+                        sidebarEl.classList.remove('mobile-active');
+                    }
+                });
+            });
+        }
+
         // ── 6. STORE NAME & ID FROM DATABASE (via window.authContext) ───────────
         const user = window.authContext && window.authContext.user;
         if (user) {
-            const shopName = user.shopName || (user.storeId && user.storeId.name) || 'QuadStock';
-            // Update all shop-name elements
-            document.querySelectorAll('.shop-name, .brand-text').forEach(function (el) {
-                el.textContent = shopName;
-            });
-            // Also update top-bar specific one
-            const topbarName = document.querySelector('.shop-name-topbar');
-            if (topbarName) topbarName.textContent = shopName;
+            // 6.1 Function to update UI with store data
+            const updateStoreUI = (name, id) => {
+                // Update sidebar brand text
+                document.querySelectorAll('.brand-text').forEach(function (el) {
+                    el.textContent = name;
+                });
 
-            // Store ID badge
-            const storeUniqueId = user.storeUniqueId || (user.storeId && user.storeId.storeUniqueId);
-            const badge = document.getElementById('store-id-badge');
-            if (badge && storeUniqueId) {
-                badge.textContent = 'ID: ' + storeUniqueId;
-                badge.style.display = 'block';
+                // Update top bar formatted string
+                const topbarStoreName = document.getElementById('topbar-store-name');
+                const topbarStoreId = document.getElementById('topbar-store-id');
+                if (topbarStoreName) topbarStoreName.textContent = name;
+                if (topbarStoreId) topbarStoreId.textContent = id;
+
+                // Maintain compatibility with any other .shop-name elements if they exist
+                document.querySelectorAll('.shop-name').forEach(function (el) {
+                    if (!el.classList.contains('shop-name-topbar')) {
+                        el.textContent = name;
+                    }
+                });
+            };
+
+            // 6.2 Display cached data first to prevent UI jumping
+            let shopName = user.shopName || (user.storeId && user.storeId.name) || 'QuadStock';
+            let storeUniqueId = user.storeUniqueId || (user.storeId && user.storeId.storeUniqueId) || 'N/A';
+            updateStoreUI(shopName, storeUniqueId);
+
+            // 6.3 Fetch Live Data from Database
+            const token = localStorage.getItem('authToken');
+            if (token) {
+                const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+                                ? 'http://localhost:3000/api' 
+                                : '/api'; // Fallback for production
+                
+                fetch(`${apiBase}/stores/details`, {
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(res => res.json())
+                .then(result => {
+                    if (result.success && result.data) {
+                        const liveName = result.data.name || 'QuadStock';
+                        const liveId = result.data.storeUniqueId || 'N/A';
+                        updateStoreUI(liveName, liveId);
+                    }
+                })
+                .catch(err => console.error("Could not fetch live store details:", err));
             }
         }
 

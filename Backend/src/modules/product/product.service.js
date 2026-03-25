@@ -80,6 +80,33 @@ class ProductService {
         if (!product) throw new ApiError(404, "Product not found");
         return product;
     }
+
+    async applyDiscount(ids, storeId, { discount, discountType, reason }, user) {
+        const updateData = {
+            $set: { discount, discountType },
+            $push: {
+                discountHistory: {
+                    amount: discount,
+                    type: discountType,
+                    reason: reason || "Smart Expiry Adjustment",
+                    appliedBy: user.name || user.username || "Staff",
+                    date: new Date()
+                }
+            }
+        };
+
+        const result = await Product.updateMany(
+            { _id: { $in: ids }, storeId },
+            updateData
+        );
+
+        if (result.matchedCount === 0) {
+            throw new ApiError(404, "No matching products found");
+        }
+
+        // Return the updated products if needed, or just success
+        return await Product.find({ _id: { $in: ids }, storeId });
+    }
 }
 
 export default new ProductService();

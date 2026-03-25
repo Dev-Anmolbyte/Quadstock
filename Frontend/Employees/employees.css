@@ -2,28 +2,22 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 :root {
-    --primary: #fb923c;
-    --primary-dark: #ea580c;
-    --primary-light: #ffedd5;
-    --secondary: #1e293b;
-    --accent: #16a34a;
-    --bg-light: #f8fafc;
-    --text-dark: #0f172a;
-    --text-muted: #64748b;
-    --border: #e2e8f0;
-    --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --bg-white: #ffffff;
-    --sidebar-bg: #ffffff;
+    --primary: var(--primary-main);
+    --primary-dark: var(--primary-dark);
+    --primary-light: var(--primary-light);
+    --secondary: var(--text-muted);
+    --accent: var(--accent-success);
+    --bg-light: var(--bg-main);
+    --text-dark: var(--text-main);
+    --text-muted: var(--text-muted);
+    --border: var(--border-soft);
+    --card-shadow: var(--sh-card);
+    --bg-white: var(--bg-card);
+    --sidebar-bg: var(--bg-card);
 }
 
 [data-theme='dark'] {
-    --bg-light: #000000;
-    --bg-white: #0a0a0a;
-    --sidebar-bg: #0a0a0a;
-    --text-dark: #f8fafc;
-    --text-muted: #94a3b8;
-    --border: #1f1f1f;
-    --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.5);
+    /* Theme tokens inherited from global.css */
 }
 
 * {

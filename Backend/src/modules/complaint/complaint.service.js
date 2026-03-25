@@ -14,7 +14,7 @@ class ComplaintService {
         const complaint = await Complaint.findOneAndUpdate(
             { _id: id, storeId },
             { status, closedBy },
-            { new: true }
+            { returnDocument: 'after' }
         );
         if (!complaint) throw new ApiError(404, "Complaint not found or unauthorized");
         return complaint;
@@ -28,7 +28,7 @@ class ComplaintService {
                     replies: { author, text, timestamp: new Date() }
                 }
             },
-            { new: true }
+            { returnDocument: 'after' }
         );
         if (!complaint) throw new ApiError(404, "Complaint not found or unauthorized");
         return complaint;

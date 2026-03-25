@@ -16,7 +16,7 @@ const updateStore = asyncHandler(async (req, res) => {
     const store = await Store.findOneAndUpdate(
         { _id: req.user.storeId, ownerId: req.user._id }, // Only owner can update
         req.body,
-        { new: true }
+        { returnDocument: 'after' }
     );
     if (!store) throw new ApiError(404, "Store not found or unauthorized");
 

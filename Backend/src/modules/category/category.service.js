@@ -20,7 +20,7 @@ class CategoryService {
         const category = await Category.findOneAndUpdate(
             { _id: id, storeId },
             { name: name.trim() },
-            { new: true }
+            { returnDocument: 'after' }
         );
         if (!category) throw new ApiError(404, "Category not found");
         return category;

@@ -216,19 +216,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             tr.style.cursor = 'pointer';
 
             tr.innerHTML = `
-                <td>${dateStr}</td>
-                <td style="color: #F47C25; font-weight: 600;">${dueDateStr}</td>
-                <td><strong>${item.name}</strong></td>
-                <td>${item.contact || '-'}</td>
-                <td>${item.transactions?.[0]?.description || '-'}</td>
-                <td>
+                <td data-label="Date">${dateStr}</td>
+                <td data-label="Due Date" style="color: #F47C25; font-weight: 600;">${dueDateStr}</td>
+                <td data-label="Customer"><strong>${item.name}</strong></td>
+                <td data-label="Contact">${item.contact || '-'}</td>
+                <td data-label="Description">${item.transactions?.[0]?.description || '-'}</td>
+                <td data-label="Balance">
                     <div style="display:flex; flex-direction:column; align-items:flex-end;">
                          <span>${formattedBalance}</span>
                          ${item.balance < item.totalAmount && item.balance > 0 ? `<small style="color:#22c55e; font-size:0.7em;">(of ${formattedTotal})</small>` : ''}
                     </div>
                 </td>
-                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-                <td>
+                <td data-label="Status"><span class="status-badge ${statusClass}">${statusText}</span></td>
+                <td data-label="Actions">
                     <button class="action-btn" onclick="viewDetails('${item._id}')" title="View Details" style="color:#6366f1;"><i class="fa-solid fa-eye"></i></button>
                     <button class="action-btn delete" onclick="deleteRecord('${item._id}')" title="Delete Record"><i class="fa-solid fa-trash"></i></button>
                      ${item.contact ? `<a href="https://wa.me/${item.contact}?text=Hello ${item.name}, regarding your pending payment of ${formattedBalance} due on ${dueDateStr}." target="_blank" class="action-btn" style="color:#25D366;"><i class="fa-brands fa-whatsapp"></i></a>` : ''}

@@ -8,12 +8,16 @@ document.addEventListener('DOMContentLoaded', function () {
     const userRole = (currentUser && currentUser.role) || (currentEmployee && currentEmployee.role) || 'staff';
     
     // --- Live Data Refresh Logic ---
+    window.analyticsData = {};
+
     async function refreshAnalyticsData() {
         try {
             const result = await apiRequest('/stats/owner');
             
             if (result.success) {
                 const d = result.data;
+                window.analyticsData = d; // Store live data for modals
+                
                 const formatter = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' });
 
                 // Update Overview Cards
@@ -28,8 +32,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Update Other Counts
                 const lowStockSummary = document.querySelector('#low-stock-summary h3');
                 const expirySoonSummary = document.querySelector('#expiry-soon-summary h3');
+                const deadStockSummary = document.querySelector('#dead-stock-summary h3');
+                
                 if (lowStockSummary) lowStockSummary.textContent = d.lowStockCount;
                 if (expirySoonSummary) expirySoonSummary.textContent = d.expiringSoonCount;
+                if (deadStockSummary) deadStockSummary.textContent = d.deadStockList ? d.deadStockList.length : 0;
             }
         } catch (err) {
             console.error("Analytics Refresh Error:", err);
@@ -319,56 +326,61 @@ document.addEventListener('DOMContentLoaded', function () {
         let title = '';
         let headers = [];
         let data = [];
+        // Dynamic Data Generation based on Type
+        const d = window.analyticsData || {};
+        const formatter = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' });
 
-        // Mock Data Generation based on Type
         if (type === 'low-stock') {
             title = '⚠️ Low Stock Items';
-            headers = ['Product Name', 'Current Stock', 'Reorder Level', 'Status', 'Action'];
-            data = [
-                ['Premium Cotton Tee', '5 units', '20 units', '<span class="badge warning">Critical</span>', '<button class="badge info">Reorder</button>'],
-                ['Slim Fit Jeans', '8 units', '15 units', '<span class="badge low-stock">Low</span>', '<button class="badge info">Reorder</button>'],
-                ['Wireless Mouse', '12 units', '30 units', '<span class="badge low-stock">Low</span>', '<button class="badge info">Reorder</button>'],
-                ['Running Shoes', '4 units', '10 units', '<span class="badge warning">Critical</span>', '<button class="badge info">Reorder</button>'],
-                ['Bluetooth Speaker', '6 units', '15 units', '<span class="badge warning">Critical</span>', '<button class="badge info">Reorder</button>']
-            ];
+            headers = ['Product Name', 'Current Stock', 'Reorder Level'];
+            const list = d.lowStockList || [];
+            if (list.length === 0) data = [['No low stock items', '-', '-']];
+            else data = list.map(item => [item.name, item.quantity, item.reorderPoint]);
         } else if (type === 'expiry') {
             title = '⏳ Expiry Report';
-            headers = ['Product Name', 'Batch ID', 'Expiry Date', 'Days Left', 'Action'];
-            data = [
-                ['Fresh Milk', 'BATCH-001', 'Oct 24, 2024', '<strong class="text-red">2 Days</strong>', '<button class="badge success">Discount</button>'],
-                ['Whole Wheat Bread', 'BATCH-042', 'Oct 25, 2024', '<strong class="text-red">3 Days</strong>', '<button class="badge success">Discount</button>'],
-                ['Yogurt Cups', 'BATCH-105', 'Oct 27, 2024', '<strong class="text-orange">5 Days</strong>', '<button class="badge success">Discount</button>'],
-                ['Protein Shake', 'BATCH-099', 'Oct 30, 2024', '<strong class="text-orange">8 Days</strong>', '<button class="badge success">Discount</button>']
-            ];
+            headers = ['Product Name', 'Batch', 'Expiry Date', 'Days Left'];
+            const list = d.expiringSoonList || [];
+            if (list.length === 0) data = [['No items expiring soon', '-', '-', '-']];
+            else data = list.map(item => [
+                item.name, 
+                item.batchNumber || '-', 
+                new Date(item.exp).toLocaleDateString(), 
+                item.daysLeft <= 0 ? `<strong class="text-red">Expired</strong>` : `<strong class="text-orange">${item.daysLeft} Days</strong>`
+            ]);
         } else if (type === 'dead-stock') {
             title = '📦 Dead Stock Report';
-            headers = ['Product Name', 'Last Sold', 'Inactive Days', 'Total Value', 'Action'];
-            data = [
-                ['Heavy Winter Jacket', 'July 12, 2024', '95 Days', '₹4,500', '<button class="badge warning">Clearance</button>'],
-                ['Old Series Canvas', 'June 10, 2024', '120 Days', '₹8,200', '<button class="badge warning">Clearance</button>'],
-                ['Type-B Charger', 'May 05, 2024', '150 Days', '₹2,100', '<button class="badge warning">Clearance</button>'],
-                ['Wired Earphones', 'April 20, 2024', '180 Days', '₹1,500', '<button class="badge warning">Clearance</button>']
-            ];
+            headers = ['Product Name', 'Last Updated', 'Inactive Days', 'Total Value'];
+            const list = d.deadStockList || [];
+            if (list.length === 0) data = [['No dead stock', '-', '-', '-']];
+            else data = list.map(item => [
+                item.name, 
+                new Date(item.updatedAt).toLocaleDateString(), 
+                item.daysInactive + ' Days', 
+                formatter.format(item.totalValue)
+            ]);
         } else if (type === 'best-sellers') {
             title = '🔥 Best Selling Items';
-            headers = ['Item Name', 'Category', 'Total Sold', 'Growth Rate', 'Revenue'];
-            data = [
-                ['Premium Cotton Tee', 'Apparel', '520', '<span class="text-green">+15%</span>', '₹2,60,000'],
-                ['Slim Fit Blue Jeans', 'Apparel', '410', '<span class="text-green">+8%</span>', '₹4,10,000'],
-                ['Wireless Mouse M1', 'Electronics', '380', '<span class="text-green">+12%</span>', '₹1,90,000'],
-                ['Sports Cap', 'Accessories', '350', '<span class="text-red">-2%</span>', '₹87,500'],
-                ['Running Shoes', 'Footwear', '310', '<span class="text-green">+5%</span>', '₹6,20,000']
-            ];
+            headers = ['Item Name', 'Inventory Quantity', 'Total Value', 'Price'];
+            const list = d.bestSellers || [];
+            if (list.length === 0) data = [['No items available', '-', '-', '-']];
+            else data = list.map(item => [
+                item.name, 
+                item.quantity, 
+                formatter.format(item.totalValue),
+                formatter.format(item.price)
+            ]);
         } else if (type === 'top-profits') {
             title = '💰 Top Profit Earners';
             headers = ['Item Name', 'Cost Price', 'Selling Price', 'Profit/Unit', 'Margin'];
-            data = [
-                ['Leather Boots', '₹1,200', '₹2,500', '₹1,300', '<span class="text-green">52%</span>'],
-                ['Winter Jacket', '₹2,000', '₹3,500', '₹1,500', '<span class="text-green">42%</span>'],
-                ['Smart Watch Gen2', '₹3,500', '₹5,500', '₹2,000', '<span class="text-green">36%</span>'],
-                ['Designer Sunglasses', '₹800', '₹1,800', '₹1,000', '<span class="text-green">55%</span>'],
-                ['Mechanical Keyboard', '₹2,800', '₹4,200', '₹1,400', '<span class="text-green">33%</span>']
-            ];
+            const list = d.topProfitEarners || [];
+            if (list.length === 0) data = [['No data available', '-', '-', '-', '-']];
+            else data = list.map(item => [
+                item.name, 
+                formatter.format(item.cp), 
+                formatter.format(item.sp), 
+                formatter.format(item.profit), 
+                `<span class="text-green">${item.margin.toFixed(1)}%</span>`
+            ]);
         }
 
         // Build Table header

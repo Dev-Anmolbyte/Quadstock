@@ -39,9 +39,40 @@ const deleteProduct = asyncHandler(async (req, res) => {
     });
 });
 
+const applyDiscount = asyncHandler(async (req, res) => {
+    // Determine if it's bulk or single item
+    const id = req.params.id;
+    const { productIds, discount, discountType, reason } = req.body;
+    
+    // Validate request
+    if (discount === undefined || discount < 0) {
+        throw new ApiError(400, "Valid discount amount is required");
+    }
+
+    const idsToUpdate = id ? [id] : productIds;
+    
+    if (!idsToUpdate || idsToUpdate.length === 0) {
+        throw new ApiError(400, "Product ID(s) required");
+    }
+
+    const updatedProducts = await productService.applyDiscount(
+        idsToUpdate, 
+        req.user.storeId, 
+        { discount, discountType: discountType || 'percentage', reason },
+        req.user // pass user to log who applied it
+    );
+    
+    return res.status(200).json({
+        success: true,
+        data: updatedProducts,
+        message: "Discount applied successfully"
+    });
+});
+
 export {
     addProduct,
     getProducts,
     updateProduct,
-    deleteProduct
+    deleteProduct,
+    applyDiscount
 };

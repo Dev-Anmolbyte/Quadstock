@@ -1,24 +1,18 @@
 :root {
-    /* Indian Touch Palette */
-    --primary-orange: #F47C25;
-    --primary-green: #22c55e;
-    --primary-blue: #1e3a8a;
-    --bg-body: #f1f5f9;
-    --bg-white: #ffffff;
-    --text-primary: #1e293b;
-    --text-secondary: #64748b;
-    --border-color: #e2e8f0;
-    --danger: #ef4444;
-    --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    --primary-orange: var(--primary);
+    --primary-green: var(--accent-success);
+    --primary-blue: var(--accent-primary);
+    --bg-body: var(--bg-main);
+    --bg-white: var(--bg-card);
+    --text-primary: var(--text-main);
+    --text-secondary: var(--text-muted);
+    --border-color: var(--border-soft);
+    --danger: var(--accent-secondary);
+    --card-shadow: var(--sh-card);
 }
 
 [data-theme="dark"] {
-    --bg-body: #000000;
-    --bg-white: #0a0a0a;
-    --text-primary: #f8fafc;
-    --text-secondary: #94a3b8;
-    --border-color: #1f1f1f;
-    --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.5);
+    /* Theme tokens inherited from global.css */
 }
 
 * {

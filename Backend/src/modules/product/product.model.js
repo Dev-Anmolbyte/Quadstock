@@ -38,6 +38,17 @@ const productSchema = new Schema(
         pp: { type: Number, default: 0 }, // Purchase Price
         cp: { type: Number, default: 0 }, // Cost Price / MRP
         price: { type: Number, default: 0 }, // Selling Price
+
+        // Discounts
+        discount: { type: Number, default: 0 }, // Current active discount amount or percentage
+        discountType: { type: String, enum: ['percentage', 'fixed'], default: 'percentage' },
+        discountHistory: [{
+            amount: { type: Number, required: true },
+            type: { type: String, enum: ['percentage', 'fixed'], required: true },
+            reason: { type: String, trim: true },
+            appliedBy: { type: String }, // Store the name or ID of the user who applied it
+            date: { type: Date, default: Date.now }
+        }]
     },
     {
         timestamps: true

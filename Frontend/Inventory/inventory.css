@@ -1,52 +1,40 @@
 :root {
-    --bg-body: #FFFBF5;
-    --bg-white: #FFFFFF;
-    --text-primary: #372F2A;
-    --text-secondary: #70655F;
-    --border-color: #EADBC8;
-    --primary-color: #F47C25;
-    --primary-hover: #D66010;
-    --card-shadow: 0 4px 6px -1px rgba(139, 69, 19, 0.1), 0 2px 4px -1px rgba(139, 69, 19, 0.06);
+    --bg-body: var(--bg-main);
+    --bg-white: var(--bg-card);
+    --text-primary: var(--text-main);
+    --text-secondary: var(--text-muted);
+    --border-color: var(--border-soft);
+    --primary-color: var(--primary);
+    --primary-hover: var(--primary-dark);
+    --card-shadow: var(--sh-card);
 
-    /* Theme Colors */
-    --c-blue-bg: #E3F2FD;
-    --c-blue-text: #1565C0;
-    --c-purple-bg: #F3E5F5;
-    --c-purple-text: #7B1FA2;
-    --c-pink-bg: #FCE4EC;
-    --c-pink-text: #C2185B;
-    --c-green-bg: #E8F5E9;
-    --c-green-text: #2E7D32;
-    --c-red-bg: #FFEBEE;
-    --c-red-text: #C62828;
-    --c-orange-bg: #FFF3E0;
-    --c-orange-text: #EF6C00;
-    --bg-secondary: #FAF7F2;
-    --bg-tertiary: #F0EBE5;
+    /* Local palette refinements */
+    --c-blue-bg: rgba(99, 102, 241, 0.1);
+    --c-blue-text: #6366f1;
+    --c-purple-bg: rgba(168, 85, 247, 0.1);
+    --c-purple-text: #a855f7;
+    --c-green-bg: rgba(16, 185, 129, 0.1);
+    --c-green-text: #10b981;
+    --c-red-bg: rgba(244, 63, 94, 0.1);
+    --c-red-text: #f43f5e;
+    --c-orange-bg: rgba(245, 158, 11, 0.1);
+    --c-orange-text: #f59e0b;
+    
+    --bg-secondary: var(--bg-soft);
+    --bg-tertiary: var(--border-soft);
 }
 
 [data-theme="dark"] {
-    --bg-body: #000000;
-    --bg-white: #0a0a0a;
-    --text-primary: #FDE8D8;
-    --text-secondary: #A8A29E;
-    --border-color: #1f1f1f;
-    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
-
-    --c-blue-bg: rgba(21, 101, 192, 0.2);
-    --c-blue-text: #90CAF9;
-    --c-purple-bg: rgba(123, 31, 162, 0.2);
-    --c-purple-text: #CE93D8;
-    --c-pink-bg: rgba(194, 24, 91, 0.2);
-    --c-pink-text: #F48FB1;
-    --c-green-bg: rgba(46, 125, 50, 0.2);
-    --c-green-text: #A5D6A7;
-    --c-red-bg: rgba(198, 40, 40, 0.2);
-    --c-red-text: #EF9A9A;
-    --c-orange-bg: rgba(239, 108, 0, 0.2);
-    --c-orange-text: #FFCC80;
-    --bg-secondary: #0a0a0a;
-    --bg-tertiary: #1f1f1f;
+    --c-blue-bg: rgba(99, 102, 241, 0.2);
+    --c-blue-text: #818cf8;
+    --c-purple-bg: rgba(168, 85, 247, 0.2);
+    --c-purple-text: #c084fc;
+    --c-green-bg: rgba(16, 185, 129, 0.2);
+    --c-green-text: #34d399;
+    --c-red-bg: rgba(244, 63, 94, 0.2);
+    --c-red-text: #fb7185;
+    --c-orange-bg: rgba(245, 158, 11, 0.2);
+    --c-orange-text: #fbbf24;
 }
 
 /* Dark Mode Sidebar Hover Fix */
