@@ -1,5 +1,5 @@
 import CONFIG from '../Shared/Utils/config.js';
-import apiRequest from '../Shared/Utils/api.js';
+import { apiRequest } from '../Shared/Utils/api.js';
 
 
 document.addEventListener('DOMContentLoaded', async () => {

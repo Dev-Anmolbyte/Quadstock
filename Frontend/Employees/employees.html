@@ -23,7 +23,22 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Top Bar injected by sidebar.js -->
+            <!-- Header Row -->
+            <div class="header-row">
+                <div class="header-left">
+                    <h1 class="page-title">Employees</h1>
+                    <p class="page-subtitle">Manage and track your store personnel</p>
+                </div>
+                <div class="header-actions">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="employee-search" placeholder="Search by name or ID...">
+                    </div>
+                    <button id="btn-add-employee" class="btn-add">
+                        <i class="fa-solid fa-plus"></i> Add Employee
+                    </button>
+                </div>
+            </div>
 
             <!-- Stats Row -->
 
@@ -145,40 +160,12 @@
                     </div>
                 </div>
 
-                <div class="grid-3" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
-                    <div class="form-group">
-                        <label class="form-label">Shift Start</label>
-                        <div style="display:flex; gap:0.5rem;">
-                            <input type="time" id="emp-shift-start" class="form-input" style="flex:1;">
-                            <select id="emp-audit-start" class="form-select" style="width: auto; padding-right: 2rem;">
-                                <option value="AM" selected>AM</option>
-                                <option value="PM">PM</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Shift End</label>
-                        <div style="display:flex; gap:0.5rem;">
-                            <input type="time" id="emp-shift-end" class="form-input" style="flex:1;">
-                            <select id="emp-audit-end" class="form-select" style="width: auto; padding-right: 2rem;">
-                                <option value="AM">AM</option>
-                                <option value="PM" selected>PM</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Target Hours</label>
-                        <input type="number" id="emp-hours" class="form-input" value="9" readonly
-                            style="background: var(--bg-light);">
-                    </div>
-                </div>
-
                 <!-- Section 4: Login Credentials -->
                 <h3 class="text-sm font-bold text-muted uppercase mb-3 mt-4"
                     style="border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">Login Credentials</h3>
                 <div class="form-group">
                     <label class="form-label">Login Password</label>
-                    <input type="text" id="emp-password" class="form-input"
+                    <input type="password" id="emp-password" class="form-input"
                         placeholder="Leave empty for default (123456)">
                     <p class="text-xs text-muted mt-1">If set to default, the employee will be prompted to change it at
                         their first login.</p>

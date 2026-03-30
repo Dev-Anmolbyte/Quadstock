@@ -1,3 +1,4 @@
+import CONFIG from '../Shared/Utils/config.js';
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -8,35 +9,41 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    const { role: userRole, ownerRefId: currentOwnerId, user } = ctx;
-    const addedByRole = (userRole === 'owner') ? 'owner' : 'staff';
-
-    // Sidebar and Top Bar handled by shared sidebar.js
-
-
-    // User profiles handled by sidebar.js top-bar
-
-    // Toggle & Theme handled by shared sidebar.js
+    const { role: userRole, ownerRefId: currentOwnerId, token } = ctx;
+    
+    // API Configuration
+    const API_BASE = CONFIG.API_BASE_URL;
+    const HEADERS = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+    };
 
     // --- 3. Data Handling ---
-    let employees = JSON.parse(localStorage.getItem('quadstock_employees')) || [];
-
-    // Filter employees for THIS owner
-    // Note: If employees don't have ownerId (legacy), we might show them if we can infer, 
-    // but strict requirement says "Every employee MUST include ownerId".
-    // We will filter by ownerId.
-    let ownerEmployees = employees.filter(e => e.ownerId === currentOwnerId);
+    let ownerEmployees = [];
 
     const grid = document.getElementById('employee-grid');
+    const searchInput = document.getElementById('employee-search');
+
+    async function fetchEmployees() {
+        try {
+            const response = await fetch(`${API_BASE}/employees`, { headers: HEADERS });
+            const result = await response.json();
+            
+            if (result.success) {
+                ownerEmployees = result.data;
+                renderEmployees(ownerEmployees);
+                updateStats();
+            } else {
+                QuadModals.showToast(result.message || "Failed to fetch employees", "error");
+            }
+        } catch (error) {
+            console.error("Fetch error:", error);
+            QuadModals.showToast("Network error while loading employees", "error");
+        }
+    }
 
     function updateStats() {
         const total = ownerEmployees.length;
-        // Logic: 
-        // Present = status 'active' or 'working' (if we add that later)
-        // Break = status 'break'
-        // Absent = status 'offline' or 'leave'
-        // Pending = status 'pending' (count as absent for now or ignore? Let's count as absent from work)
-
         const present = ownerEmployees.filter(e => e.status === 'active' || e.status === 'working').length;
         const onBreak = ownerEmployees.filter(e => e.status === 'break').length;
         const absent = total - present - onBreak;
@@ -47,40 +54,33 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('stat-break').textContent = onBreak;
     }
 
-    function renderEmployees() {
+    function renderEmployees(dataToRender) {
         grid.innerHTML = '';
-        ownerEmployees = employees.filter(e => e.ownerId === currentOwnerId);
-        updateStats();
 
-        if (ownerEmployees.length === 0) {
-            grid.innerHTML = `<div class="p-8 text-center text-muted col-span-full">No employees found. Add one to get started.</div>`;
+        if (dataToRender.length === 0) {
+            grid.innerHTML = `<div class="p-8 text-center text-muted col-span-full" style="grid-column: 1 / -1; padding: 4rem;">No employees found. Add one to get started.</div>`;
             return;
         }
 
-        ownerEmployees.forEach(emp => {
+        dataToRender.forEach(emp => {
             const card = document.createElement('div');
             card.className = 'employee-card';
-            card.dataset.id = emp.empId;
+            card.dataset.id = emp._id;
 
-            // Status Logic (Fix #10: Colors)
+            // Status Logic
             let statusClass = 'status-offline';
             let statusText = (emp.status || 'offline').toLowerCase();
 
-            if (statusText === 'active' || statusText === 'working' || statusText === 'present') {
-                statusClass = 'status-active'; // Green
-            } else if (statusText === 'break') {
-                statusClass = 'status-break'; // Yellow
-            } else if (statusText === 'holiday' || statusText === 'leave') {
-                statusClass = 'status-holiday'; // Blue
-            } else if (statusText === 'absent' || statusText === 'offline') {
-                statusClass = 'status-absent'; // Red
-            } else if (statusText === 'pending') {
-                statusClass = 'status-pending'; // Orange
-            }
+            if (statusText === 'active' || statusText === 'working' || statusText === 'present') statusClass = 'status-active';
+            else if (statusText === 'break') statusClass = 'status-break';
+            else if (statusText === 'holiday' || statusText === 'leave') statusClass = 'status-holiday';
+            else if (statusText === 'absent' || statusText === 'offline') statusClass = 'status-absent';
+            else if (statusText === 'pending') statusClass = 'status-pending';
 
+            const initials = emp.name.split(' ').map(n => n[0]).join('').toUpperCase();
             const avatarHtml = emp.photo
-                ? `<img src="${emp.photo}" class="avatar-img" style="width: 48px; height: 48px; border-radius: 12px; object-fit: cover;">`
-                : `<div class="avatar">${emp.name.charAt(0).toUpperCase()}</div>`;
+                ? `<img src="${emp.photo}" class="avatar-img">`
+                : `<div class="avatar">${initials}</div>`;
 
             card.innerHTML = `
                 <div class="card-header">
@@ -93,12 +93,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 <div class="emp-details">
                     <div class="detail-row">
-                        <span class="detail-label">ID</span>
-                        <span>${emp.empId}</span>
+                        <span class="detail-label">Username</span>
+                        <span>${emp.username}</span>
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">Phone</span>
-                        <span>${emp.phone}</span>
+                        <span>${emp.phoneNumber || 'N/A'}</span>
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">Status</span>
@@ -110,40 +110,35 @@ document.addEventListener('DOMContentLoaded', () => {
                             ${userRole === 'owner' ? `₹ ${emp.salary || 0}` : `₹ **** <i class="fa-solid fa-lock" style="font-size:0.7rem; opacity:0.5;"></i>`}
                         </span>
                     </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Password</span>
-                        <div style="display: flex; align-items: center; gap: 0.5rem;">
-                            <span class="text-sm text-muted">Password Set ✔</span>
-                            <button class="action-btn-sm" onclick="promptChangePassword('${emp.empId}')" title="Reset Password">
-                                <i class="fa-solid fa-key"></i> Reset
-                            </button>
-                        </div>
-                    </div>
                 </div>
 
                 <div class="card-actions">
-                    ${(userRole === 'owner' && emp.status === 'pending') ? `
-                        <button class="action-btn btn-approve" title="Approve Employee"><i class="fa-solid fa-check"></i></button>
-                    ` : ''}
-                    <button class="action-btn btn-change-pass" style="background: var(--bg-light); color: var(--text-dark);" title="Change Password"><i class="fa-solid fa-key"></i></button>
-                    <button class="action-btn btn-view-profile" style="background: var(--bg-light); color: var(--primary);" title="View Staff 360"><i class="fa-solid fa-id-card"></i></button>
+                    <button class="action-btn btn-view-profile" style="background: var(--bg-light); color: var(--primary);" title="View Staff 360"><i class="fa-solid fa-id-card"></i> Profile</button>
                     ${userRole === 'owner' ? `
                         <button class="action-btn btn-delete" title="Remove Employee"><i class="fa-solid fa-trash"></i></button>
                     ` : ''}
                 </div>
             `;
 
-            // Event Listeners (Fix #7 & #1)
-            card.querySelector('.btn-change-pass').addEventListener('click', () => promptChangePassword(emp.empId));
-            card.querySelector('.btn-view-profile').addEventListener('click', () => openStaffDetail(emp.empId));
-
-            const btnApprove = card.querySelector('.btn-approve');
-            if (btnApprove) btnApprove.addEventListener('click', () => approveEmployee(emp.empId));
-
+            card.querySelector('.btn-view-profile').addEventListener('click', () => openStaffDetail(emp._id));
+            
             const btnDel = card.querySelector('.btn-delete');
-            if (btnDel) btnDel.addEventListener('click', () => deleteEmployee(emp.empId));
+            if (btnDel) btnDel.addEventListener('click', () => deleteEmployee(emp._id, emp.name));
 
             grid.appendChild(card);
+        });
+    }
+
+    // --- Search Logic ---
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const filtered = ownerEmployees.filter(emp => 
+                emp.name.toLowerCase().includes(query) || 
+                emp.username.toLowerCase().includes(query) ||
+                (emp.empId && emp.empId.toLowerCase().includes(query))
+            );
+            renderEmployees(filtered);
         });
     }
 
@@ -153,258 +148,120 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnCancel = document.getElementById('btn-cancel');
     const form = document.getElementById('add-employee-form');
 
-    // Auto-calculate Hours
-    const tStart = document.getElementById('emp-shift-start');
-    const tEnd = document.getElementById('emp-shift-end');
-    const amStart = document.getElementById('emp-audit-start');
-    const amEnd = document.getElementById('emp-audit-end');
-    const tHours = document.getElementById('emp-hours');
-
-    function calcHours() {
-        if (tStart.value && tEnd.value) {
-            // Function to convert 12h time string + AM/PM to Hours (float 0-24)
-            const getHours = (timeStr, ampm) => {
-                let [h, m] = timeStr.split(':').map(Number);
-                if (ampm === 'PM' && h < 12) h += 12;
-                if (ampm === 'AM' && h === 12) h = 0;
-                return h + (m / 60);
-            };
-
-            const startH = getHours(tStart.value, amStart.value);
-            const endH = getHours(tEnd.value, amEnd.value);
-
-            let diff = endH - startH;
-            if (diff < 0) diff += 24;
-
-            tHours.value = diff.toFixed(1);
-        }
+    if (btnAdd) {
+        btnAdd.addEventListener('click', () => {
+            if (userRole !== 'owner') {
+                QuadModals.alert("Access Denied", "Only Owners can add employees.", "error");
+                return;
+            }
+            modal.classList.add('active');
+        });
     }
 
-    if (tStart && tEnd) {
-        tStart.addEventListener('change', calcHours);
-        tEnd.addEventListener('change', calcHours);
-        amStart.addEventListener('change', calcHours);
-        amEnd.addEventListener('change', calcHours);
+    if (btnCancel) {
+        btnCancel.addEventListener('click', () => {
+            modal.classList.remove('active');
+        });
     }
-
-    btnAdd.addEventListener('click', () => {
-        modal.classList.add('active');
-    });
-
-    btnCancel.addEventListener('click', () => {
-        modal.classList.remove('active');
-    });
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        // RBAC Check for Addition
         if (userRole !== 'owner') {
-
             QuadModals.alert("Access Denied", "Only Owners can add employees.", "error");
-
             return;
         }
 
-        const name = document.getElementById('emp-name').value;
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
+
+        const formData = new FormData();
+        formData.append('name', document.getElementById('emp-name').value);
+        formData.append('email', document.getElementById('emp-email').value);
+        formData.append('password', document.getElementById('emp-password').value.trim() || "123456");
+        formData.append('phoneNumber', document.getElementById('emp-phone').value);
+        formData.append('aadhaar', document.getElementById('emp-aadhaar').value);
+        formData.append('address', document.getElementById('emp-address').value);
+        formData.append('emergencyContact', document.getElementById('emp-emergency').value);
+        formData.append('role', document.getElementById('emp-role').value);
+        formData.append('salary', Number(document.getElementById('emp-salary').value));
+
         const photoInput = document.getElementById('emp-photo');
-        const aadhaar = document.getElementById('emp-aadhaar').value;
-        const address = document.getElementById('emp-address').value;
-
-        const phone = document.getElementById('emp-phone').value;
-        const email = document.getElementById('emp-email').value;
-        const emergency = document.getElementById('emp-emergency').value;
-
-        const role = document.getElementById('emp-role').value;
-        const salary = document.getElementById('emp-salary').value;
-
-        const shiftStart = document.getElementById('emp-shift-start').value;
-        const shiftEnd = document.getElementById('emp-shift-end').value;
-        const targetHours = document.getElementById('emp-hours').value;
-
-        const passwordInput = document.getElementById('emp-password').value.trim();
-        let finalPassword = passwordInput || "123456";
-        const isDefaultPassword = !passwordInput;
-
-        // Process Photo (Compressed for Storage Efficiency)
-        let photoData = null;
-        if (photoInput.files && photoInput.files[0]) {
-            photoData = await new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onload = (ev) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const MAX_WIDTH = 300;
-                        const MAX_HEIGHT = 300;
-                        let width = img.width;
-                        let height = img.height;
-
-                        if (width > height) {
-                            if (width > MAX_WIDTH) {
-                                height *= MAX_WIDTH / width;
-                                width = MAX_WIDTH;
-                            }
-                        } else {
-                            if (height > MAX_HEIGHT) {
-                                width *= MAX_HEIGHT / height;
-                                height = MAX_HEIGHT;
-                            }
-                        }
-                        canvas.width = width;
-                        canvas.height = height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, width, height);
-                        resolve(canvas.toDataURL('image/jpeg', 0.5));
-                    };
-                    img.src = ev.target.result;
-                };
-                reader.readAsDataURL(photoInput.files[0]);
-            });
+        if (photoInput && photoInput.files[0]) {
+            formData.append('photo', photoInput.files[0]);
         }
 
-        // 1. Generate ID (Verified Unique)
-        let empId;
-        let idCounter = ownerEmployees.length + 1;
-        let loopSafety = 0;
-        const ownerPrefix = currentOwnerId || 'UNKNOWN';
+        try {
+            const response = await fetch(`${API_BASE}/employees`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': HEADERS.Authorization
+                },
+                body: formData
+            });
+            const result = await response.json();
 
-        do {
-            empId = `EMP-${ownerPrefix}-${String(idCounter).padStart(3, '0')}`;
-            idCounter++;
-            loopSafety++;
-            if (loopSafety > 200) { alert('Error generating unique ID. Please contact support.'); return; }
-        } while (employees.some(e => e.empId === empId));
-
-        // 2. Determine Status
-        const initialStatus = (userRole === 'owner') ? 'offline' : 'pending';
-
-        // 3. Create Object
-        const newEmployee = {
-            empId: empId,
-            ownerId: currentOwnerId,
-            name: name,
-            photo: photoData,
-            aadhaar: aadhaar,
-            address: address,
-
-            phone: phone,
-            email: email,
-            emergency: emergency,
-
-            // Fix #15: Store password as base64 but keep it protected
-            password: btoa(finalPassword),
-            requiresPasswordChange: isDefaultPassword,
-
-            role: role,
-            salary: salary,
-            shiftStart: `${shiftStart} ${document.getElementById('emp-audit-start').value}`,
-            shiftEnd: `${shiftEnd} ${document.getElementById('emp-audit-end').value}`,
-            targetHours: targetHours,
-
-            status: initialStatus,
-            addedBy: addedByRole,
-            joinedDate: new Date().toISOString()
-        };
-
-        // 4. Save
-        employees.push(newEmployee);
-        localStorage.setItem('quadstock_employees', JSON.stringify(employees));
-
-        // 5. Reset & Render
-        form.reset();
-        modal.classList.remove('active');
-        renderEmployees();
-
-        QuadModals.showToast(`Employee Added! ID: ${empId}`, 'success');
+            if (result.success) {
+                QuadModals.showToast("Employee added successfully!", "success");
+                form.reset();
+                modal.classList.remove('active');
+                fetchEmployees();
+            } else {
+                QuadModals.alert("Failed to Add", result.message || "Something went wrong", "error");
+            }
+        } catch (error) {
+            console.error("Submission error:", error);
+            QuadModals.showToast("Network error while adding employee", "error");
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+        }
     });
 
-    // --- 5. Global Actions (Approve/Delete) ---
-    // Attach to window for onclick access
-    window.approveEmployee = (id) => {
-        if (userRole !== 'owner') {
-            QuadModals.alert("Access Denied", "Only the shop owner can approve employees.", "error");
-            return;
-        }
-
-        const emp = employees.find(e => e.empId === id);
-        if (emp && emp.ownerId === currentOwnerId) {
-            emp.status = 'offline'; // Approved!
-            localStorage.setItem('quadstock_employees', JSON.stringify(employees));
-            renderEmployees();
-            QuadModals.showToast(`Employee ${emp.name} Approved!`, 'success');
-        }
-    };
-
-    window.deleteEmployee = async (id) => {
+    // --- 5. Global Actions ---
+    async function deleteEmployee(id, name) {
         const confirmed = await QuadModals.confirm(
             "Remove Employee",
-            "Are you sure you want to remove this employee? This action cannot be undone.",
+            `Are you sure you want to remove ${name}? This action cannot be undone.`,
             { isDanger: true, confirmText: 'Remove' }
         );
 
-        if (userRole !== 'owner') {
-            QuadModals.alert("Access Denied", "Only the shop owner can remove employees.", "error");
-            return;
-        }
-
         if (!confirmed) return;
 
-        // Secure Delete: Only remove if ID matches AND belongs to current owner
-        employees = employees.filter(e => !(e.empId === id && e.ownerId === currentOwnerId));
+        try {
+            const response = await fetch(`${API_BASE}/employees/${id}`, {
+                method: 'DELETE',
+                headers: HEADERS
+            });
+            const result = await response.json();
 
-        localStorage.setItem('quadstock_employees', JSON.stringify(employees));
-        renderEmployees();
-        QuadModals.showToast("Employee removed successfully", 'info');
-    };
-
-    // (Password display logic removed for security)
-
-    window.promptChangePassword = async (id) => {
-        const newPass = await QuadModals.prompt(
-            "Change Password",
-            "Enter new login password for this employee:"
-        );
-
-        if (newPass) {
-            const emp = employees.find(e => e.empId === id && e.ownerId === currentOwnerId);
-            if (emp) {
-                emp.password = btoa(newPass);
-                emp.requiresPasswordChange = false;
-                localStorage.setItem('quadstock_employees', JSON.stringify(employees));
-                renderEmployees();
-                QuadModals.showToast("Password updated successfully!", 'success');
+            if (result.success) {
+                QuadModals.showToast("Employee removed successfully", 'info');
+                fetchEmployees();
+            } else {
+                QuadModals.showToast(result.message || "Failed to remove employee", "error");
             }
+        } catch (error) {
+            console.error("Delete error:", error);
+            QuadModals.showToast("Network error while removing employee", "error");
+        }
+    }
+
+    // --- 6. Profile Detail Logic ---
+    window.openStaffDetail = (id) => {
+        const emp = ownerEmployees.find(e => e._id === id);
+        if (!emp) return;
+        
+        // Pass data to staff_details.js (assuming it has a refresh function)
+        if (typeof showStaffDetails === 'function') {
+            showStaffDetails(emp);
+        } else {
+            QuadModals.showToast("Full profile feature coming soon!", "info");
         }
     };
 
     // Init
-    renderEmployees();
-
-    // --- 6. Secure Data Handler (Real Architecture) ---
-    const handleStaffUpdate = (updatedEmp) => {
-        // Find in GLOBAL list using ID + Owner Check for safety
-        const globalIndex = employees.findIndex(e => e.empId === updatedEmp.empId && e.ownerId === currentOwnerId);
-
-        if (globalIndex === -1) {
-            QuadModals.showToast("Error: Employee record not found in global database.", 'error');
-            return;
-        }
-
-        // Merge updates securely
-        employees[globalIndex] = { ...employees[globalIndex], ...updatedEmp };
-
-        // Save Global
-        localStorage.setItem('quadstock_employees', JSON.stringify(employees));
-
-        // Refresh UI
-        renderEmployees();
-        QuadModals.showToast("Employee details updated successfully!", 'success');
-    };
-
-    // Initialize Staff 360 Detail Logic (Securely)
-    if (typeof initStaffDetails === 'function') {
-        // Fix: Pass as a getter function so reference stays fresh
-        initStaffDetails(() => ownerEmployees, currentOwnerId, handleStaffUpdate, userRole);
-    }
+    fetchEmployees();
 });

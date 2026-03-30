@@ -38,6 +38,28 @@ document.addEventListener('DOMContentLoaded', function () {
         if (pEl) pEl.textContent = `Shop: ${shop} • Here's what's happening today in your store.`;
     }
 
+    const formatter = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
+
+    function animateValue(id, start, end, duration, isCurrency = false) {
+        const element = document.getElementById(id);
+        if (!element) return;
+        let startTimestamp = null;
+        const easeOutExpo = (t) => t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+        
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = (timestamp - startTimestamp) / duration;
+            const easedProgress = easeOutExpo(Math.min(progress, 1));
+            const currentVal = Math.floor(easedProgress * (end - start) + start);
+            
+            element.textContent = isCurrency ? formatter.format(currentVal) : currentVal.toLocaleString();
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            }
+        };
+        window.requestAnimationFrame(step);
+    }
+
     // --- Live Data Refresh Logic ---
     async function refreshDashboardData() {
         try {
@@ -47,97 +69,78 @@ document.addEventListener('DOMContentLoaded', function () {
             // 1. Fetch Stats (Inventory + Udhaar + Selection)
             const statsResult = await apiRequest(`/stats/owner?month=${m}&year=${y}`);
 
-
             if (statsResult.success) {
                 const d = statsResult.data;
-                const formatter = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' });
+                const duration = 1500;
 
-                // Update Cards
-                document.getElementById('dash-stock-value').textContent = formatter.format(d.totalStockValue);
-                document.getElementById('dash-monthly-revenue').textContent = formatter.format(d.totalRevenue || 0);
-                document.getElementById('dash-total-sold').textContent = (d.totalSold || 0).toLocaleString();
-                
-                document.getElementById('dash-inventory-count').textContent = d.totalItems.toLocaleString();
-                document.getElementById('dash-low-stock').textContent = d.lowStockCount;
-                document.getElementById('dash-total-udhaar').textContent = formatter.format(d.totalUdhaarPending);
-                document.getElementById('dash-staff-count').textContent = d.totalUsers.toLocaleString();
-                document.getElementById('dash-expiring-alert').textContent = d.expiringSoonCount;
-                const expiredEl = document.getElementById('dash-expired-count');
-                if (expiredEl) expiredEl.textContent = d.expiredCount;
+                // Animate KPI Cards
+                animateValue('dash-stock-value', 0, d.totalStockValue, duration, true);
+                animateValue('dash-monthly-revenue', 0, d.totalRevenue || 0, duration, true);
+                animateValue('dash-expired-count', 0, d.expiredCount || 0, duration, false);
+                animateValue('dash-inventory-count', 0, d.totalItems || 0, duration, false);
+                animateValue('dash-low-stock', 0, d.lowStockCount || 0, duration, false);
+                animateValue('dash-out-of-stock', 0, d.outOfStockCount || 0, duration, false);
+                animateValue('dash-total-udhaar', 0, d.totalUdhaarPending || 0, duration, true);
+                animateValue('dash-staff-count', 0, d.totalUsers || 0, duration, false);
+                animateValue('dash-expiring-alert', 0, d.expiringSoonCount || 0, duration, false);
 
-                // Update Top Products Table
-                const tbody = document.getElementById('top-products-tbody');
-                if (tbody && d.topProducts) {
-                    tbody.innerHTML = d.topProducts.map(p => `
+                // 4. Update Tables (Capped at 6 items by backend)
+                const tables = {
+                    highValue: document.getElementById('top-products-tbody'),
+                    lowStock: document.getElementById('low-stock-tbody'),
+                    outOfStock: document.getElementById('out-of-stock-tbody'),
+                    soonExpiry: document.getElementById('expiring-soon-tbody')
+                };
+
+                // A. High Value Stock
+                if (tables.highValue && d.topProducts) {
+                    tables.highValue.innerHTML = d.topProducts.map(p => `
                         <tr>
-                            <td>
-                                <div class="prod-cell">
-                                    <div class="prod-img bg-gray-100">
-                                        <img src="${p.image || '../Assets/product_placeholder.png'}" alt="${p.name}" onerror="this.src='../Assets/product_placeholder.png'">
-                                    </div>
-                                    <span>${p.name}</span>
-                                </div>
-                            </td>
-                            <td>
-                                <span class="badge ${p.quantity === 0 ? 'red' : (p.quantity <= 10 ? 'orange' : 'blue')}">
-                                    ${p.quantity === 0 ? 'Out of Stock' : `${p.quantity} In Stock`}
-                                </span>
-                            </td>
-                            <td class="price">${formatter.format(p.totalValue)}</td>
+                            <td><div class="prod-name-simple" title="${p.name}">${p.name}</div></td>
+                            <td><span class="badge ${p.quantity <= 10 ? 'amber' : 'blue'}">${p.quantity} Units</span></td>
+                            <td class="price" style="text-align: right;">${formatter.format(p.totalValue)}</td>
                         </tr>
-                    `).join('') || '<tr><td colspan="3" style="text-align:center; padding:2rem; opacity:0.6;">No products found</td></tr>';
+                    `).join('') || '<tr><td colspan="3" style="text-align:center; padding:2rem; opacity:0.6;">No data</td></tr>';
                 }
-            }
 
-            // 2. Fetch Complaints/Queries
-            const compResult = await apiRequest('/complaints/');
-
-            if (compResult.success) {
-                const openComplaints = compResult.data.filter(c => c.type === 'complaint' && c.status === 'open').length;
-                const openQueries = compResult.data.filter(c => c.type === 'query' && c.status === 'pending').length;
-
-                document.getElementById('dash-complain-count').textContent = openComplaints;
-                document.getElementById('dash-query-count').textContent = openQueries;
-                
-                // Update Nav Badge
-                const navBadge = document.getElementById('nav-badge-complain');
-                if (navBadge) {
-                    const total = openComplaints + openQueries;
-                    navBadge.style.display = total > 0 ? 'flex' : 'none';
-                    navBadge.textContent = total;
-                }
-            }
-
-            // 3. Update Expiring Soon Table
-            const expiryTbody = document.getElementById('expiring-soon-tbody');
-            const stats = statsResult?.data;
-            if (expiryTbody && stats) {
-                if (stats.expiringSoonList && stats.expiringSoonList.length > 0) {
-                    expiryTbody.innerHTML = stats.expiringSoonList.map(item => `
+                // B. Low Stock Items
+                if (tables.lowStock && d.lowStockList) {
+                    tables.lowStock.innerHTML = d.lowStockList.map(p => `
                         <tr>
-                            <td>
-                                <div class="prod-name-simple">${item.name}</div>
-                            </td>
-                            <td style="text-align: right;">
-                                <span class="badge red">${item.daysLeft}d left</span>
-                            </td>
+                            <td><div class="prod-name-simple">${p.name}</div></td>
+                            <td style="text-align: right;"><span class="badge orange">${p.quantity} left</span></td>
                         </tr>
-                    `).join('');
-                } else {
-                    expiryTbody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding: 2rem; opacity: 0.5;">Stable (No expiries)</td></tr>';
+                    `).join('') || '<tr><td colspan="2" style="text-align:center; padding:2rem; opacity:0.5;">✅ Stock OK</td></tr>';
+                }
+
+                // C. Out of Stock Items
+                if (tables.outOfStock && d.outOfStockList) {
+                    tables.outOfStock.innerHTML = d.outOfStockList.map(p => `
+                        <tr>
+                            <td><div class="prod-name-simple">${p.name}</div></td>
+                            <td style="text-align: right;"><span class="badge red">Stock Out</span></td>
+                        </tr>
+                    `).join('') || '<tr><td colspan="2" style="text-align:center; padding:2rem; opacity:0.5;">✅ Full Stock</td></tr>';
+                }
+
+                // D. Soon Expiry Items
+                if (tables.soonExpiry && d.expiringSoonList) {
+                    tables.soonExpiry.innerHTML = d.expiringSoonList.map(item => `
+                        <tr>
+                            <td><div class="prod-name-simple">${item.name}</div></td>
+                            <td style="text-align: right;"><span class="badge red">${item.daysLeft}d left</span></td>
+                        </tr>
+                    `).join('') || '<tr><td colspan="2" style="text-align:center; padding: 2rem; opacity: 0.5;">✅ Safe</td></tr>';
                 }
             }
-
-            // 4. Initialize/Update Chart
-            initDashboardChart(stats);
         } catch (err) {
             console.error("Dashboard Refresh Error:", err);
         }
     }
 
-    // Initial load and set interval (Every 15s)
+    // Initial load and set interval (Every 5 minutes)
     refreshDashboardData();
-    setInterval(refreshDashboardData, 15000);
+    setInterval(refreshDashboardData, 300000); // 300,000 ms = 5 minutes
 
     // Store Info handled by guard.js
 
@@ -168,71 +171,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
 
-    // --- Charting Logic ---
-    function initDashboardChart(data) {
-        const ctx = document.getElementById('revenueChart');
-        if (!ctx) return;
 
-        const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-        const revenueData = [12000, 19000, 15000, 25000, 22000, 30000, 28000];
-        const expenseData = [8000, 12000, 10000, 15000, 13000, 18000, 16000];
-
-        if (revenueChart) {
-            revenueChart.destroy();
-        }
-
-        const isDark = document.body.getAttribute('data-theme') === 'dark';
-        const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)';
-        const textColor = isDark ? '#94a3b8' : '#64748b';
-
-        revenueChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels,
-                datasets: [
-                    {
-                        label: 'Revenue',
-                        data: revenueData,
-                        borderColor: '#6366f1',
-                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                        borderWidth: 3,
-                        tension: 0.4,
-                        fill: true
-                    },
-                    {
-                        label: 'Expenditure',
-                        data: expenseData,
-                        borderColor: '#f43f5e',
-                        backgroundColor: 'transparent',
-                        borderWidth: 2,
-                        borderDash: [5, 5],
-                        tension: 0.4
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                        labels: { color: textColor, font: { family: 'Plus Jakarta Sans', weight: '600' } }
-                    }
-                },
-                scales: {
-                    x: {
-                        grid: { display: false },
-                        ticks: { color: textColor }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        grid: { color: gridColor },
-                        ticks: { color: textColor, callback: (v) => '₹' + v.toLocaleString() }
-                    }
-                }
-            }
-        });
-    }
 
 
     // Clock and Theme handled by guard.js

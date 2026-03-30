@@ -59,19 +59,14 @@
                         </div>
                     </div>
 
-                    <!-- Card 3: Orders -->
-                    <div class="card stat-card">
+                    <!-- Card 3: Expired Products -->
+                    <div class="card stat-card" style="cursor:pointer;" onclick="window.location.href='../smartexpiry/smartexpiry.html'">
                         <div class="stat-top">
-                            <div class="stat-icon emerald"><i class="fa-solid fa-bag-shopping"></i></div>
-                            <select id="products-period-select" class="period-select">
-                                <option value="monthly">Monthly</option>
-                                <option value="weekly">Weekly</option>
-                                <option value="today">Today</option>
-                            </select>
+                            <div class="stat-icon red"><i class="fa-solid fa-calendar-xmark"></i></div>
                         </div>
                         <div class="stat-info">
-                            <p class="label">Total Orders</p>
-                            <h3 id="dash-total-sold">0</h3>
+                            <p class="label">Expired Products</p>
+                            <h3 id="dash-expired-count" style="color: var(--c-red-text);">0</h3>
                         </div>
                     </div>
 
@@ -98,6 +93,18 @@
                         </div>
                     </div>
 
+                    <!-- Card 5b: Out of Stock -->
+                    <div class="card stat-card" style="cursor:pointer;" onclick="window.location.href='../Inventory/inventory.html'">
+                        <div class="stat-top">
+                            <div class="stat-icon red-dark" style="background: rgba(153, 27, 27, 0.1); color: #b91c1c;"><i class="fa-solid fa-ban"></i></div>
+                            <span class="badge red">Critical</span>
+                        </div>
+                        <div class="stat-info">
+                            <p class="label">Out of Stock</p>
+                            <h3 id="dash-out-of-stock" style="color: #b91c1c;">0</h3>
+                        </div>
+                    </div>
+
                     <!-- Card 6: Udhaar -->
                     <div class="card stat-card" style="cursor:pointer;" onclick="window.location.href='../Udhaar/udhaar.html'">
                         <div class="stat-top">
@@ -120,16 +127,7 @@
                         </div>
                     </div>
 
-                    <!-- Card 8: Expired Products -->
-                    <div class="card stat-card" style="cursor:pointer;" onclick="window.location.href='../smartexpiry/smartexpiry.html'">
-                        <div class="stat-top">
-                            <div class="stat-icon red"><i class="fa-solid fa-calendar-xmark"></i></div>
-                        </div>
-                        <div class="stat-info">
-                            <p class="label">Expired Products</p>
-                            <h3 id="dash-expired-count" style="color: var(--c-red-text);">0</h3>
-                        </div>
-                    </div>
+
                 </div>
 
                 <!-- Action Banners -->
@@ -162,91 +160,74 @@
                 <!-- Middle Section: Tables & Alerts -->
                 <div class="middle-section">
                     <!-- High Value Stock -->
-                    <div class="card table-card">
+                    <div class="card table-card" style="cursor:pointer;" onclick="window.location.href='../Inventory/inventory.html'">
                         <div class="card-header">
                             <h3>High Value Stock</h3>
-                            <a href="../Inventory/inventory.html" class="link-arrow"><i class="fa-solid fa-chevron-right"></i></a>
+                            <div class="link-arrow"><i class="fa-solid fa-chevron-right"></i></div>
                         </div>
                         <div class="table-responsive">
                             <table class="glass-table">
                                 <thead>
                                     <tr>
                                         <th>PRODUCT</th>
-                                        <th>AVAILABILITY</th>
-                                        <th style="text-align: right;">TOTAL</th>
+                                        <th>STOCK</th>
+                                        <th style="text-align: right;">VALUE</th>
                                     </tr>
                                 </thead>
                                 <tbody id="top-products-tbody">
-                                    <!-- Dynamic Rows -->
+                                    <!-- 6 Rows Injected -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Low Stock Items Table -->
+                    <div class="card table-card highlight-warning" style="cursor:pointer;" onclick="window.location.href='../Inventory/inventory.html'">
+                        <div class="card-header">
+                            <h3>Low Stock Items</h3>
+                            <div class="link-arrow amber"><i class="fa-solid fa-chevron-right"></i></div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="glass-table">
+                                <tbody id="low-stock-tbody">
+                                    <!-- 6 Rows Injected -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Out of Stock Items Table -->
+                    <div class="card table-card highlight-danger" style="cursor:pointer;" onclick="window.location.href='../Inventory/inventory.html'">
+                        <div class="card-header">
+                            <h3>Out of Stock Items</h3>
+                            <div class="link-arrow red"><i class="fa-solid fa-chevron-right"></i></div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="glass-table">
+                                <tbody id="out-of-stock-tbody">
+                                    <!-- 6 Rows Injected -->
                                 </tbody>
                             </table>
                         </div>
                     </div>
 
                     <!-- Soon Expiry Table -->
-                    <div class="card table-card highlight-danger">
+                    <div class="card table-card highlight-danger" style="cursor:pointer;" onclick="window.location.href='../smartexpiry/smartexpiry.html'">
                         <div class="card-header">
                             <h3>Soon Expiry</h3>
-                            <a href="../smartexpiry/smartexpiry.html" class="link-arrow red"><i class="fa-solid fa-chevron-right"></i></a>
+                            <div class="link-arrow red"><i class="fa-solid fa-chevron-right"></i></div>
                         </div>
                         <div class="table-responsive">
                             <table class="glass-table">
                                 <tbody id="expiring-soon-tbody">
-                                    <!-- Dynamic content -->
+                                    <!-- 6 Rows Injected -->
                                 </tbody>
                             </table>
                         </div>
                     </div>
-
-                    <!-- Alerts Center -->
-                    <div class="card alerts-card">
-                        <div class="card-header">
-                            <h3>Focus Areas</h3>
-                        </div>
-                        <ul class="details-list">
-                            <li>
-                                <a href="../Query/query.html" class="alert-item">
-                                    <div class="item-left">
-                                        <div class="icon-box blue"><i class="fa-solid fa-message-question"></i></div>
-                                        <span>Queries</span>
-                                    </div>
-                                    <span class="badge blue" id="dash-query-count">0</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="../Complain/complain.html" class="alert-item">
-                                    <div class="item-left">
-                                        <div class="icon-box red"><i class="fa-solid fa-circle-exclamation"></i></div>
-                                        <span>Complaints</span>
-                                    </div>
-                                    <span class="badge red" id="dash-complain-count">0</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="../Udhaar/udhaar.html" class="alert-item">
-                                    <div class="item-left">
-                                        <div class="icon-box amber"><i class="fa-solid fa-hand-holding-indian-rupee"></i></div>
-                                        <span>Pending Payments</span>
-                                    </div>
-                                    <span class="badge orange">Review</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
                 </div>
 
-                <!-- Bottom Section: Sales Charts -->
-                <div class="bottom-section" style="margin-top: 2rem;">
-                    <div class="card chart-card" style="padding: 1.5rem; height: 350px;">
-                        <div class="card-header" style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
-                            <h3>Store Analytics Overview</h3>
-                            <span style="font-size: 0.8rem; opacity: 0.7;">Weekly Trends</span>
-                        </div>
-                        <div style="height: 250px; position: relative;">
-                            <canvas id="revenueChart"></canvas>
-                        </div>
-                    </div>
-                </div>
+
             </div>
         </main>
     </div>

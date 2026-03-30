@@ -15,6 +15,7 @@ const userSchema = new Schema(
         },
         email: { type: String, required: true, unique: true, lowercase: true, trim: true },
         password: { type: String, required: [true, 'Password is required'] },
+        photo: { type: String }, // Cloudinary URL
         role: {
             type: String,
             enum: ['owner', 'staff'],
@@ -26,6 +27,16 @@ const userSchema = new Schema(
             required: function() { return this.role === 'staff'; } // Store is required for staff, owners will link to it
         },
         phoneNumber: { type: String, trim: true },
+        aadhaar: { type: String, trim: true },
+        address: { type: String, trim: true },
+        emergencyContact: { type: String, trim: true },
+        salary: { type: Number, default: 0 },
+        status: {
+            type: String,
+            enum: ['active', 'offline', 'break', 'leave', 'pending'],
+            default: 'pending'
+        },
+        joinedDate: { type: Date, default: Date.now },
         refreshToken: { type: String },
         lastUsernameChange: { type: Date },
         // OTP Verification
@@ -51,12 +62,12 @@ userSchema.methods.isPasswordCorrect = async function (password) {
 userSchema.methods.generateAccessToken = function () {
     return jwt.sign(
         {
-            _id: this._id,
+            _id: this._id.toString(),
             email: this.email,
             username: this.username,
             name: this.name,
             role: this.role,
-            storeId: this.storeId
+            storeId: (this.storeId?._id || this.storeId || "").toString()
         },
         process.env.ACCESS_TOKEN_SECRET,
         {

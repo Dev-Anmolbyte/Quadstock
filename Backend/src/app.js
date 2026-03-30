@@ -1,4 +1,5 @@
 import express from 'express';
+import path from 'path';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
@@ -13,6 +14,7 @@ import udhaarRouter from './modules/udhaar/udhaar.routes.js';
 import statsRouter from './modules/stats/stats.routes.js';
 import complaintRouter from './modules/complaint/complaint.routes.js';
 import categoryRouter from './modules/category/category.routes.js';
+import employeeRouter from './modules/employee/employee.routes.js';
 import { errorHandler } from './middleware/error.middleware.js';
 
 // Environment Validation
@@ -28,13 +30,13 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '16kb' }));
 app.use(express.urlencoded({ extended: true, limit: '16kb' }));
-app.use(express.static("public"));
+app.use(express.static(path.join(process.cwd(), "Backend", "public")));
 app.use(cookieParser());
 
-// Rate Limiting
+// Rate Limiting — Increased for dashboard auto-refresh stability
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, 
-    max: 100,
+    max: 1000, // Increased from 100 to prevent lockout during auto-refreshes
     message: "Too many requests from this IP, please try again after 15 minutes",
 });
 app.use("/api", limiter);
@@ -47,6 +49,7 @@ app.use("/api/udhaar", udhaarRouter);
 app.use("/api/stats", statsRouter);
 app.use("/api/complaints", complaintRouter);
 app.use("/api/categories", categoryRouter);
+app.use("/api/employees", employeeRouter);
 
 app.get("/", (req, res) => {
     res.status(200).send("API is running...");

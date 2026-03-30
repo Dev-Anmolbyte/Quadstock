@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const filterBrand = document.getElementById('filter-brand');
     const filterStock = document.getElementById('filter-stock');
     const filterExpiry = document.getElementById('filter-expiry');
-    const btnExport = document.getElementById('export-btn');
+
     const btnAddProduct = document.getElementById('add-product-btn');
 
     const modal = document.getElementById('product-modal');
@@ -260,8 +260,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Margin Calculator (Listeners already attached above)
 
-    safeListener(inputExp, 'change', updateExpiryHint);
-    safeListener(btnExport, 'click', exportToCSV);
+
 
     // --- Image Handling Listeners ---
 
@@ -895,7 +894,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 (item.batchNumber && item.batchNumber.toLowerCase().includes(term)) ||
                 (item.sku && item.sku.toLowerCase().includes(term));
 
-            const matchCat = !filters.category || item.category === filters.category;
+            const matchCat = !filters.category || (item.categoryName || item.category) === filters.category;
             const matchBrand = !filters.brand || item.brand === filters.brand;
 
             let matchStock = true;
@@ -963,7 +962,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     ${item.image ? `<img src="${item.image}" style="width:40px; height:40px; border-radius:4px; object-fit:cover;">` : '<div class="image-placeholder"><i class="fa-solid fa-plus"></i></div>'}
                     <div>
                         <div style="font-weight: 600;">${item.name} <span style="font-weight:400; color:var(--text-secondary); font-size:0.95em;">${(item.size || item.weight) ? '(' + (item.size || item.weight) + ')' : ''} ${item.color ? '(' + item.color + ')' : ''}</span></div>
-                        <div class="text-sm">${item.category}</div>
+                        <div class="text-sm">${item.categoryName || item.category || '-'}</div>
                     </div>
                 </div>
             </td>
@@ -1203,136 +1202,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         );
     }
 
-    function exportToCSV() {
-        const headers = ['S. No.', 'Batch', 'SKU', 'Name', 'Brand', 'Category', 'Attributes', 'Quantity', 'Unit', 'PP', 'CP', 'SP', 'MFD', 'EXP'];
-        const rows = inventory.map((i, index) => {
-            const attr = (i.size || i.weight || '') + (i.color ? ' - ' + i.color : '');
-            const mfd = i.mfd ? new Date(i.mfd).toLocaleDateString('en-GB') : '-';
-            const exp = i.exp ? new Date(i.exp).toLocaleDateString('en-GB') : '-';
-            return [
-                index + 1,
-                i.batchNumber,
-                i.sku || '-',
-                `"${i.name.replace(/"/g, '""')}"`,
-                i.brand || '-',
-                i.category || '-',
-                attr || '-',
-                i.quantity,
-                i.unit,
-                i.pp || 0,
-                i.cp || 0,
-                i.price || 0,
-                mfd,
-                exp
-            ];
-        });
 
-        let csvContent = "data:text/csv;charset=utf-8,"
-            + headers.join(",") + "\n"
-            + rows.map(e => e.join(",")).join("\n");
-
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `QuadStock_Inventory_${new Date().toISOString().slice(0, 10)}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-
-    // --- 12. CSV Import (Fix Task 1 - New Feature) ---
-    const btnImport = document.getElementById('import-btn');
-    const inputImport = document.getElementById('csv-import');
-
-    if (btnImport) {
-        btnImport.addEventListener('click', () => inputImport.click());
-    }
-
-    if (inputImport) {
-        inputImport.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const text = event.target.result;
-                processCSV(text);
-            };
-            reader.readAsText(file);
-            inputImport.value = ''; // Reset for next time
-        });
-    }
-
-    function processCSV(text) {
-        if (role === 'staff') {
-            QuadModals.alert("Access Denied", "Staff members cannot import data.", "error");
-            return;
-        }
-
-        const lines = text.split('\n').filter(line => line.trim().length > 0);
-        if (lines.length < 2) {
-            QuadModals.alert("Import Error", "CSV file is empty or missing headers.", "error");
-            return;
-        }
-
-        // Simple CSV Parser (doesn't handle all edge cases but good for standard export)
-        const parseLine = (line) => {
-            const result = [];
-            let current = '';
-            let inQuotes = false;
-            for (let i = 0; i < line.length; i++) {
-                const char = line[i];
-                if (char === '"' && line[i + 1] === '"') {
-                    current += '"'; i++;
-                } else if (char === '"') {
-                    inQuotes = !inQuotes;
-                } else if (char === ',' && !inQuotes) {
-                    result.push(current.trim());
-                    current = '';
-                } else {
-                    current += char;
-                }
-            }
-            result.push(current.trim());
-            return result;
-        };
-
-        const headers = parseLine(lines[0]);
-        const newItems = [];
-
-        for (let i = 1; i < lines.length; i++) {
-            const data = parseLine(lines[i]);
-            if (data.length < 5) continue; // Skip malformed lines
-
-            // Basic Mapping (Assumes export format headers)
-            // ['S. No.', 'Batch', 'SKU', 'Name', 'Brand', 'Category', 'Attributes', 'Quantity', 'Unit', 'PP', 'CP', 'SP', 'MFD', 'EXP']
-            const item = {
-                id: Date.now().toString() + '-' + i,
-                batchNumber: data[1] || 'BATCH-' + i,
-                sku: data[2] || '',
-                name: data[3] || 'Imported Product',
-                brand: data[4] || '',
-                category: data[5] || 'General',
-                quantity: parseInt(data[7]) || 0,
-                unit: data[8] || 'pcs',
-                pp: parseFloat(data[9]) || 0,
-                cp: parseFloat(data[10]) || 0,
-                price: parseFloat(data[11]) || 0,
-                mfd: null,
-                exp: null,
-                type: 'Kirana' // Default
-            };
-            newItems.push(item);
-        }
-
-        if (newItems.length > 0) {
-            inventory = [...inventory, ...newItems];
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(inventory));
-            calculateDashboardStats();
-            renderTable();
-            QuadModals.alert("Success", `Imported ${newItems.length} products successfully!`, "success");
-        }
-    }
 
     // Theme toggle handled by shared sidebar.js
 

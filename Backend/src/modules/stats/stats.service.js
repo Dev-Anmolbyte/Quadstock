@@ -46,8 +46,9 @@ class StatsService {
         // 3. User (Staff) Stats
         const totalUsers = await User.countDocuments({ storeId, role: 'staff' });
 
-        // 4. Top 4 Products (by inventory value = price * quantity)
+        // 4. Top 6 Products (High Value = items currently in stock with highest price*qty)
         const topProducts = products
+            .filter(p => p.quantity > 0)
             .map(p => ({
                 name: p.name,
                 image: p.image || null,
@@ -56,14 +57,17 @@ class StatsService {
                 totalValue: (p.price || 0) * (p.quantity || 0)
             }))
             .sort((a, b) => b.totalValue - a.totalValue)
-            .slice(0, 4);
+            .slice(0, 6);
 
-        // 5. Lists for Modals
-        const lowStockList = products.filter(p => p.quantity > 0 && p.quantity <= (p.reorderPoint || 10)).map(p => ({
-            name: p.name,
-            quantity: p.quantity,
-            reorderPoint: p.reorderPoint || 10
-        }));
+        // 5. Lists for Modals/Dashboard Windows
+        const lowStockList = products
+            .filter(p => p.quantity > 0 && p.quantity <= (p.reorderPoint || 10))
+            .map(p => ({
+                name: p.name,
+                quantity: p.quantity,
+                reorderPoint: p.reorderPoint || 10
+            }))
+            .slice(0, 6);
 
         const deadStockDate = new Date(now.getTime() - (90 * 24 * 60 * 60 * 1000));
         const deadStockList = products.filter(p => new Date(p.updatedAt) < deadStockDate).map(p => ({
@@ -91,8 +95,8 @@ class StatsService {
             totalUdhaarPending,
             totalUsers,
             topProducts,
-            totalRevenue: 0, // Placeholder until Order module is ready
-            totalSold: 0,    // Placeholder until Order module is ready
+            totalRevenue: 0, // Placeholder
+            totalSold: 0,    // Placeholder
             refreshAt: new Date().toISOString(),
             expiringSoonList: expiringSoonProducts
                 .map(p => ({
@@ -102,11 +106,16 @@ class StatsService {
                     daysLeft: Math.ceil((new Date(p.exp) - now) / (1000 * 60 * 60 * 24))
                 }))
                 .sort((a, b) => a.daysLeft - b.daysLeft)
-                .slice(0, 10),
+                .slice(0, 6),
             lowStockList,
             deadStockList,
             topProfitEarners,
-            bestSellers: topProducts // Reusing topProducts as bestSellers temporarily
+            bestSellers: topProducts,
+            outOfStockList: products.filter(p => p.quantity === 0).map(p => ({
+                name: p.name,
+                category: p.category || '-',
+                image: p.image || null
+            })).slice(0, 6)
         };
     }
 }

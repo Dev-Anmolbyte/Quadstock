@@ -92,7 +92,7 @@
     // --- 5. Role-Based Access ---
     if (isEmployeeLoggedIn) {
         try {
-            const emp = JSON.parse(sessionEmployee);
+            const emp = sessionEmployee; // Already parsed at line 41
 
             // Block restricted-status employees
             if (['pending', 'blocked', 'rejected'].includes(emp.status)) {
@@ -109,6 +109,7 @@
                 return;
             }
         } catch (e) {
+            console.error('RBAC Error:', e);
             localStorage.clear();
             window.location.href = '../landing/landing.html';
             return;

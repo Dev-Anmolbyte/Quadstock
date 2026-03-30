@@ -27,150 +27,146 @@
         <main class="main-content">
             <!-- Top Bar injected by sidebar.js -->
 
+            <!-- Modern Mesh Background (Visible in both themes) -->
+            <div class="modern-bg-mesh">
+                <div class="mesh-blob blue"></div>
+                <div class="mesh-blob purple"></div>
+            </div>
+
             <div class="content-scrollable">
-                <!-- Section 1: Financial Overview (Galla) -->
-                <section id="galla-section" class="analytics-section">
+                <!-- Section 1: Executive KPI Overview -->
+                <section id="executive-summary" class="analytics-section">
                     <div class="section-header">
-                        <h2>💰 Financial Overview (Galla)</h2>
+                        <h2>📊 Executive KPI Overview</h2>
                     </div>
                     <div class="stats-row">
-                        <div class="stat-card" id="daily-revenue">
-                            <div class="stat-icon blue-bg"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+                        <!-- Card 1: Net Revenue -->
+                        <div class="stat-card animate-on-load delay-100" id="card-revenue">
+                            <div class="stat-icon green-bg"><i class="fa-solid fa-indian-rupee-sign"></i></div>
                             <div class="stat-info">
-                                <p class="label">Daily Revenue</p>
-                                <h3>80,150</h3>
-                            </div>
-                            <!-- Mini Sparkline -->
-                            <div class="sparkline-container">
-                                <canvas id="dailyRevenueSparkline"></canvas>
+                                <p class="label">Total Revenue</p>
+                                <h3 id="stat-revenue">₹0</h3>
                             </div>
                         </div>
-                        <div class="stat-card" id="outstanding-credit">
-                            <div class="stat-icon red-bg"><i class="fa-solid fa-file-invoice"></i></div>
+                        <!-- Card 2: Pending Udhaar -->
+                        <div class="stat-card animate-on-load delay-200" id="card-udhaar">
+                            <div class="stat-icon red-bg"><i class="fa-solid fa-hand-holding-dollar"></i></div>
                             <div class="stat-info">
-                                <p class="label">Outstanding Credit</p>
-                                <h3>₹19,000</h3>
-                            </div>
-                            <!-- Mini Sparkline -->
-                            <div class="sparkline-container">
-                                <canvas id="outstandingCreditSparkline"></canvas>
+                                <p class="label">Pending Udhaar</p>
+                                <h3 id="stat-udhaar">₹0</h3>
                             </div>
                         </div>
-                        <div class="stat-card" id="payment-split">
-                            <div class="stat-icon purple-bg"><i class="fa-solid fa-pie-chart"></i></div>
+                        <!-- Card 3: Stock Value -->
+                        <div class="stat-card animate-on-load delay-300" id="card-stock">
+                            <div class="stat-icon blue-bg"><i class="fa-solid fa-boxes-stacked"></i></div>
                             <div class="stat-info">
-                                <p class="label">Payment Split</p>
-                                <h3>70% UPI</h3>
+                                <p class="label">Stock Value</p>
+                                <h3 id="stat-stock">₹0</h3>
                             </div>
-                            <!-- Mini Sparkline -->
-                            <div class="sparkline-container">
-                                <canvas id="paymentSplitSparkline"></canvas>
+                        </div>
+                        <!-- Card 4: Inventory Alerts -->
+                        <div class="stat-card animate-on-load delay-400" id="card-alerts">
+                            <div class="stat-icon orange-bg"><i class="fa-solid fa-bell"></i></div>
+                            <div class="stat-info">
+                                <p class="label">Critical Alerts</p>
+                                <h3 id="stat-alerts">0</h3>
                             </div>
                         </div>
                     </div>
+                </section>
+
+                <!-- Section 2: Financial Trends -->
+                <section id="trends-section" class="analytics-section">
+                    <div class="section-header">
+                        <h2>📈 Financial Trends</h2>
+                    </div>
                     <div class="analytics-grid">
-                        <div class="card chart-large">
+                        <div class="card chart-full-width animate-on-load delay-500">
                             <div class="card-header">
-                                <h3>Revenue vs Credit Trends</h3>
+                                <h3>Revenue vs. Credit Trend</h3>
                                 <div class="chart-controls">
-                                    <button class="chart-btn active"
-                                        onclick="switchChartType('revenueExpensesChart', 'line', this)"><i
-                                            class="fa-solid fa-chart-line"></i></button>
-                                    <button class="chart-btn"
-                                        onclick="switchChartType('revenueExpensesChart', 'bar', this)"><i
-                                            class="fa-solid fa-chart-bar"></i></button>
+                                    <button class="chart-btn active" onclick="switchChartType('mainTrendsChart', 'line', this)">
+                                        <i class="fa-solid fa-chart-line"></i>
+                                    </button>
+                                    <button class="chart-btn" onclick="switchChartType('mainTrendsChart', 'bar', this)">
+                                        <i class="fa-solid fa-chart-bar"></i>
+                                    </button>
                                 </div>
                             </div>
                             <div class="chart-container-large">
-                                <canvas id="revenueExpensesChart"></canvas>
+                                <canvas id="mainTrendsChart"></canvas>
                             </div>
                         </div>
-                        <div class="card chart-medium" id="payment-split-card">
-                            <div class="card-header">
-                                <h3>Payment Method Split</h3>
-                                <div class="chart-controls">
-                                    <button class="chart-btn active"
-                                        onclick="switchChartType('categoryDistributionChart', 'doughnut', this)"><i
-                                            class="fa-solid fa-chart-pie"></i></button>
-                                    <button class="chart-btn"
-                                        onclick="switchChartType('categoryDistributionChart', 'bar', this)"><i
-                                            class="fa-solid fa-chart-bar"></i></button>
-                                </div>
-                            </div>
-                            <div class="chart-container-medium">
-                                <canvas id="categoryDistributionChart"></canvas>
-                            </div>
-                        </div>
+                    </div>
+                </section>
 
-                        <!-- New Udhaar Details Table -->
-                        <div class="card chart-full-width" id="udhaar-details-list">
+                <!-- Section 3: Essential Tables -->
+                <section id="ledger-section" class="analytics-section">
+                    <div class="section-header">
+                        <h2>📋 Essential Reports</h2>
+                    </div>
+                    <div class="analytics-grid">
+                        <!-- Pending Udhaar Table -->
+                        <div class="card chart-medium animate-on-load delay-100">
                             <div class="card-header">
-                                <h3><i class="fa-solid fa-address-book"
-                                        style="color: var(--c-red-text); margin-right: 10px;"></i>
-                                    Customer Udhaar Ledger</h3>
-                                <div class="chart-controls">
-                                    <button class="btn-sm"><i class="fa-solid fa-filter"></i> Filter</button>
-                                    <button class="btn-sm"><i class="fa-solid fa-download"></i> Export</button>
-                                </div>
+                                <h3><i class="fa-solid fa-receipt"></i> Pending Udhaar Ledger</h3>
+                                <button class="btn-sm" onclick="window.location.href='../Udhaar/udhaar.html'">Manage All</button>
                             </div>
                             <div class="table-responsive">
                                 <table class="analytics-table">
                                     <thead>
                                         <tr>
-                                            <th>Customer Name</th>
-                                            <th>Phone Number</th>
-                                            <th>Total Udhaar</th>
+                                            <th>Customer</th>
                                             <th>Balance</th>
-                                            <th>Date Given</th>
-                                            <th>Status</th>
-                                            <th>Actions</th>
+                                            <th>Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    <tbody id="udhaar-summary-body">
+                                        <!-- Injected by JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Best Sellers Table -->
+                        <div class="card chart-medium animate-on-load delay-200">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-crown"></i> Best Sellers</h3>
+                                <button class="btn-sm" onclick="openGodamModal('best-sellers')">List</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="analytics-table">
+                                    <thead>
                                         <tr>
-                                            <td><strong>Deepak Sharma</strong></td>
-                                            <td>+91 98765 43210</td>
-                                            <td>₹4,500</td>
-                                            <td class="text-red">₹4,500</td>
-                                            <td>Jan 15, 2024</td>
-                                            <td><span class="badge warning">Pending</span></td>
-                                            <td><button class="btn-sm"
-                                                    onclick="openUdhaarHistory('Deepak Sharma', 4500, 4500)">History</button>
-                                            </td>
+                                            <th>Product</th>
+                                            <th>Revenue</th>
+                                            <th>Growth</th>
                                         </tr>
+                                    </thead>
+                                    <tbody id="best-sellers-summary-body">
+                                        <!-- Injected by JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Alerts Table -->
+                        <div class="card chart-full-width animate-on-load delay-300">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-triangle-exclamation"></i> Critical Inventory Alerts</h3>
+                                <button class="btn-sm" onclick="window.location.href='../Inventory/inventory.html'">Godam</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="analytics-table">
+                                    <thead>
                                         <tr>
-                                            <td><strong>Anjali Verma</strong></td>
-                                            <td>+91 87654 32109</td>
-                                            <td>₹5,000</td>
-                                            <td class="text-orange">₹1,200</td>
-                                            <td>Jan 18, 2024</td>
-                                            <td><span class="badge warning">Partial</span></td>
-                                            <td><button class="btn-sm"
-                                                    onclick="openUdhaarHistory('Anjali Verma', 5000, 1200)">History</button>
-                                            </td>
+                                            <th>Product</th>
+                                            <th>Status</th>
+                                            <th>Reason</th>
                                         </tr>
-                                        <tr>
-                                            <td><strong>Rahul Kumar</strong></td>
-                                            <td>+91 76543 21098</td>
-                                            <td>₹8,500</td>
-                                            <td class="text-red">₹8,500</td>
-                                            <td>Jan 20, 2024</td>
-                                            <td><span class="badge low-stock">Overdue</span></td>
-                                            <td><button class="btn-sm"
-                                                    onclick="openUdhaarHistory('Rahul Kumar', 8500, 8500)">History</button>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>Sunita Gupta</strong></td>
-                                            <td>+91 65432 10987</td>
-                                            <td>₹2,300</td>
-                                            <td class="text-green">₹0</td>
-                                            <td>Feb 01, 2024</td>
-                                            <td><span class="badge success">Settled</span></td>
-                                            <td><button class="btn-sm"
-                                                    onclick="openUdhaarHistory('Sunita Gupta', 2300, 0)">History</button>
-                                            </td>
-                                        </tr>
+                                    </thead>
+                                    <tbody id="alerts-summary-body">
+                                        <!-- Injected by JS -->
                                     </tbody>
                                 </table>
                             </div>
@@ -178,280 +174,36 @@
                     </div>
                 </section>
 
-                <!-- New Modal for Udhaar History -->
-                <div id="udhaarHistoryModal" class="modal-overlay">
+                <!-- Shared Modal for Godam Details -->
+                <div id="godamModal" class="modal-overlay">
                     <div class="modal-container">
                         <div class="modal-header">
-                            <h3 id="udhaarModalTitle">Customer Udhaar Timeline</h3>
-                            <button class="close-modal-btn" onclick="closeUdhaarHistory()">&times;</button>
+                            <h3 id="modalTitle">Inventory Details</h3>
+                            <button class="close-modal-btn" onclick="closeGodamModal()">&times;</button>
                         </div>
-                        <div class="udhaar-summary-bar">
-                            <div class="summary-item">
-                                <span class="lbl">Total Udhaar</span>
-                                <h4 id="summaryTotal">₹0</h4>
-                            </div>
-                            <div class="summary-item">
-                                <span class="lbl">Balance Due</span>
-                                <h4 id="summaryBalance" class="text-red">₹0</h4>
-                            </div>
-                        </div>
-                        <div class="payment-timeline" id="paymentTimeline">
-                            <!-- Timeline items will be injected here -->
+                        <div class="table-responsive">
+                            <table class="analytics-table" id="modalTable">
+                                <!-- Dynamic Content -->
+                            </table>
                         </div>
                     </div>
                 </div>
 
-                <!-- Section 2: Sales Trends (Vyapaar Meter) -->
-                <section id="vyapaar-section" class="analytics-section">
-                    <div class="section-header">
-                        <h2>📈 Sales Trends (Vyapaar Meter)</h2>
-                    </div>
-                    <div class="analytics-grid">
-                        <div class="card chart-large" id="peak-traffic">
-                            <div class="card-header">
-                                <h3>Peak Traffic Hours</h3>
-                                <div class="chart-controls">
-                                    <button class="chart-btn active"
-                                        onclick="switchChartType('weeklySalesChart', 'bar', this)"><i
-                                            class="fa-solid fa-chart-bar"></i></button>
-                                    <button class="chart-btn"
-                                        onclick="switchChartType('weeklySalesChart', 'line', this)"><i
-                                            class="fa-solid fa-chart-line"></i></button>
-                                </div>
-                            </div>
-                            <div class="chart-container-large">
-                                <canvas id="weeklySalesChart"></canvas>
-                            </div>
+                <!-- Udhaar History Modal (Simplified) -->
+                <div id="udhaarHistoryModal" class="modal-overlay">
+                    <div class="modal-container">
+                        <div class="modal-header">
+                            <h3 id="udhaarModalTitle">Transaction History</h3>
+                            <button class="close-modal-btn" onclick="closeUdhaarHistory()">&times;</button>
                         </div>
-                        <div class="card chart-medium" id="best-sellers">
-                            <div class="card-header">
-                                <h3>Best Selling Items</h3>
-                                <button class="btn-sm" onclick="openGodamModal('best-sellers')">View All</button>
-                            </div>
-                            <div class="table-responsive">
-                                <table class="analytics-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Item</th>
-                                            <th>Sales</th>
-                                            <th>Growth</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>Cotton Tee</td>
-                                            <td>520</td>
-                                            <td class="text-green">+15%</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Blue Jeans</td>
-                                            <td>410</td>
-                                            <td class="text-green">+8%</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Cap</td>
-                                            <td>350</td>
-                                            <td class="text-red">-2%</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
+                        <div class="udhaar-summary-bar">
+                            <div class="summary-item"><span class="lbl">Balance Due</span><h4 id="summaryBalance" class="text-red">₹0</h4></div>
                         </div>
-                        <div class="card chart-medium" id="top-profits">
-                            <div class="card-header">
-                                <h3>Top Profit Earners</h3>
-                                <button class="btn-sm" onclick="openGodamModal('top-profits')">View All</button>
-                            </div>
-                            <div class="table-responsive">
-                                <table class="analytics-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Item</th>
-                                            <th>Profit</th>
-                                            <th>Margin</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>Leather Boots</td>
-                                            <td>₹12,400</td>
-                                            <td class="text-green">45%</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Winter Jacket</td>
-                                            <td>₹9,200</td>
-                                            <td class="text-green">38%</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Smart Watch</td>
-                                            <td>₹8,500</td>
-                                            <td class="text-green">25%</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
+                        <div class="payment-timeline" id="paymentTimeline">
+                            <!-- Injected by JS -->
                         </div>
                     </div>
-                </section>
-
-                <!-- Section 3: Inventory Alerts (Godam Alert) -->
-                <section id="godam-section" class="analytics-section">
-                    <div class="section-header">
-                        <h2>⚠️ Inventory Alerts (Godam Alert)</h2>
-                    </div>
-
-                    <div class="stats-row">
-                        <div class="stat-card" id="low-stock-summary">
-                            <div class="stat-icon orange-bg"><i class="fa-solid fa-triangle-exclamation"></i></div>
-                            <div class="stat-info">
-                                <p class="label">Low Stock Items</p>
-                                <h3>15</h3>
-                            </div>
-                            <div class="sparkline-container">
-                                <canvas id="lowStockSparkline"></canvas>
-                            </div>
-                        </div>
-                        <div class="stat-card" id="expiry-soon-summary">
-                            <div class="stat-icon red-bg"><i class="fa-solid fa-hourglass-end"></i></div>
-                            <div class="stat-info">
-                                <p class="label">Expiry Soon</p>
-                                <h3>8</h3>
-                            </div>
-                            <div class="sparkline-container">
-                                <canvas id="expirySoonSparkline"></canvas>
-                            </div>
-                        </div>
-                        <div class="stat-card" id="dead-stock-summary">
-                            <div class="stat-icon blue-bg"><i class="fa-solid fa-box-open"></i></div>
-                            <div class="stat-info">
-                                <p class="label">Dead Stock Items</p>
-                                <h3>24</h3>
-                            </div>
-                            <div class="sparkline-container">
-                                <canvas id="deadStockSparkline"></canvas>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="godam-alert-grid">
-                        <!-- 1. Low Stock Warning -->
-                        <div class="card full-width-card" id="low-stock">
-                            <div class="card-header">
-                                <h3 class="text-warning"><i class="fa-solid fa-triangle-exclamation"></i> Low Stock
-                                    Warning</h3>
-                                <button class="btn-sm" onclick="openGodamModal('low-stock')">View All</button>
-                            </div>
-                            <div class="table-responsive">
-                                <table class="analytics-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Product</th>
-                                            <th>Current Stock</th>
-                                            <th>Reorder Level</th>
-                                            <th>Status</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>Premium Cotton Tee</td>
-                                            <td><strong>5</strong> units</td>
-                                            <td>20 units</td>
-                                            <td><span class="badge warning">Critical</span></td>
-                                            <td><button class="badge info">Reorder</button></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Slim Fit Jeans</td>
-                                            <td><strong>8</strong> units</td>
-                                            <td>15 units</td>
-                                            <td><span class="badge low-stock">Low</span></td>
-                                            <td><button class="badge info">Reorder</button></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Wireless Mouse</td>
-                                            <td><strong>12</strong> units</td>
-                                            <td>30 units</td>
-                                            <td><span class="badge low-stock">Low</span></td>
-                                            <td><button class="badge info">Reorder</button></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <!-- 2. Expiry Report -->
-                        <div class="card" id="expiry-report">
-                            <div class="card-header">
-                                <h3 class="text-red"><i class="fa-solid fa-hourglass-end"></i> Expiry Report</h3>
-                                <button class="btn-sm" onclick="openGodamModal('expiry')">View All</button>
-                            </div>
-                            <div class="table-responsive">
-                                <table class="analytics-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Product</th>
-                                            <th>Expires In</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>Fresh Milk (Batch A)</td>
-                                            <td class="text-red"><strong>2 Days</strong></td>
-                                            <td><button class="badge success">Discount</button></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Whole Wheat Bread</td>
-                                            <td class="text-red"><strong>3 Days</strong></td>
-                                            <td><button class="badge success">Discount</button></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Yogurt Cups</td>
-                                            <td class="text-orange"><strong>5 Days</strong></td>
-                                            <td><button class="badge success">Discount</button></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <!-- 3. Dead Stock Report -->
-                        <div class="card" id="dead-stock">
-                            <div class="card-header">
-                                <h3 class="text-secondary"><i class="fa-solid fa-box-open"></i> Dead Stock</h3>
-                                <button class="btn-sm" onclick="openGodamModal('dead-stock')">View All</button>
-                            </div>
-                            <div class="table-responsive">
-                                <table class="analytics-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Product</th>
-                                            <th>Inactive Days</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>Heavy Winter Jacket</td>
-                                            <td><strong>95 Days</strong></td>
-                                            <td><button class="badge warning">Clearance</button></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Old Series Canvas</td>
-                                            <td><strong>120 Days</strong></td>
-                                            <td><button class="badge warning">Clearance</button></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Type-B Charger</td>
-                                            <td><strong>150 Days</strong></td>
-                                            <td><button class="badge warning">Clearance</button></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </section>
+                </div>
             </div>
         </main>
     </div>

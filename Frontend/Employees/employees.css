@@ -16,9 +16,7 @@
     --sidebar-bg: var(--bg-card);
 }
 
-[data-theme='dark'] {
-    /* Theme tokens inherited from global.css */
-}
+/* Theme tokens inherited from global.css */
 
 * {
     box-sizing: border-box;
@@ -37,114 +35,7 @@ body {
 
 
 
-/* Nav Items (List Style - Manager) */
-.nav-item {
-    padding: 0.75rem 1rem;
-    border-radius: 8px;
-    color: var(--text-muted);
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    transition: all 0.2s;
-    font-weight: 500;
-    font-size: 0.9rem;
-}
-
-.nav-item i {
-    width: 20px;
-    text-align: center;
-}
-
-.nav-item:hover,
-.nav-item.active {
-    background: var(--primary);
-    color: white;
-}
-
-.section-title {
-    padding: 0 1rem;
-    margin-bottom: 0.5rem;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    font-weight: 700;
-    letter-spacing: 0.05em;
-}
-
-/* Sidebar Footer */
-.sidebar-footer-card {
-    background: linear-gradient(135deg, var(--bg-light) 0%, transparent 100%);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 1rem;
-    text-align: center;
-    margin-top: 1rem;
-}
-
-.illus-svg {
-    width: 50px;
-    height: 50px;
-    margin: 0 auto 0.5rem;
-    display: block;
-}
-
-.btn-support {
-    background: var(--primary);
-    color: white;
-    border: none;
-    width: 100%;
-    padding: 0.6rem;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.btn-support:hover {
-    background: var(--primary-dark);
-}
-
-/* --- COLLAPSED SIDEBAR --- */
-.layout-container.sidebar-collapsed .sidebar {
-    width: 80px;
-    padding: 1.5rem 0.5rem;
-}
-
-.layout-container.sidebar-collapsed .brand {
-    justify-content: center;
-    padding: 0;
-}
-
-.layout-container.sidebar-collapsed .brand-text,
-.layout-container.sidebar-collapsed .menu-item span,
-.layout-container.sidebar-collapsed .nav-item span,
-.layout-container.sidebar-collapsed .sidebar-footer-card,
-.layout-container.sidebar-collapsed .section-title {
-    display: none;
-}
-
-.layout-container.sidebar-collapsed .sidebar-menu {
-    grid-template-columns: 1fr;
-    /* Single column stack */
-}
-
-.layout-container.sidebar-collapsed .menu-item {
-    padding: 0.8rem 0;
-    width: 100%;
-}
-
-.layout-container.sidebar-collapsed .menu-item i,
-.layout-container.sidebar-collapsed .nav-item i {
-    font-size: 1.4rem;
-    margin: 0;
-}
-
-.layout-container.sidebar-collapsed .nav-item {
-    justify-content: center;
-    padding: 0.8rem 0;
-}
+/* Employee specific layout overrides (if any) go here. Shared sidebar is now handled globally. */
 
 /* --- MAIN CONTENT --- */
 .main-content {
@@ -179,30 +70,64 @@ body {
     font-size: 0.875rem;
 }
 
-.header-actions {
-    display: flex;
-    align-items: center;
-}
-
-.add-btn {
+.btn-add {
     background: var(--primary);
     color: white;
     border: none;
     padding: 0.75rem 1.25rem;
-    border-radius: 8px;
-    font-weight: 600;
+    border-radius: 12px;
+    font-weight: 700;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    font-size: 0.9rem;
-    box-shadow: 0 4px 6px -1px rgba(251, 146, 60, 0.3);
+    gap: 0.6rem;
+    font-size: 0.95rem;
+    box-shadow: 0 4px 12px rgba(251, 146, 60, 0.25);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-add:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(251, 146, 60, 0.35);
+}
+
+.search-box {
+    position: relative;
+    margin-right: 1.5rem;
+}
+
+.search-box i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+}
+
+.search-box input {
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.75rem 1rem 0.75rem 2.75rem;
+    width: 300px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    color: var(--text-dark);
     transition: all 0.2s;
 }
 
-.add-btn:hover {
-    background: var(--primary-dark);
-    transform: translateY(-1px);
+.search-box input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(251, 146, 60, 0.1);
+    width: 350px;
+}
+
+.page-subtitle {
+    color: var(--text-muted);
+    font-size: 1rem;
+    font-weight: 500;
 }
 
 /* --- STATS CARDS --- */

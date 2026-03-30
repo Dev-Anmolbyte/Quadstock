@@ -119,14 +119,26 @@
 }
 
 .menu-item:hover {
-    background: rgba(251, 146, 60, 0.1);
+    background: rgba(251, 146, 60, 0.12);
     color: var(--primary);
 }
 
-.menu-item.active {
-    background: var(--primary);
-    color: white;
+[data-theme="dark"] .menu-item:hover {
+    background: rgba(251, 146, 60, 0.25);
+    color: #fdba74;
+}
+
+/* Use !important or higher specificity to ensure active indicator always shows */
+.sidebar .sidebar-menu .menu-item.active,
+.sidebar .sidebar-footer .menu-item.active {
+    background: var(--primary) !important;
+    color: white !important;
     box-shadow: 0 4px 12px rgba(251, 146, 60, 0.3);
+}
+
+[data-theme="dark"] .sidebar .menu-item.active {
+    background: var(--primary) !important;
+    box-shadow: 0 4px 20px rgba(251, 146, 60, 0.4);
 }
 
 .menu-item.logout {
