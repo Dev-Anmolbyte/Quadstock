@@ -287,9 +287,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (response.ok) {
                     // Success: Save user data and token for authenticated requests
-                    localStorage.setItem('currentUser', JSON.stringify(result.data.user));
-                    localStorage.setItem('authToken', result.data.accessToken);
-                    localStorage.setItem('refreshToken', result.data.refreshToken);
+                    // Success: Save user data and token for authenticated requests in sessionStorage
+                    sessionStorage.setItem('currentUser', JSON.stringify(result.data.user));
+                    sessionStorage.setItem('authToken', result.data.accessToken);
+                    sessionStorage.setItem('refreshToken', result.data.refreshToken);
 
                     window.location.href = '../Ownerdashboard/dashboard.html';
                 } else {

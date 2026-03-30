@@ -1,137 +1,131 @@
-import CONFIG from '../Shared/Utils/config.js';
+import { apiRequest } from '../Shared/Utils/api.js';
 
-document.addEventListener('DOMContentLoaded', async () => {
-    // --- Public Stats Fetching ---
-    async function fetchStats() {
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("[Landing] Initializing dynamic engine...");
+
+    // --- 1. Fetch & Populate Live Statistics ---
+    async function initStats() {
         try {
-            const response = await fetch(`${CONFIG.API_BASE_URL}/stats/public`);
-            const result = await response.json();
-            if (response.ok && result.success) {
-                const { totalStores, totalProducts, timeSavedPercent } = result.data;
+            console.log("[Landing] Fetching live database stats...");
+            const result = await apiRequest('/stats/public');
+            
+            if (result.success && result.data) {
+                const { totalStores, timeSavedPercent, totalProducts, totalTransactions } = result.data;
                 
-                // Map to counter elements
-                const counterMap = {
-                    'Indian Stores': totalStores,
-                    'Time Saved %': timeSavedPercent,
-                    'Products Catalog': totalProducts,
-                    'Click Billing': 1 // Static/Placeholder
-                };
-
-                document.querySelectorAll('.counter').forEach(counter => {
-                    const label = counter.nextElementSibling?.textContent?.trim();
-                    if (label && counterMap[label] !== undefined) {
-                        counter.setAttribute('data-target', counterMap[label]);
-                    }
-                });
+                // Update text and trigger counter animations
+                animateCounter('stat-stores', totalStores || 150, '+');
+                animateCounter('stat-time', timeSavedPercent || 45, '%');
+                animateCounter('stat-products', totalProducts || 1000, '+');
+                animateCounter('stat-transactions', totalTransactions || 500, '+');
             }
         } catch (err) {
-            console.error("Public Stats Error:", err);
-            // Fallback to static values already in HTML
+            console.error("[Landing] Stats fetch failed, using fallback UI values:", err.message);
+            // Fallback (already in HTML as data-target, but we ensure UI isn't broken)
+            animateCounter('stat-stores', 150, '+');
+            animateCounter('stat-time', 45, '%');
+            animateCounter('stat-products', 10000, '+');
+            animateCounter('stat-transactions', 5000, '+');
         }
     }
-    
-    // Initial Fetch
-    await fetchStats();
 
-    // --- Theme Toggle ---
-    const themeToggleBtn = document.getElementById('theme-toggle');
-    const sunIcon = document.getElementById('sun-icon');
-    const moonIcon = document.getElementById('moon-icon');
-    let html = document.documentElement;
+    function animateCounter(id, target, suffix = '') {
+        const el = document.getElementById(id);
+        if (!el) return;
 
-    // Check localStorage or system preference
-    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        html.classList.add('dark');
-        sunIcon?.classList.remove('hidden');
-        moonIcon?.classList.add('hidden');
-    } else {
-        html.classList.remove('dark');
-        sunIcon?.classList.add('hidden');
-        moonIcon?.classList.remove('hidden');
+        let start = 0;
+        const duration = 2000; // 2 seconds
+        const startTime = performance.now();
+
+        function update(currentTime) {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            // Ease out cubic
+            const ease = 1 - Math.pow(1 - progress, 3);
+            const current = Math.floor(ease * target);
+            
+            el.textContent = current.toLocaleString() + suffix;
+
+            if (progress < 1) {
+                requestAnimationFrame(update);
+            }
+        }
+        requestAnimationFrame(update);
     }
 
-    themeToggleBtn?.addEventListener('click', () => {
-        html.classList.toggle('dark');
-        const isDark = html.classList.contains('dark');
-        localStorage.setItem('theme', isDark ? 'dark' : 'light');
-        if (isDark) {
+    initStats();
+
+    // --- 2. Intersection Observer for Fade-Up Animations ---
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: "0px 0px -50px 0px"
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                // Optional: stop observing once visible
+                // observer.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+
+    document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+    // --- 3. Theme Management ---
+    const themeToggle = document.getElementById('theme-toggle');
+    const sunIcon = document.getElementById('sun-icon');
+    const moonIcon = document.getElementById('moon-icon');
+
+    function updateThemeIcons(theme) {
+        if (theme === 'dark' || document.documentElement.classList.contains('dark')) {
             sunIcon?.classList.remove('hidden');
             moonIcon?.classList.add('hidden');
         } else {
             sunIcon?.classList.add('hidden');
             moonIcon?.classList.remove('hidden');
         }
-    });
-
-    // --- Intersection Observer for Fade Up ---
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('visible');
-            }
-        });
-    }, { threshold: 0.1 });
-
-    document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
-
-    // --- Counter Animation ---
-    const counters = document.querySelectorAll('.counter');
-    const animateCounters = () => {
-        counters.forEach(counter => {
-            const target = +counter.getAttribute('data-target');
-            const updateCounter = () => {
-                const count = +counter.innerText;
-                const increment = Math.max(1, target / 50); // Ensure increment is at least 1
-                if (count < target) {
-                    counter.innerText = Math.ceil(count + increment);
-                    setTimeout(updateCounter, 20);
-                } else {
-                    counter.innerText = target + (target > 50 ? '+' : '');
-                }
-            };
-            updateCounter();
-        });
-    };
-
-    const statsSection = document.querySelector('.bg-secondary');
-    if (statsSection) {
-        const statsObserver = new IntersectionObserver((entries) => {
-            if (entries[0].isIntersecting) {
-                animateCounters();
-                statsObserver.disconnect();
-            }
-        }, { threshold: 0.5 });
-        statsObserver.observe(statsSection);
     }
 
-    // --- Mobile Sidebar Logic ---
-    const sidebar = document.getElementById('mobile-sidebar');
-    const overlay = document.getElementById('mobile-sidebar-overlay');
-    const openBtn = document.getElementById('open-sidebar-btn');
-    const closeBtn = document.getElementById('close-sidebar-btn');
+    // Initialize theme from storage
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    updateThemeIcons(currentTheme);
 
-    // Make function global if needed for inline onclicks, or attach listeners strictly
-    window.toggleMobileSidebar = function () {
-        if (!sidebar) return;
-        const isOpen = !sidebar.classList.contains('translate-x-full');
-        if (isOpen) {
-            // Close
-            sidebar.classList.add('translate-x-full');
+    if (themeToggle) {
+        themeToggle.addEventListener('click', () => {
+            const isDark = document.documentElement.classList.toggle('dark');
+            const newTheme = isDark ? 'dark' : 'light';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcons(newTheme);
+            
+            console.log(`[Landing] Theme toggled to: ${newTheme}`);
+        });
+    }
+
+    // --- 4. Mobile Sidebar Logic ---
+    const mobileSidebar = document.getElementById('mobile-sidebar');
+    const overlay = document.getElementById('mobile-sidebar-overlay');
+
+    window.toggleMobileSidebar = function(show) {
+        const isHidden = mobileSidebar.classList.contains('translate-x-full');
+        if (show === undefined) show = isHidden;
+        
+        if (show) {
+            mobileSidebar.classList.remove('translate-x-full');
+            overlay.classList.remove('hidden');
+            setTimeout(() => overlay.classList.add('opacity-100'), 10);
+        } else {
+            mobileSidebar.classList.add('translate-x-full');
             overlay.classList.remove('opacity-100');
             setTimeout(() => overlay.classList.add('hidden'), 300);
-            document.body.style.overflow = '';
-        } else {
-            // Open
-            overlay.classList.remove('hidden');
-            // Force reflow
-            void overlay.offsetWidth;
-            overlay.classList.add('opacity-100');
-            sidebar.classList.remove('translate-x-full');
-            document.body.style.overflow = 'hidden';
         }
     };
 
-    openBtn?.addEventListener('click', toggleMobileSidebar);
-    closeBtn?.addEventListener('click', toggleMobileSidebar);
-    overlay?.addEventListener('click', toggleMobileSidebar);
+    document.getElementById('open-sidebar-btn').onclick = () => window.toggleMobileSidebar(true);
+    document.getElementById('close-sidebar-btn').onclick = () => window.toggleMobileSidebar(false);
+    overlay.onclick = () => window.toggleMobileSidebar(false);
+
 });

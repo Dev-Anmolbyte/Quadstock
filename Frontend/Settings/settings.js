@@ -2,101 +2,113 @@ import CONFIG from '../Shared/Utils/config.js';
 import { apiRequest } from '../Shared/Utils/api.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+    console.log("[Settings] Initializing module...");
 
     // --- Authentication & Context ---
     const ctx = window.authContext;
     if (!ctx || !ctx.isAuthenticated) {
+        console.warn("[Settings] Not authenticated, redirecting...");
         window.location.href = '../Authentication/login.html';
         return;
     }
 
     const { role: userRole, user } = ctx;
+    console.log(`[Settings] User role: ${userRole}`);
 
-    // --- Initialize Data ---
-    window.loadSettings();
-    handleRoleAccess();
-
-    // Sidebar, Theme, Clock and Logout handled by shared sidebar.js
-
-    // --- Settings Functions ---
+    // --- Define Global Functions ---
 
     window.loadSettings = async function () {
+        console.log("[Settings] Loading store and profile data...");
         try {
-            // 1. Initial UI from context
+            // 1. Initial UI from context (owner profile)
             const activeUser = user;
-            document.getElementById('owner-name').value = activeUser.name || '';
-            document.getElementById('contact-info').value = activeUser.phoneNumber || '';
+            if (document.getElementById('owner-name')) document.getElementById('owner-name').value = activeUser.name || '';
+            if (document.getElementById('contact-info')) document.getElementById('contact-info').value = activeUser.phoneNumber || '';
 
             // 2. Fetch Store Data from backend
             const dbData = await apiRequest('/stores/details');
             
             if (dbData.success) {
                 const store = dbData.data;
+                console.log("[Settings] Store data fetched successfully.");
                 
                 // Profile & Business
-                document.getElementById('shop-name').value = store.name || '';
+                if (document.getElementById('shop-name')) document.getElementById('shop-name').value = store.name || '';
                 
                 // Business Preferences
-                document.getElementById('low-stock-limit').value = store.lowStockThreshold || 10;
-                document.getElementById('default-tax').value = store.defaultTax || 18;
+                if (document.getElementById('low-stock-limit')) document.getElementById('low-stock-limit').value = store.lowStockThreshold || 10;
+                if (document.getElementById('default-tax')) document.getElementById('default-tax').value = store.defaultTax || 18;
 
                 // Smart Expiry
-                document.getElementById('high-stock-limit').value = store.highStockThreshold || 100;
-                document.getElementById('healthy-expiry-limit').value = store.healthyExpiryThreshold || 30;
+                if (document.getElementById('high-stock-limit')) document.getElementById('high-stock-limit').value = store.highStockThreshold || 100;
+                if (document.getElementById('healthy-expiry-limit')) document.getElementById('healthy-expiry-limit').value = store.healthyExpiryThreshold || 30;
 
                 // Notifications
-                document.getElementById('notif-lowstock').checked = store.notifLowStock ?? true;
-                document.getElementById('notif-udhaar').checked = store.notifUdhaarOverdue ?? true;
-                document.getElementById('notif-reminders').checked = store.notifPaymentReminders ?? false;
+                if (document.getElementById('notif-lowstock')) document.getElementById('notif-lowstock').checked = store.notifLowStock ?? true;
+                if (document.getElementById('notif-udhaar')) document.getElementById('notif-udhaar').checked = store.notifUdhaarOverdue ?? true;
+                if (document.getElementById('notif-reminders')) document.getElementById('notif-reminders').checked = store.notifPaymentReminders ?? false;
 
                 // Region
-                document.getElementById('app-language').value = store.language || 'en';
-                document.getElementById('date-format').value = store.dateFormat || 'dd-mm-yyyy';
-                document.getElementById('time-format').value = store.timeFormat || '12';
+                if (document.getElementById('app-language')) document.getElementById('app-language').value = store.language || 'en';
+                if (document.getElementById('date-format')) document.getElementById('date-format').value = store.dateFormat || 'dd-mm-yyyy';
+                if (document.getElementById('time-format')) document.getElementById('time-format').value = store.timeFormat || '12';
 
+            } else {
+                console.error("[Settings] DB data indicated failure:", dbData);
             }
         } catch (e) {
-            console.error("Failed to load settings from server", e);
-            showModal('error', 'Sync Error', 'Failed to load settings from cloud. Some features may be static.');
+            console.error("[Settings] Failed to load settings from server:", e);
+            showModal('error', 'Sync Error', 'Failed to load settings from cloud. ' + e.message);
         }
-    }
+    };
 
     window.saveProfile = async function () {
+        console.log("[Settings] Saving profile...");
         const shopName = document.getElementById('shop-name').value;
         const ownerName = document.getElementById('owner-name').value;
         const contact = document.getElementById('contact-info').value;
 
         try {
-            // 1. Update User Profile
+            // 1. Update User Profile (Works for both Owner and Staff)
             const userResult = await apiRequest('/users/update-profile', {
                 method: 'PATCH',
                 body: JSON.stringify({ name: ownerName, phoneNumber: contact })
             });
 
-            // 2. Update Store Details
-            const storeResult = await apiRequest('/stores/update', {
-                method: 'PUT',
-                body: JSON.stringify({ name: shopName, phoneNumber: contact })
-            });
+            // 2. Update Store Details (Only for Owner)
+            let storeResult = { success: true };
+            if (userRole === 'owner') {
+                storeResult = await apiRequest('/stores/update', {
+                    method: 'PUT',
+                    body: JSON.stringify({ name: shopName, phoneNumber: contact })
+                });
+            }
 
             if (userResult.success && storeResult.success) {
-                // Update local storage to keep it in sync
+                // Update local storage for immediate UI sync
                 const updatedUser = { ...user, ...userResult.data.user };
                 localStorage.setItem('currentUser', JSON.stringify(updatedUser));
                 
                 // Update UI Header (Shop Name)
-                const brandTexts = document.querySelectorAll('.brand-text');
-                brandTexts.forEach(el => el.textContent = shopName);
+                if (userRole === 'owner') {
+                    const brandTexts = document.querySelectorAll('.brand-text');
+                    brandTexts.forEach(el => el.textContent = shopName);
+                }
                 
-                showModal('success', 'Profile Saved', 'Your profile and shop details have been updated successfully!');
+                showModal('success', 'Profile Saved', 'Credentials and shop details updated.');
             }
         } catch (err) {
-            console.error("Profile Save Error:", err);
-            showModal('error', 'Update Failed', err.message || 'Failed to reach servers.');
+            console.error("[Settings] Profile Save Error:", err);
+            showModal('error', 'Update Failed', err.message);
         }
-    }
+    };
 
     window.savePreferences = async function () {
+        if (userRole !== 'owner') {
+            showModal('error', 'Forbidden', 'Only owners can modify business rules.');
+            return;
+        }
+        console.log("[Settings] Saving preferences...");
         const lowStock = parseInt(document.getElementById('low-stock-limit').value);
         const tax = parseFloat(document.getElementById('default-tax').value);
 
@@ -106,19 +118,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ lowStockThreshold: lowStock, defaultTax: tax })
             });
             if (result.success) {
-                showModal('success', 'Preferences Saved', 'Business rules updated in cloud.');
+                showModal('success', 'Preferences Saved', 'Business rules updated.');
             }
         } catch (err) {
-            showModal('error', 'Error', 'Failed to update preferences: ' + err.message);
+            showModal('error', 'Error', err.message);
         }
-    }
+    };
 
     window.saveNotifications = async function () {
+        console.log("[Settings] Saving notifications...");
         const notifLowStock = document.getElementById('notif-lowstock').checked;
         const notifUdhaar = document.getElementById('notif-udhaar').checked;
         const notifReminders = document.getElementById('notif-reminders').checked;
 
         try {
+            // Usually global notifications are store-wide, but we allow modification if owner
+            if (userRole !== 'owner') {
+                 showModal('error', 'Access Denied', 'Notifications settings are global to the store.');
+                 return;
+            }
+
             const result = await apiRequest('/stores/update', {
                 method: 'PUT',
                 body: JSON.stringify({ 
@@ -128,14 +147,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 })
             });
             if (result.success) {
-                showModal('success', 'Saved', 'Notification preferences synced.');
+                showModal('success', 'Saved', 'Notifications synced.');
             }
         } catch (err) {
-            showModal('error', 'Error', 'Failed to update notifications: ' + err.message);
+            showModal('error', 'Error', err.message);
         }
-    }
+    };
 
     window.saveRegionSettings = async function () {
+        if (userRole !== 'owner') {
+            showModal('error', 'Access Denied', 'Region settings must be changed by the store owner.');
+            return;
+        }
+        console.log("[Settings] Saving region settings...");
         const language = document.getElementById('app-language').value;
         const dateFormat = document.getElementById('date-format').value;
         const timeFormat = document.getElementById('time-format').value;
@@ -146,27 +170,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ language, dateFormat, timeFormat })
             });
             if (result.success) {
-                showModal('success', 'Saved', 'Region & Localization settings updated.');
+                showModal('success', 'Saved', 'Region & Localization updated.');
+                // Optional: Refresh page to apply formatting everywhere
+                setTimeout(() => window.location.reload(), 1500);
             }
         } catch (err) {
-            showModal('error', 'Error', 'Failed to update region settings: ' + err.message);
+            showModal('error', 'Error', err.message);
         }
-    }
+    };
 
     window.saveExpirySettings = async function () {
-        if (userRole === 'staff') {
+        if (userRole !== 'owner') {
             showModal('error', 'Access Denied', 'Staff members cannot update global store thresholds.');
             return;
         }
-
+        console.log("[Settings] Saving expiry thresholds...");
         const highStock = parseInt(document.getElementById('high-stock-limit').value);
         const healthyExpiry = parseInt(document.getElementById('healthy-expiry-limit').value);
         
-        if (isNaN(highStock) || highStock < 1 || isNaN(healthyExpiry) || healthyExpiry < 8) {
-             showModal('error', 'Invalid Format', 'Please enter valid threshold numerals before saving.');
-             return;
-        }
-
         try {
             const result = await apiRequest('/stores/update', {
                 method: 'PUT',
@@ -177,26 +198,26 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (result.success) {
-                showModal('success', 'Database Synced', 'Store thresholds updated synchronously everywhere!');
+                showModal('success', 'Synced', 'Store thresholds updated.');
             }
         } catch (err) {
-            console.error("Backend Save Error:", err);
-            showModal('error', 'Sync Failed', err.message || 'Connection Error.');
+            showModal('error', 'Sync Failed', err.message);
         }
-    }
+    };
 
     window.changePassword = async function () {
+        console.log("[Settings] Attempting password change...");
         const currentPassword = document.getElementById('current-password').value;
         const newPassword = document.getElementById('new-password').value;
         const confirmPass = document.getElementById('confirm-password').value;
 
         if (!currentPassword || !newPassword || !confirmPass) {
-            showModal('warning', 'Missing Fields', 'Please fill in all password fields.');
+            showModal('warning', 'Missing Fields', 'All fields are required.');
             return;
         }
 
         if (newPassword !== confirmPass) {
-            showModal('error', 'Mismatch', 'New passwords do not match!');
+            showModal('error', 'Mismatch', 'Passwords do not match.');
             return;
         }
 
@@ -207,73 +228,58 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (result.success) {
-                showModal('success', 'Success', 'Password updated in cloud successfully!');
+                showModal('success', 'Success', 'Password updated successfully.');
                 document.getElementById('current-password').value = '';
                 document.getElementById('new-password').value = '';
                 document.getElementById('confirm-password').value = '';
             }
         } catch (err) {
-            console.error("Password Save Error:", err);
-            showModal('error', 'Update Failed', err.message || 'Error updating password.');
+            console.error("[Settings] Change Password Error:", err);
+            showModal('error', 'Failed', err.message);
         }
-    }
+    };
 
     window.exportData = function () {
-        if (userRole === 'staff') {
-            showModal('error', 'Access Denied', 'Staff cannot export data.');
-            return;
-        }
-
         const data = {
             backupDate: new Date().toISOString(),
             user: user,
-            preferences: {
-                lowStock: document.getElementById('low-stock-limit').value,
-                tax: document.getElementById('default-tax').value
-            }
+            shop: document.getElementById('shop-name')?.value || 'QuadStock'
         };
-
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
-        const downloadAnchor = document.createElement('a');
-        downloadAnchor.setAttribute("href", dataStr);
-        downloadAnchor.setAttribute("download", `quadstock_config_backup_${new Date().toISOString().slice(0, 10)}.json`);
-        document.body.appendChild(downloadAnchor);
-        downloadAnchor.click();
-        downloadAnchor.remove();
-    }
+        const dl = document.createElement('a');
+        dl.setAttribute("href", dataStr);
+        dl.setAttribute("download", `qs_backup.json`);
+        dl.click();
+    };
 
     window.clearData = function () {
-        if (userRole !== 'owner') {
-            showModal('error', 'Access Denied', 'Only the Shop Owner can reset system data.');
-            return;
-        }
-
-        showModal('warning', 'Reset Data', 'CRITICAL WARNING: This will sign you out and clear all your browser cache for QuadStock. This action cannot be undone. Are you absolutely sure?', () => {
+        showModal('warning', 'Reset Data', 'CRITICAL: Clear all local storage and logout?', () => {
              localStorage.clear();
              window.location.href = '../landing/landing.html';
         });
-    }
-
+    };
 
     // --- UI Helpers ---
     function handleRoleAccess() {
         if (userRole === 'staff') {
-            const dangerZone = document.getElementById('data-mgmt-section');
-            if (dangerZone) dangerZone.style.display = 'none';
+            const ownerOnlySections = ['data-mgmt-section', 'region-section']; 
+            // In settings.html we should add id="region-section" if we want to hide it
             
-            // Disable expiry threshold inputs
-            const expiryInputs = ['high-stock-limit', 'healthy-expiry-limit'];
-            expiryInputs.forEach(id => {
+            // Explicitly hide elements if they exist
+            document.getElementById('data-mgmt-section')?.style.setProperty('display', 'none');
+            
+            // Disable inputs for business rules
+            const toDisable = ['low-stock-limit', 'default-tax', 'shop-name', 'high-stock-limit', 'healthy-expiry-limit'];
+            toDisable.forEach(id => {
                 const el = document.getElementById(id);
                 if (el) {
                     el.disabled = true;
                     el.style.background = '#f1f5f9';
-                    el.style.cursor = 'not-allowed';
+                    el.style.opacity = '0.7';
                 }
             });
         }
     }
-
 
     function closeModal() {
         document.getElementById('custom-modal-overlay').classList.remove('active');
@@ -317,19 +323,20 @@ document.addEventListener('DOMContentLoaded', () => {
             actionsEl.appendChild(okBtn);
         }
         overlay.classList.add('active');
-    }
+    };
 
     window.togglePassword = function (inputId, iconElement) {
         const input = document.getElementById(inputId);
         if (input.type === 'password') {
             input.type = 'text';
-            iconElement.classList.remove('fa-eye');
-            iconElement.classList.add('fa-eye-slash');
+            iconElement.classList.replace('fa-eye', 'fa-eye-slash');
         } else {
             input.type = 'password';
-            iconElement.classList.remove('fa-eye-slash');
-            iconElement.classList.add('fa-eye');
+            iconElement.classList.replace('fa-eye-slash', 'fa-eye');
         }
     };
 
+    // --- Final Execution ---
+    window.loadSettings();
+    handleRoleAccess();
 });

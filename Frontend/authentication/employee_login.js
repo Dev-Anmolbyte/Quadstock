@@ -75,9 +75,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     // Success Login for Staff
-                    localStorage.setItem('authToken', token);
-                    localStorage.setItem('currentEmployee', JSON.stringify(user));
-                    localStorage.removeItem('currentUser'); // Ensure no owner session
+                    // Success Login for Staff in sessionStorage
+                    sessionStorage.setItem('authToken', token);
+                    sessionStorage.setItem('currentEmployee', JSON.stringify(user));
+                    sessionStorage.removeItem('currentUser'); // Ensure no owner session in sessionStorage
 
                     loginBtn.innerHTML = '<i class="fa-solid fa-check"></i> Success!';
                     loginBtn.style.background = '#22c55e';

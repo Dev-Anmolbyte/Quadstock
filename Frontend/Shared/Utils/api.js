@@ -27,8 +27,10 @@ export const apiRequest = async (endpoint, options = {}) => {
         }
     };
 
-    // Construct full URL
-    const url = endpoint.startsWith('http') ? endpoint : `${CONFIG.API_BASE_URL}${endpoint}`;
+    // Construct full URL with slash normalization
+    const baseUrl = CONFIG.API_BASE_URL.endsWith('/') ? CONFIG.API_BASE_URL.slice(0, -1) : CONFIG.API_BASE_URL;
+    const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    const url = endpoint.startsWith('http') ? endpoint : `${baseUrl}${path}`;
 
     try {
         let response = await fetch(url, config);
