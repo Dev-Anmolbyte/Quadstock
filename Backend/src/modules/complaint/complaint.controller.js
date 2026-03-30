@@ -11,10 +11,15 @@ const addComplaint = asyncHandler(async (req, res) => {
 });
 
 const getComplaints = asyncHandler(async (req, res) => {
-    const list = await complaintService.getComplaints(req.user.storeId);
+    const data = await complaintService.getComplaints(req.user.storeId, req.query);
     return res.status(200).json({
         success: true,
-        data: list
+        data: data.complaints,
+        meta: {
+            total: data.total,
+            page: data.page,
+            pages: data.pages
+        }
     });
 });
 

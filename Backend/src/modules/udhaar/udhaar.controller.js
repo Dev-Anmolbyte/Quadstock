@@ -11,10 +11,15 @@ const addUdhaarRecord = asyncHandler(async (req, res) => {
 });
 
 const getUdhaarRecords = asyncHandler(async (req, res) => {
-    const records = await udhaarService.getRecords(req.user.storeId);
+    const data = await udhaarService.getRecords(req.user.storeId, req.query);
     return res.status(200).json({
         success: true,
-        data: records || []
+        data: data.records || [],
+        meta: {
+            total: data.total,
+            page: data.page,
+            pages: data.pages
+        }
     });
 });
 

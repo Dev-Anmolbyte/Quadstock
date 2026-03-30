@@ -150,14 +150,56 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 
+    // Initial Fetchers
+    async function loadStoreSettings() {
+        try {
+            const result = await apiRequest('/stores/details');
+            if (result.success) {
+                const store = result.data;
+                // Sync expiry thresholds from store settings
+                expirySettings = [
+                    store.healthyExpiryThreshold || 30,
+                    store.expiryWarningThreshold || 14,
+                    store.expiryCriticalThreshold || 7
+                ]; 
+                renderTable(); // Re-render once we have real settings
+                calculateDashboardStats();
+            }
+        } catch (err) {
+            console.error("Failed to load store settings:", err);
+        }
+    }
+
+    async function loadCategories() {
+        try {
+            const result = await apiRequest('/categories/');
+            if (result.success) {
+                const dbCategories = result.data || [];
+                // Update CATEGORIES state for the given type
+                // Note: The UI separates by 'Kirana' and 'Clothes'. 
+                // We'll merge DB categories into the default structure or just use them if type-agnostic.
+                // For now, let's just make sure we populate the selects.
+                dbCategories.forEach(cat => {
+                    const type = 'Kirana'; // Default fallback type if not specified in DB
+                    if (!CATEGORIES[type].includes(cat.name)) {
+                        CATEGORIES[type].push(cat.name);
+                    }
+                });
+                populateSelects();
+            }
+        } catch (err) {
+            console.error("Failed to load categories:", err);
+        }
+    }
+
     // --- 3. Initialization ---
+    await loadStoreSettings();
+    await loadCategories();
     populateSelects();
     updateBrandList();
-    calculateDashboardStats(); // Run once on load
-    refreshInventoryData(); // Initial load
-    setInterval(refreshInventoryData, 15000); // Live refresh every 15s
-    // Initial Render is now handled by refreshInventoryData()
-    // renderTable(); // Initial Render
+    calculateDashboardStats(); 
+    refreshInventoryData(); 
+    setInterval(refreshInventoryData, 30000); // 30s is enough for background refresh
 
     // --- 4. Event Listeners ---
     // Safe Event Listener Helper
@@ -1224,19 +1266,38 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+
+
+    // Modal Events - settings modal logic
     if (btnSaveSettings) {
-        btnSaveSettings.addEventListener('click', () => {
-            expirySettings = [
-                parseInt(inputExpiryAlert.value) || 30,
-                parseInt(inputExpiryWarning.value) || 14,
-                parseInt(inputExpiryCritical.value) || 7
-            ];
-            localStorage.setItem('expirySettings', JSON.stringify(expirySettings));
-            settingsModal.style.display = 'none';
-            alert('Settings Saved!');
-            renderTable(); // Re-render to update colored dots
-            calculateDashboardStats();
-        });    // Sidebar setup handled by shared sidebar.js
+        btnSaveSettings.addEventListener('click', async () => {
+            const newSettings = {
+                healthyExpiryThreshold: parseInt(inputExpiryAlert.value) || 30,
+                expiryWarningThreshold: parseInt(inputExpiryWarning.value) || 14,
+                expiryCriticalThreshold: parseInt(inputExpiryCritical.value) || 7
+            };
+
+            try {
+                const result = await apiRequest('/stores/update', {
+                    method: 'PUT',
+                    body: JSON.stringify(newSettings)
+                });
+
+                if (result.success) {
+                    expirySettings = [
+                        newSettings.healthyExpiryThreshold,
+                        newSettings.expiryWarningThreshold,
+                        newSettings.expiryCriticalThreshold
+                    ];
+                    settingsModal.style.display = 'none';
+                    QuadModals.showToast("Store alert levels updated!", "success");
+                    renderTable(); 
+                    calculateDashboardStats();
+                }
+            } catch (err) {
+                QuadModals.alert("Sync Error", "Failed to update thresholds in backend: " + err.message, "error");
+            }
+        });
     }
 
 

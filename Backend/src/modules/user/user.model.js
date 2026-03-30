@@ -24,7 +24,8 @@ const userSchema = new Schema(
         storeId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Store",
-            required: function() { return this.role === 'staff'; } // Store is required for staff, owners will link to it
+            required: true,
+            index: true
         },
         phoneNumber: { type: String, trim: true },
         aadhaar: { type: String, trim: true },

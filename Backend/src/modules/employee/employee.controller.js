@@ -23,10 +23,15 @@ const addEmployee = asyncHandler(async (req, res) => {
 });
 
 const getEmployees = asyncHandler(async (req, res) => {
-    const employees = await employeeService.getEmployees(req.user.storeId);
+    const data = await employeeService.getEmployees(req.user.storeId, req.query);
     return res.status(200).json({
         success: true,
-        data: employees,
+        data: data.employees,
+        meta: {
+            total: data.total,
+            page: data.page,
+            pages: data.pages
+        }
     });
 });
 

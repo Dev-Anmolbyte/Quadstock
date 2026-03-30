@@ -164,6 +164,61 @@ const resendOtp = asyncHandler(async (req, res) => {
     });
 });
 
+const forgotPassword = asyncHandler(async (req, res) => {
+    const { email, username } = req.body;
+    if (!email || !username) {
+        throw new ApiError(400, "Email and Username are required");
+    }
+
+    await userService.forgotPassword(email, username);
+
+    return res.status(200).json({
+        success: true,
+        message: "OTP sent to your registered email"
+    });
+});
+
+const resetPassword = asyncHandler(async (req, res) => {
+    const { email, otp, newPassword } = req.body;
+
+    if (!email || !otp || !newPassword) {
+        throw new ApiError(400, "Email, OTP and New Password are required");
+    }
+
+    await userService.resetPassword(email, otp, newPassword);
+
+    return res.status(200).json({
+        success: true,
+        message: "Password reset successfully. You can now login with your new password."
+    });
+});
+
+const updateProfile = asyncHandler(async (req, res) => {
+    const { name, phoneNumber, address } = req.body;
+    const user = await userService.updateProfile(req.user._id, { name, phoneNumber, address });
+
+    return res.status(200).json({
+        success: true,
+        data: { user },
+        message: "Profile updated successfully"
+    });
+});
+
+const changePassword = asyncHandler(async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+        throw new ApiError(400, "Current and new password are required");
+    }
+
+    await userService.changePassword(req.user._id, currentPassword, newPassword);
+
+    return res.status(200).json({
+        success: true,
+        message: "Password changed successfully"
+    });
+});
+
 export {
     registerUser,
     loginUser,
@@ -172,5 +227,9 @@ export {
     checkUsernameAvailability,
     updateUsername,
     verifyOtp,
-    resendOtp
+    resendOtp,
+    forgotPassword,
+    resetPassword,
+    updateProfile,
+    changePassword
 };

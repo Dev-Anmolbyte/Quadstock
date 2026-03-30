@@ -38,29 +38,28 @@ class UserService {
             throw new ApiError(409, "Shop name already taken");
         }
 
-        // 1. Create User first (without storeId)
+        // 1. Create Store first to get the ID
+        const storeUniqueId = `QS-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+        const store = new Store({
+            name: shopName,
+            storeUniqueId,
+            phoneNumber
+        });
+
+        // 2. Create User linked to the Store
         const user = await User.create({
             name,
             username,
             email,
             password,
             role: 'owner',
-            phoneNumber
+            phoneNumber,
+            storeId: store._id
         });
 
-
-        // 2. Create Store linked to User with a unique ID
-        const storeUniqueId = `QS-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
-        const store = await Store.create({
-            name: shopName,
-            storeUniqueId,
-            ownerId: user._id,
-            phoneNumber
-        });
-
-
-        // 3. Link Store back to User
-        user.storeId = store._id;
+        // 3. Link User back to Store and Save Store
+        store.ownerId = user._id;
+        await store.save();
 
         // 4. Generate OTP & send verification email
         const { otp, hashedOtp } = generateOTP();
@@ -276,13 +275,110 @@ class UserService {
         user.otpAttempts = 0; // Reset attempts on resend
         await user.save({ validateBeforeSave: false });
 
-        const storeName = user.storeId?.name || "Your Store";
         try {
             await sendOtpEmail(user.email, user.name, storeName, otp);
         } catch (emailErr) {
             console.error("[Resend OTP Email] Failed:", emailErr.message);
             throw new ApiError(500, "Failed to send OTP email. Please try again.");
         }
+    }
+
+    // ─── Forgot Password ──────────────────────────────────────────────────
+    async forgotPassword(email, username) {
+        console.log(`[Forgot Password] Searching for User with Username: "${username}" and Email: "${email}"`);
+        
+        const user = await User.findOne({ 
+            username: username?.toLowerCase().trim(),
+            email: email?.toLowerCase().trim()
+        });
+
+        if (!user) {
+            console.log(`[Forgot Password] User NOT FOUND for Username: "${username}" and Email: "${email}"`);
+            throw new ApiError(404, "Invalid Username or Email. Please check your details.");
+        }
+
+        const { otp, hashedOtp } = generateOTP();
+        user.otp = hashedOtp;
+        user.otpExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 mins for password reset
+        user.otpAttempts = 0;
+        await user.save({ validateBeforeSave: false });
+
+        const storeName = user.storeId?.name || "Your Store";
+        try {
+            await sendOtpEmail(user.email, user.name, storeName, otp);
+        } catch (error) {
+            console.error("[Forgot Password Email] Failed:", error.message);
+            // Don't throw here, just return true so we don't leak user existence if we wanted, 
+            // but we already threw 404 above.
+            throw new ApiError(500, "Failed to send reset email. Please try again.");
+        }
+        return true;
+    }
+
+    async resetPassword(email, otp, newPassword) {
+        const user = await User.findOne({ email: email.toLowerCase() });
+        if (!user) throw new ApiError(404, "User not found");
+
+        if (!user.otp || !user.otpExpiry || user.otpExpiry < new Date()) {
+            throw new ApiError(400, "OTP expired or invalid. Please request again.");
+        }
+
+        const hashedIncoming = crypto.createHash("sha256").update(otp).digest("hex");
+        if (user.otp !== hashedIncoming) {
+            user.otpAttempts += 1;
+            await user.save({ validateBeforeSave: false });
+            throw new ApiError(400, "Invalid OTP");
+        }
+
+        // OTP is correct
+        user.password = newPassword;
+        user.otp = undefined;
+        user.otpExpiry = undefined;
+        user.otpAttempts = 0;
+        
+        // Also verify the user if they were unverified
+        user.isVerified = true;
+
+        await user.save();
+        return true;
+    }
+
+    async updateProfile(userId, updateData) {
+        const { name, phoneNumber, address } = updateData;
+        const user = await User.findByIdAndUpdate(
+            userId,
+            {
+                $set: {
+                    name,
+                    phoneNumber,
+                    address
+                }
+            },
+            { new: true, runValidators: true }
+        ).select("-password -refreshToken");
+
+        if (!user) {
+            throw new ApiError(404, "User not found");
+        }
+
+        return user;
+    }
+
+    async changePassword(userId, currentPassword, newPassword) {
+        const user = await User.findById(userId);
+        if (!user) {
+            throw new ApiError(404, "User not found");
+        }
+
+        const isPasswordCorrect = await user.isPasswordCorrect(currentPassword);
+        if (!isPasswordCorrect) {
+            throw new ApiError(400, "Invalid current password");
+        }
+
+        user.password = newPassword;
+        await user.save();
+
+        return true;
     }
 }
 

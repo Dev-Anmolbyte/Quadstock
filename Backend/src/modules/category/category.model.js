@@ -18,4 +18,6 @@ const categorySchema = new Schema(
     }
 );
 
+categorySchema.index({ storeId: 1, name: 1 }, { unique: true });
+
 export const Category = mongoose.model("Category", categorySchema);

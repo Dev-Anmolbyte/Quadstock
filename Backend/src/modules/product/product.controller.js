@@ -69,10 +69,24 @@ const applyDiscount = asyncHandler(async (req, res) => {
     });
 });
 
+const getSmartExpiry = asyncHandler(async (req, res) => {
+    const data = await productService.getSmartExpiryRecords(req.user.storeId, req.query);
+    return res.status(200).json({
+        success: true,
+        data: data.records,
+        meta: { 
+            total: data.total, 
+            page: data.page, 
+            pages: data.pages 
+        }
+    });
+});
+
 export {
     addProduct,
     getProducts,
     updateProduct,
     deleteProduct,
-    applyDiscount
+    applyDiscount,
+    getSmartExpiry
 };

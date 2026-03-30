@@ -1,6 +1,7 @@
 import { User } from "../user/user.model.js";
 import { uploadOnCloudinary } from "../../utils/cloudinary.js";
 import { ApiError } from "../../utils/ApiError.js";
+import { withStore } from "../../utils/storeHelper.js";
 
 class EmployeeService {
     async addEmployee(employeeData, storeId, file) {
@@ -48,8 +49,24 @@ class EmployeeService {
         return employee;
     }
 
-    async getEmployees(storeId) {
-        return await User.find({ storeId, role: { $ne: 'owner' } }).select("-password -refreshToken");
+    async getEmployees(storeId, query = {}) {
+        const { page = 1, limit = 10 } = query;
+        const skip = (page - 1) * limit;
+        const filter = withStore({ role: { $ne: 'owner' } }, { storeId });
+        
+        const total = await User.countDocuments(filter);
+        const employees = await User.find(filter)
+            .select("-password -refreshToken")
+            .skip(skip)
+            .limit(parseInt(limit))
+            .sort({ createdAt: -1 });
+
+        return {
+            employees,
+            total,
+            page: parseInt(page),
+            pages: Math.ceil(total / limit)
+        };
     }
 
     async updateEmployee(id, updateData, storeId, file) {
@@ -75,12 +92,12 @@ class EmployeeService {
         });
 
         await employee.save();
-        return await User.findById(employeeId).select("-password -refreshToken");
+        return await User.findById(id).select("-password -refreshToken");
     }
 
-    async deleteEmployee(employeeId, storeId) {
-        const employee = await User.findOneAndDelete({ _id: employeeId, storeId });
-        if (!employee) throw new ApiError(404, "Employee not found or doesn't belong to this store");
+    async deleteEmployee(id, storeId) {
+        const employee = await User.findOneAndDelete(withStore({ _id: id }, { storeId }));
+        if (!employee) throw new ApiError(404, "Employee not found or unauthorized");
         return employee;
     }
 }

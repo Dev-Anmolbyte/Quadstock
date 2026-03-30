@@ -202,20 +202,47 @@
         // ── 7. DIGITAL CLOCK ─────────────────────────────────────────────────────
         var clockEl = document.getElementById('digital-clock');
         if (clockEl) {
+            let timeFormat = '12'; // Default
+
             function updateClock() {
                 var now = new Date();
-                var DAYS   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-                var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-                var h  = now.getHours();
-                var m  = String(now.getMinutes()).padStart(2, '0');
-                var s  = String(now.getSeconds()).padStart(2, '0');
-                var ap = h >= 12 ? 'PM' : 'AM';
-                var h12= h % 12 || 12;
+                var DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                var h = now.getHours();
+                var m = String(now.getMinutes()).padStart(2, '0');
+                var s = String(now.getSeconds()).padStart(2, '0');
+                
+                let displayTime = '';
+                if (timeFormat === '24') {
+                    displayTime = `<b>${String(h).padStart(2, '0')}:${m}:${s}</b>`;
+                } else {
+                    var ap = h >= 12 ? 'PM' : 'AM';
+                    var h12 = h % 12 || 12;
+                    displayTime = `<b>${h12}:${m}:${s} ${ap}</b>`;
+                }
+
                 clockEl.innerHTML =
                     '<span style="opacity:0.6;font-size:0.85em;margin-right:5px;">' +
                     DAYS[now.getDay()] + ', ' + now.getDate() + ' ' + MONTHS[now.getMonth()] +
-                    '</span><b>' + h12 + ':' + m + ':' + s + ' ' + ap + '</b>';
+                    '</span>' + displayTime;
             }
+
+            // Sync formatting with live store data
+            const token = localStorage.getItem('authToken');
+            if (token) {
+                const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+                    ? 'http://localhost:3000/api'
+                    : '/api';
+                fetch(`${apiBase}/stores/details`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                }).then(r => r.json()).then(res => {
+                    if (res.success && res.data.timeFormat) {
+                        timeFormat = res.data.timeFormat;
+                        updateClock();
+                    }
+                }).catch(e => { });
+            }
+
             updateClock();
             setInterval(updateClock, 1000);
         }

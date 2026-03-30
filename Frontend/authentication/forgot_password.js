@@ -1,13 +1,16 @@
-
+import CONFIG from '../Shared/Utils/config.js';
 import { showError, clearError, togglePasswordVisibility, calculatePasswordStrength } from '../Shared/Auth/auth-utils.js';
+import { initInteractiveBackground } from '../Shared/Components/interactive-bg.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+    // --- 0. Background Initialization ---
+    initInteractiveBackground('interactive-bg');
 
     const step1 = document.getElementById('step-1');
     const step2 = document.getElementById('step-2');
     const step3 = document.getElementById('step-3');
 
-    const ownerIdInput = document.getElementById('owner-id');
+    const usernameInput = document.getElementById('username');
     const emailInput = document.getElementById('email');
     const otpInput = document.getElementById('otp-input');
     const newPasswordInput = document.getElementById('new-password');
@@ -16,9 +19,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnSendOtp = document.getElementById('btn-send-otp');
     const btnVerifyOtp = document.getElementById('btn-verify-otp');
     const btnBackStep1 = document.getElementById('btn-back-step1');
+    const passwordForm = document.getElementById('forgot-password-form');
 
-    let generatedOtp = '';
-    let validatedUser = null;
+    const API_BASE = CONFIG.API_BASE_URL;
 
     // --- State Management ---
     function showStep(step) {
@@ -28,64 +31,64 @@ document.addEventListener('DOMContentLoaded', () => {
         step.style.display = 'block';
     }
 
-    // --- Step 1: Validate User & Send OTP ---
-    btnSendOtp.addEventListener('click', () => {
-        const ownerId = ownerIdInput.value.trim();
+    async function apiCall(endpoint, body) {
+        try {
+            const response = await fetch(`${API_BASE}${endpoint}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            const result = await response.json();
+            if (!response.ok) {
+                throw new Error(result.message || "Something went wrong. Please try again.");
+            }
+            return result;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    // --- Step 1: Request Password Reset ---
+    btnSendOtp.addEventListener('click', async () => {
+        const username = usernameInput.value.trim();
         const email = emailInput.value.trim();
 
-        if (!ownerId) {
-            showError(ownerIdInput, 'Please enter your Owner ID.');
-            return;
-        } else {
-            clearError(ownerIdInput);
-        }
+        if (!username) return showError(usernameInput, 'Please enter your Username.');
+        clearError(usernameInput);
+        
+        if (!email) return showError(emailInput, 'Please enter your registered Email.');
+        clearError(emailInput);
 
-        if (!email) {
-            showError(emailInput, 'Please enter your registered Email.');
-            return;
-        } else {
-            clearError(emailInput);
-        }
+        btnSendOtp.disabled = true;
+        btnSendOtp.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Sending...';
 
-        // Mock Validation
-        const users = JSON.parse(localStorage.getItem('quadstock_users') || '[]');
-        const user = users.find(u => u.ownerId === ownerId && u.email.toLowerCase() === email.toLowerCase());
-
-        if (user) {
-            validatedUser = user;
-            // Generate OTP (Mock)
-            generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
-            // In a real app, this would trigger an API call to send email
-            alert(`Your OTP for Password Reset is: ${generatedOtp}`);
-
-            // Transition directly to OTP step for UX smoothness in mock
+        try {
+            const result = await apiCall('/users/forgot-password', { email, username });
+            alert(result.message || "OTP has been sent to your email.");
             showStep(step2);
-        } else {
-            showError(step1, 'No user found with these details. Please check your ID and Email.');
+        } catch (error) {
+            showError(btnSendOtp, error.message);
+        } finally {
+            btnSendOtp.disabled = false;
+            btnSendOtp.innerText = 'Send Verification Code';
         }
     });
 
-    // --- Step 2: Verify OTP ---
+    // --- Step 2: Verify OTP (UI transition only, verify happens in Final Step) ---
     btnVerifyOtp.addEventListener('click', () => {
         const enteredOtp = otpInput.value.trim();
-        if (enteredOtp === generatedOtp) {
+        if (enteredOtp.length === 6) {
             clearError(otpInput);
             showStep(step3);
         } else {
-            showError(otpInput, 'Invalid OTP. Please try again.');
+            showError(otpInput, 'Please enter the 6-digit OTP.');
         }
     });
 
-    btnBackStep1.addEventListener('click', () => {
-        showStep(step1);
-    });
+    btnBackStep1.addEventListener('click', () => showStep(step1));
 
     // --- Step 3: Reset Password ---
-    const passwordForm = document.getElementById('forgot-password-form');
-    // Note: The form submit event likely wraps all buttons, so we need to be careful.
-    // However, since we used type="button" for the first two steps, only the last button (default submit) triggers.
-
-    passwordForm.addEventListener('submit', (e) => {
+    passwordForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
         if (step1.style.display !== 'none') {
@@ -93,86 +96,64 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (step2.style.display !== 'none') {
             btnVerifyOtp.click();
         } else if (step3.style.display !== 'none') {
-            // Final Step Logic
-            const newPass = newPasswordInput.value;
+            const email = emailInput.value.trim();
+            const otp = otpInput.value.trim();
+            const newPassword = newPasswordInput.value;
             const confirmPass = confirmPasswordInput.value;
 
-            // Validation
-            let isValid = true;
-            if (newPass !== confirmPass) {
-                showError(confirmPasswordInput, 'Passwords do not match.');
-                isValid = false;
-            } else {
-                clearError(confirmPasswordInput);
+            if (newPassword !== confirmPass) {
+                return showError(confirmPasswordInput, 'Passwords do not match.');
             }
+            clearError(confirmPasswordInput);
 
-            if (calculatePasswordStrength(newPass) === 'weak') {
-                showError(newPasswordInput, 'Password is too weak. at least 6 characters.');
-                isValid = false;
-            } else {
-                clearError(newPasswordInput);
+            if (calculatePasswordStrength(newPassword) === 'weak') {
+                return showError(newPasswordInput, 'Password is too weak. Needs at least 6 characters.');
             }
+            clearError(newPasswordInput);
 
-            if (!isValid) return;
+            const btnSubmit = document.querySelector('.btn-submit');
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
 
-            // Update User Data
-            const users = JSON.parse(localStorage.getItem('quadstock_users') || '[]');
-            const userIndex = users.findIndex(u => u.ownerId === validatedUser.ownerId);
-
-            if (userIndex !== -1) {
-                // Update specific user
-                users[userIndex].email = validatedUser.email; // Ensure email is same just in case
-                users[userIndex].password = newPass;
-                localStorage.setItem('quadstock_users', JSON.stringify(users));
-
-                alert('Password reset successfully! Redirecting to login...');
-                window.location.href = 'login.html';
-            } else {
-                showError(step3, 'Error updating user. Please try again later.');
+            try {
+                const result = await apiCall('/users/reset-password', { email, otp, newPassword });
+                alert(result.message || "Password updated successfully!");
+                window.location.href = 'owner_login.html';
+            } catch (error) {
+                showError(btnSubmit, error.message);
+                // If OTP was invalid, user might need to go back or retry
+                if (error.message.toLowerCase().includes('otp')) {
+                    showStep(step2);
+                }
+            } finally {
+                btnSubmit.disabled = false;
+                btnSubmit.innerText = 'Save Changes';
             }
         }
     });
 
-    // --- Helpers ---
-    // Password Toggle
-    const toggleBtn = document.querySelector('.input-icon');
-    if (toggleBtn) {
-        toggleBtn.addEventListener('click', () => togglePasswordVisibility(toggleBtn));
-    }
+    // Password Toggle Logic
+    const toggleBtns = document.querySelectorAll('.input-icon');
+    toggleBtns.forEach(btn => {
+        btn.addEventListener('click', () => togglePasswordVisibility(btn));
+    });
 
-    // Password Strength
-    const strengthSegment = document.getElementById('strength-segment');
-    const strengthText = document.getElementById('strength-text');
-
+    // Password Strength Meter
     newPasswordInput.addEventListener('input', () => {
         const val = newPasswordInput.value;
         const result = calculatePasswordStrength(val);
+        const segment = document.getElementById('strength-segment');
+        const text = document.getElementById('strength-text');
 
-        // Reset classes
-        strengthSegment.className = 'strength-segment';
-        strengthText.innerText = '';
-
-        if (val.length === 0) {
-            strengthSegment.style.width = '0%';
-            return;
-        }
+        segment.className = 'strength-segment';
+        if (val.length === 0) { segment.style.width = '0%'; text.innerText = ''; return; }
 
         if (result === 'weak') {
-            strengthSegment.classList.add('weak');
-            strengthSegment.style.width = '33%';
-            strengthText.innerText = 'Weak';
-            strengthText.style.color = '#ef4444';
+            segment.classList.add('weak'); segment.style.width = '33%'; text.innerText = 'Weak'; text.style.color = '#ef4444';
         } else if (result === 'medium') {
-            strengthSegment.classList.add('medium');
-            strengthSegment.style.width = '66%';
-            strengthText.innerText = 'Medium';
-            strengthText.style.color = '#eab308';
+            segment.classList.add('medium'); segment.style.width = '66%'; text.innerText = 'Medium'; text.style.color = '#eab308';
         } else if (result === 'strong') {
-            strengthSegment.classList.add('strong');
-            strengthSegment.style.width = '100%';
-            strengthText.innerText = 'Strong';
-            strengthText.style.color = '#22c55e';
+            segment.classList.add('strong'); segment.style.width = '100%'; text.innerText = 'Strong'; text.style.color = '#22c55e';
         }
     });
-
 });

@@ -143,12 +143,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderTable(filtered);
     });
 
-    // Helper Functions
-    function saveData() {
-        // Merge current owner list back into global list
-        const otherOwnerRecords = allRecords.filter(r => r.ownerId !== currentOwnerId);
-        const updatedGlobalList = [...otherOwnerRecords, ...udhaarList];
-        localStorage.setItem('udhaarRecords', JSON.stringify(updatedGlobalList));
+    function formatCurrency(val) {
+        return new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            maximumFractionDigits: 0
+        }).format(val);
     }
 
     function renderTable(data = udhaarList) {
@@ -211,7 +211,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             tr.onclick = (e) => {
                 // Prevent opening if clicking action buttons or links
                 if (e.target.closest('button') || e.target.closest('a')) return;
-                viewDetails(item.id);
+                viewDetails(item._id);
             };
             tr.style.cursor = 'pointer';
 
@@ -236,13 +236,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             `;
             udhaarTableBody.appendChild(tr);
         });
-    }
-
-    function formatCurrency(val) {
-        return new Intl.NumberFormat('en-IN', {
-            style: 'currency',
-            currency: 'INR'
-        }).format(val);
     }
 
     // --- Details & Partial Payment Modal ---
@@ -307,7 +300,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                                 <option value="Other">Other</option>
                             </select>
                         </div>
-                        <button type="button" onclick="addPayment('${record.id}')" style="background:var(--success-green); color:white; border:none; padding:0.6rem 1rem; border-radius:0.25rem; cursor:pointer; font-weight:700;">
+                        <button type="button" onclick="addPayment('${record._id}')" style="background:#22c55e; color:white; border:none; padding:0.6rem 1rem; border-radius:12px; cursor:pointer; font-weight:700; transition:all 0.2s;">
                             Received
                         </button>
                     </form>
@@ -421,13 +414,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const pendingCountEl = document.getElementById('pending-count');
         if (totalAmountEl) totalAmountEl.textContent = formatCurrency(totalPending);
         if (pendingCountEl) pendingCountEl.textContent = countPending;
-    }
-
-    function formatCurrency(val) {
-        return new Intl.NumberFormat('en-IN', {
-            style: 'currency',
-            currency: 'INR'
-        }).format(val);
     }
 
     window.markAsPaid = (id) => {

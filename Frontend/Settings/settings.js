@@ -1,4 +1,5 @@
 import CONFIG from '../Shared/Utils/config.js';
+import { apiRequest } from '../Shared/Utils/api.js';
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -9,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    const { role: userRole, ownerRefId: ownerId, user } = ctx;
+    const { role: userRole, user } = ctx;
 
     // --- Initialize Data ---
     window.loadSettings();
@@ -20,47 +21,43 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Settings Functions ---
 
     window.loadSettings = async function () {
-        const settings = JSON.parse(localStorage.getItem(`appSettings_${ownerId}`)) || getDefaultSettings();
-
-        // Profile (Real Dynamic Data from Session)
-        const activeUser = currentUser || currentEmployee;
-        document.getElementById('shop-name').value = activeUser.shopName || '';
-        document.getElementById('owner-name').value = activeUser.ownerName || '';
-        document.getElementById('contact-info').value = activeUser.phoneNumber || activeUser.phone || '';
-
-        // Preferences (Stay local for now)
-        document.getElementById('low-stock-limit').value = settings.preferences.lowStockThreshold || 10;
-        document.getElementById('default-tax').value = settings.preferences.defaultTax || 18;
-
-        // Notifications
-        const notif = settings.notifications || getDefaultSettings().notifications;
-        document.getElementById('notif-lowstock').checked = notif.lowStock;
-        document.getElementById('notif-udhaar').checked = notif.udhaarOverdue;
-        document.getElementById('notif-reminders').checked = notif.paymentReminders;
-
-        // Region
-        const region = settings.region || getDefaultSettings().region;
-        document.getElementById('app-language').value = region.language;
-        document.getElementById('date-format').value = region.dateFormat;
-        document.getElementById('time-format').value = region.timeFormat;
-
-        // Smart Expiry (Fetch from actual backend)
         try {
-            const token = localStorage.getItem('authToken');
-            const res = await fetch(`${CONFIG.API_BASE_URL}/store/details`, { 
-                headers: { 'Authorization': `Bearer ${token}` } 
-            });
-            const dbData = await res.json();
+            // 1. Initial UI from context
+            const activeUser = user;
+            document.getElementById('owner-name').value = activeUser.name || '';
+            document.getElementById('contact-info').value = activeUser.phoneNumber || '';
+
+            // 2. Fetch Store Data from backend
+            const dbData = await apiRequest('/stores/details');
+            
             if (dbData.success) {
-                if (dbData.data.highStockThreshold !== undefined) {
-                    document.getElementById('high-stock-limit').value = dbData.data.highStockThreshold;
-                }
-                if (dbData.data.healthyExpiryThreshold !== undefined) {
-                    document.getElementById('healthy-expiry-limit').value = dbData.data.healthyExpiryThreshold;
-                }
+                const store = dbData.data;
+                
+                // Profile & Business
+                document.getElementById('shop-name').value = store.name || '';
+                
+                // Business Preferences
+                document.getElementById('low-stock-limit').value = store.lowStockThreshold || 10;
+                document.getElementById('default-tax').value = store.defaultTax || 18;
+
+                // Smart Expiry
+                document.getElementById('high-stock-limit').value = store.highStockThreshold || 100;
+                document.getElementById('healthy-expiry-limit').value = store.healthyExpiryThreshold || 30;
+
+                // Notifications
+                document.getElementById('notif-lowstock').checked = store.notifLowStock ?? true;
+                document.getElementById('notif-udhaar').checked = store.notifUdhaarOverdue ?? true;
+                document.getElementById('notif-reminders').checked = store.notifPaymentReminders ?? false;
+
+                // Region
+                document.getElementById('app-language').value = store.language || 'en';
+                document.getElementById('date-format').value = store.dateFormat || 'dd-mm-yyyy';
+                document.getElementById('time-format').value = store.timeFormat || '12';
+
             }
         } catch (e) {
-            console.error("Failed to sync backend thresholds", e);
+            console.error("Failed to load settings from server", e);
+            showModal('error', 'Sync Error', 'Failed to load settings from cloud. Some features may be static.');
         }
     }
 
@@ -69,71 +66,91 @@ document.addEventListener('DOMContentLoaded', () => {
         const ownerName = document.getElementById('owner-name').value;
         const contact = document.getElementById('contact-info').value;
 
-        const userId = currentUser ? currentUser._id : (currentEmployee ? currentEmployee._id : null);
-        if (!userId) return;
-
         try {
-            const response = await fetch(`${CONFIG.API_BASE_URL}/owner/update/${userId}`, {
+            // 1. Update User Profile
+            const userResult = await apiRequest('/users/update-profile', {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ shopName, ownerName, phoneNumber: contact })
+                body: JSON.stringify({ name: ownerName, phoneNumber: contact })
             });
 
-            const result = await response.json();
-            if (response.ok && result.success) {
-                if (currentUser) {
-                    Object.assign(currentUser, result.data);
-                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                } else {
-                    Object.assign(currentEmployee, result.data);
-                    localStorage.setItem('currentEmployee', JSON.stringify(currentEmployee));
-                }
+            // 2. Update Store Details
+            const storeResult = await apiRequest('/stores/update', {
+                method: 'PUT',
+                body: JSON.stringify({ name: shopName, phoneNumber: contact })
+            });
+
+            if (userResult.success && storeResult.success) {
+                // Update local storage to keep it in sync
+                const updatedUser = { ...user, ...userResult.data.user };
+                localStorage.setItem('currentUser', JSON.stringify(updatedUser));
                 
-                // Update UI immediately
-                const newShopName = result.data.shopName || shopName;
+                // Update UI Header (Shop Name)
                 const brandTexts = document.querySelectorAll('.brand-text');
-                brandTexts.forEach(el => el.textContent = newShopName);
+                brandTexts.forEach(el => el.textContent = shopName);
                 
-                showModal('success', 'Profile Saved', 'Profile updated across your session!');
-            } else {
-                showModal('error', 'Update Failed', result.message);
+                showModal('success', 'Profile Saved', 'Your profile and shop details have been updated successfully!');
             }
         } catch (err) {
             console.error("Profile Save Error:", err);
-            showModal('error', 'Error', 'Failed to reach backend.');
+            showModal('error', 'Update Failed', err.message || 'Failed to reach servers.');
         }
     }
 
-    window.savePreferences = function () {
-        const settings = getCurrentSettingsObj();
-        settings.preferences = {
-            lowStockThreshold: parseInt(document.getElementById('low-stock-limit').value),
-            defaultTax: parseFloat(document.getElementById('default-tax').value)
-        };
-        saveToStorage(settings);
-        showModal('success', 'Preferences Saved', 'Local preferences updated.');
+    window.savePreferences = async function () {
+        const lowStock = parseInt(document.getElementById('low-stock-limit').value);
+        const tax = parseFloat(document.getElementById('default-tax').value);
+
+        try {
+            const result = await apiRequest('/stores/update', {
+                method: 'PUT',
+                body: JSON.stringify({ lowStockThreshold: lowStock, defaultTax: tax })
+            });
+            if (result.success) {
+                showModal('success', 'Preferences Saved', 'Business rules updated in cloud.');
+            }
+        } catch (err) {
+            showModal('error', 'Error', 'Failed to update preferences: ' + err.message);
+        }
     }
 
-    window.saveNotifications = function () {
-        const settings = getCurrentSettingsObj();
-        settings.notifications = {
-            lowStock: document.getElementById('notif-lowstock').checked,
-            udhaarOverdue: document.getElementById('notif-udhaar').checked,
-            paymentReminders: document.getElementById('notif-reminders').checked
-        };
-        saveToStorage(settings);
-        showModal('success', 'Saved', 'Notification settings saved.');
+    window.saveNotifications = async function () {
+        const notifLowStock = document.getElementById('notif-lowstock').checked;
+        const notifUdhaar = document.getElementById('notif-udhaar').checked;
+        const notifReminders = document.getElementById('notif-reminders').checked;
+
+        try {
+            const result = await apiRequest('/stores/update', {
+                method: 'PUT',
+                body: JSON.stringify({ 
+                    notifLowStock, 
+                    notifUdhaarOverdue: notifUdhaar, 
+                    notifPaymentReminders: notifReminders 
+                })
+            });
+            if (result.success) {
+                showModal('success', 'Saved', 'Notification preferences synced.');
+            }
+        } catch (err) {
+            showModal('error', 'Error', 'Failed to update notifications: ' + err.message);
+        }
     }
 
-    window.saveRegionSettings = function () {
-        const settings = getCurrentSettingsObj();
-        settings.region = {
-            language: document.getElementById('app-language').value,
-            dateFormat: document.getElementById('date-format').value,
-            timeFormat: document.getElementById('time-format').value
-        };
-        saveToStorage(settings);
-        showModal('success', 'Saved', 'Region & Time settings updated.');
+    window.saveRegionSettings = async function () {
+        const language = document.getElementById('app-language').value;
+        const dateFormat = document.getElementById('date-format').value;
+        const timeFormat = document.getElementById('time-format').value;
+
+        try {
+            const result = await apiRequest('/stores/update', {
+                method: 'PUT',
+                body: JSON.stringify({ language, dateFormat, timeFormat })
+            });
+            if (result.success) {
+                showModal('success', 'Saved', 'Region & Localization settings updated.');
+            }
+        } catch (err) {
+            showModal('error', 'Error', 'Failed to update region settings: ' + err.message);
+        }
     }
 
     window.saveExpirySettings = async function () {
@@ -151,25 +168,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const token = localStorage.getItem('authToken');
-            const response = await fetch(`${CONFIG.API_BASE_URL}/store/update`, {
+            const result = await apiRequest('/stores/update', {
                 method: 'PUT',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
                     highStockThreshold: highStock, 
                     healthyExpiryThreshold: healthyExpiry 
                 })
             });
 
-            const result = await response.json();
-            if (response.ok && result.success) {
+            if (result.success) {
                 showModal('success', 'Database Synced', 'Store thresholds updated synchronously everywhere!');
-            } else {
-                showModal('error', 'Sync Failed', result.message || 'Error saving to database.');
             }
         } catch (err) {
             console.error("Backend Save Error:", err);
-            showModal('error', 'Connection Error', 'Could not reach QuadStock core servers.');
+            showModal('error', 'Sync Failed', err.message || 'Connection Error.');
         }
     }
 
@@ -188,28 +200,21 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const userId = currentUser ? currentUser._id : (currentEmployee ? currentEmployee._id : null);
-        if (!userId) return;
-
         try {
-            const response = await fetch(`${CONFIG.API_BASE_URL}/owner/password/${userId}`, {
+            const result = await apiRequest('/users/change-password', {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ currentPassword, newPassword })
             });
 
-            const result = await response.json();
-            if (response.ok && result.success) {
+            if (result.success) {
                 showModal('success', 'Success', 'Password updated in cloud successfully!');
                 document.getElementById('current-password').value = '';
                 document.getElementById('new-password').value = '';
                 document.getElementById('confirm-password').value = '';
-            } else {
-                showModal('error', 'Update Failed', result.message);
             }
         } catch (err) {
             console.error("Password Save Error:", err);
-            showModal('error', 'Error', 'Failed to reach backend.');
+            showModal('error', 'Update Failed', err.message || 'Error updating password.');
         }
     }
 
@@ -220,16 +225,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const data = {
-            inventory: JSON.parse(localStorage.getItem(`inventory_${ownerId}`)) || [],
-            udhaar: (JSON.parse(localStorage.getItem('udhaarRecords')) || []).filter(r => r.ownerId === ownerId),
-            settings: JSON.parse(localStorage.getItem(`appSettings_${ownerId}`)) || {},
-            expense: (JSON.parse(localStorage.getItem('expenses')) || []).filter(e => e.ownerId === ownerId)
+            backupDate: new Date().toISOString(),
+            user: user,
+            preferences: {
+                lowStock: document.getElementById('low-stock-limit').value,
+                tax: document.getElementById('default-tax').value
+            }
         };
 
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
         const downloadAnchor = document.createElement('a');
         downloadAnchor.setAttribute("href", dataStr);
-        downloadAnchor.setAttribute("download", `quadstock_backup_${ownerId}_${new Date().toISOString().slice(0, 10)}.json`);
+        downloadAnchor.setAttribute("download", `quadstock_config_backup_${new Date().toISOString().slice(0, 10)}.json`);
         document.body.appendChild(downloadAnchor);
         downloadAnchor.click();
         downloadAnchor.remove();
@@ -241,42 +248,30 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        showModal('warning', 'Reset Data', 'CRITICAL WARNING: This will delete ALL Inventory and Udhaar records for YOUR store. This action cannot be undone. Are you absolutely sure?', () => {
-            showModal('warning', 'Final Confirmation', 'Really delete everything? Click Confirm to Wipe Data.', () => {
-                localStorage.removeItem(`inventory_${ownerId}`);
-                const udhaar = (JSON.parse(localStorage.getItem('udhaarRecords')) || []).filter(r => r.ownerId !== ownerId);
-                localStorage.setItem('udhaarRecords', JSON.stringify(udhaar));
-                const expenses = (JSON.parse(localStorage.getItem('expenses')) || []).filter(e => e.ownerId !== ownerId);
-                localStorage.setItem('expenses', JSON.stringify(expenses));
-                localStorage.removeItem(`appSettings_${ownerId}`);
-
-                showModal('success', 'Reset Complete', 'Your store data has been reset.', () => {
-                    location.reload();
-                });
-            });
+        showModal('warning', 'Reset Data', 'CRITICAL WARNING: This will sign you out and clear all your browser cache for QuadStock. This action cannot be undone. Are you absolutely sure?', () => {
+             localStorage.clear();
+             window.location.href = '../landing/landing.html';
         });
     }
 
-    function getCurrentSettingsObj() {
-        return JSON.parse(localStorage.getItem(`appSettings_${ownerId}`)) || getDefaultSettings();
-    }
 
-    function saveToStorage(settings) {
-        localStorage.setItem(`appSettings_${ownerId}`, JSON.stringify(settings));
-    }
-
-    function getDefaultSettings() {
-        return {
-            profile: { shopName: 'QuadStock Shop', ownerName: '', contact: '' },
-            preferences: { lowStockThreshold: 10, defaultTax: 18 },
-            notifications: { lowStock: true, udhaarOverdue: true, paymentReminders: false },
-            region: { language: 'en', dateFormat: 'dd-mm-yyyy', timeFormat: '12' }
-        };
-    }
-
-    // --- Role Management ---
+    // --- UI Helpers ---
     function handleRoleAccess() {
-        // Role-based UI visibility updates
+        if (userRole === 'staff') {
+            const dangerZone = document.getElementById('data-mgmt-section');
+            if (dangerZone) dangerZone.style.display = 'none';
+            
+            // Disable expiry threshold inputs
+            const expiryInputs = ['high-stock-limit', 'healthy-expiry-limit'];
+            expiryInputs.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.disabled = true;
+                    el.style.background = '#f1f5f9';
+                    el.style.cursor = 'not-allowed';
+                }
+            });
+        }
     }
 
 

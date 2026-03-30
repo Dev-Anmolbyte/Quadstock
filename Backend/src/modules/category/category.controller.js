@@ -12,10 +12,15 @@ const addCategory = asyncHandler(async (req, res) => {
 });
 
 const getCategories = asyncHandler(async (req, res) => {
-    const categories = await categoryService.getCategories(req.user.storeId);
+    const data = await categoryService.getCategories(req.user.storeId, req.query);
     return res.status(200).json({
         success: true,
-        data: categories
+        data: data.categories,
+        meta: {
+            total: data.total,
+            page: data.page,
+            pages: data.pages
+        }
     });
 });
 

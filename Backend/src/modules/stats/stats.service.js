@@ -1,6 +1,10 @@
 import { User } from "../user/user.model.js";
 import { Product } from "../product/product.model.js";
 import { Udhaar } from "../udhaar/udhaar.model.js";
+import { Inventory } from "../product/inventory.model.js";
+import { SmartExpiry } from "../product/smartExpiry.model.js";
+import { Store } from "../store/store.model.js";
+import { withStore } from "../../utils/storeHelper.js";
 
 class StatsService {
     async getPublicStats() {
@@ -17,73 +21,57 @@ class StatsService {
     }
 
     async getOwnerStats(storeId) {
-        // 1. Inventory Stats
-        const products = await Product.find({ storeId });
-        
-        const totalStockValue = products.reduce((acc, p) => acc + ((p.cp || 0) * (p.quantity || 0)), 0);
-        const lowStockCount = products.filter(p => p.quantity > 0 && p.quantity <= (p.reorderPoint || 10)).length;
-        const outOfStockCount = products.filter(p => p.quantity === 0).length;
-
+        const filter = withStore({}, { storeId });
         const now = new Date();
-        const thirtyDaysLater = new Date(now.getTime() + (30 * 24 * 60 * 60 * 1000));
+        now.setHours(0,0,0,0);
+
+        const store = await Store.findById(storeId);
+        const lowThreshold = store?.lowStockThreshold || 10;
+
+        // 1. Inventory & Products
+        // We need both to get names and images, but quantity from inventory
+        const inventory = await Inventory.find(filter).populate("productId");
+        const products = await Product.find(filter);
         
-        const expiringSoonProducts = products.filter(p => {
-            if (!p.exp) return false;
-            const expDate = new Date(p.exp);
-            return expDate > now && expDate <= thirtyDaysLater;
-        });
-        const expiringSoonCount = expiringSoonProducts.length;
+        const totalStockValue = inventory.reduce((acc, item) => acc + ((item.cp || 0) * (item.quantity || 0)), 0);
+        const lowStockCount = inventory.filter(item => item.quantity > 0 && item.quantity <= (item.reorderPoint || lowThreshold)).length;
+        const outOfStockCount = inventory.filter(item => item.quantity === 0).length;
 
-        const expiredCount = products.filter(p => {
-            if (!p.exp) return false;
-            return new Date(p.exp) < now;
-        }).length;
+        // 2. Smart Expiry Stats (from SmartExpiry collection)
+        const expiringSoonCount = await SmartExpiry.countDocuments({ ...filter, status: 'expiring' });
+        const expiredCount = await SmartExpiry.countDocuments({ ...filter, status: 'expired' });
+        const expiringSoonList = await SmartExpiry.find({ ...filter, status: 'expiring' })
+            .populate("productId", "name brand image")
+            .limit(6)
+            .sort({ expiryDate: 1 });
 
-        // 2. Udhaar Stats
-        const udhaarRecords = await Udhaar.find({ storeId });
+        // 3. Udhaar Stats
+        const udhaarRecords = await Udhaar.find(filter);
         const totalUdhaarPending = udhaarRecords.reduce((acc, u) => acc + (u.balance || 0), 0);
 
-        // 3. User (Staff) Stats
-        const totalUsers = await User.countDocuments({ storeId, role: 'staff' });
+        // 4. User (Staff) Stats
+        const totalUsers = await User.countDocuments({ ...filter, role: 'staff' });
 
-        // 4. Top 6 Products (High Value = items currently in stock with highest price*qty)
-        const topProducts = products
-            .filter(p => p.quantity > 0)
-            .map(p => ({
-                name: p.name,
-                image: p.image || null,
-                quantity: p.quantity,
-                price: p.price,
-                totalValue: (p.price || 0) * (p.quantity || 0)
+        // 5. Ranking calculations
+        const topProducts = inventory
+            .filter(item => item.quantity > 0)
+            .map(item => ({
+                name: item.productId?.name || 'Unknown',
+                image: item.productId?.image || null,
+                quantity: item.quantity,
+                price: item.price,
+                totalValue: (item.price || 0) * (item.quantity || 0)
             }))
             .sort((a, b) => b.totalValue - a.totalValue)
             .slice(0, 6);
 
-        // 5. Lists for Modals/Dashboard Windows
-        const lowStockList = products
-            .filter(p => p.quantity > 0 && p.quantity <= (p.reorderPoint || 10))
-            .map(p => ({
-                name: p.name,
-                quantity: p.quantity,
-                reorderPoint: p.reorderPoint || 10
+        const outOfStockList = inventory
+            .filter(item => item.quantity === 0)
+            .map(item => ({
+                name: item.productId?.name || 'Unknown',
+                image: item.productId?.image || null
             }))
             .slice(0, 6);
-
-        const deadStockDate = new Date(now.getTime() - (90 * 24 * 60 * 60 * 1000));
-        const deadStockList = products.filter(p => new Date(p.updatedAt) < deadStockDate).map(p => ({
-            name: p.name,
-            updatedAt: p.updatedAt,
-            daysInactive: Math.floor((now - new Date(p.updatedAt)) / (1000 * 60 * 60 * 24)),
-            totalValue: (p.cp || 0) * (p.quantity || 0)
-        }));
-
-        const topProfitEarners = products.map(p => {
-            const cp = p.cp || 0;
-            const sp = p.price || 0;
-            const profit = sp - cp;
-            const margin = sp > 0 ? (profit / sp) * 100 : 0;
-            return { name: p.name, cp, sp, profit, margin };
-        }).sort((a, b) => b.profit - a.profit).slice(0, 5);
 
         return {
             totalItems: products.length,
@@ -95,27 +83,14 @@ class StatsService {
             totalUdhaarPending,
             totalUsers,
             topProducts,
-            totalRevenue: 0, // Placeholder
-            totalSold: 0,    // Placeholder
             refreshAt: new Date().toISOString(),
-            expiringSoonList: expiringSoonProducts
-                .map(p => ({
-                    name: p.name,
-                    batchNumber: p.batchNumber || '-',
-                    exp: p.exp,
-                    daysLeft: Math.ceil((new Date(p.exp) - now) / (1000 * 60 * 60 * 24))
-                }))
-                .sort((a, b) => a.daysLeft - b.daysLeft)
-                .slice(0, 6),
-            lowStockList,
-            deadStockList,
-            topProfitEarners,
-            bestSellers: topProducts,
-            outOfStockList: products.filter(p => p.quantity === 0).map(p => ({
-                name: p.name,
-                category: p.category || '-',
-                image: p.image || null
-            })).slice(0, 6)
+            expiringSoonList: expiringSoonList.map(item => ({
+                name: item.productId?.name,
+                exp: item.expiryDate.toISOString().split('T')[0],
+                daysLeft: Math.ceil((item.expiryDate - now) / (1000 * 60 * 60 * 24))
+            })),
+            outOfStockList,
+            bestSellers: topProducts // Placeholder for real sales data later
         };
     }
 }

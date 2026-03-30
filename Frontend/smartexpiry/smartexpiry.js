@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Fetch store settings & products simultaneously 
             const [storeRes, invRes] = await Promise.all([
-                fetch(`${CONFIG.API_BASE_URL}/store/details`, { headers: { 'Authorization': `Bearer ${token}` } }),
+                fetch(`${CONFIG.API_BASE_URL}/stores/details`, { headers: { 'Authorization': `Bearer ${token}` } }),
                 fetch(`${CONFIG.API_BASE_URL}/products?limit=1000`, { headers: { 'Authorization': `Bearer ${token}` } })
             ]);
 
@@ -357,7 +357,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             try {
                 const token = localStorage.getItem('authToken');
-                const req = await fetch(`${CONFIG.API_BASE_URL}/store/update`, {
+                const req = await fetch(`${CONFIG.API_BASE_URL}/stores/update`, {
                     method: 'PUT',
                     headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 

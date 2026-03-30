@@ -1,5 +1,6 @@
 import { Category } from "./category.model.js";
 import { ApiError } from "../../utils/ApiError.js";
+import { withStore } from "../../utils/storeHelper.js";
 
 class CategoryService {
     async createCategory(categoryData, storeId) {
@@ -12,13 +13,28 @@ class CategoryService {
         return await Category.create({ name: name.trim(), storeId });
     }
 
-    async getCategories(storeId) {
-        return await Category.find({ storeId }).sort({ name: 1 });
+    async getCategories(storeId, query = {}) {
+        const { page = 1, limit = 50 } = query;
+        const skip = (page - 1) * limit;
+
+        const filter = withStore({}, { storeId });
+        const total = await Category.countDocuments(filter);
+        const categories = await Category.find(filter)
+            .sort({ name: 1 })
+            .skip(skip)
+            .limit(parseInt(limit));
+
+        return {
+            categories,
+            total,
+            page: parseInt(page),
+            pages: Math.ceil(total / limit)
+        };
     }
 
     async updateCategory(id, storeId, name) {
         const category = await Category.findOneAndUpdate(
-            { _id: id, storeId },
+            withStore({ _id: id }, { storeId }),
             { name: name.trim() },
             { returnDocument: 'after' }
         );
@@ -27,7 +43,7 @@ class CategoryService {
     }
 
     async deleteCategory(id, storeId) {
-        const deleted = await Category.findOneAndDelete({ _id: id, storeId });
+        const deleted = await Category.findOneAndDelete(withStore({ _id: id }, { storeId }));
         if (!deleted) throw new ApiError(404, "Category not found");
     }
 }

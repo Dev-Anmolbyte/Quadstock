@@ -31,24 +31,27 @@
             <div class="udhaar-container">
                 <!-- Stats Row -->
                 <div class="stats-row">
-                    <div class="stat-card">
-                        <div class="stat-icon red-bg"><i class="fa-solid fa-file-invoice-dollar"></i></div>
-                        <div class="stat-info">
-                            <p class="label">Total Udhaar</p>
-                            <h3 id="total-udhaar-amount">₹0.00</h3>
+                    <div class="summary-cards">
+                        <div class="stat-card">
+                            <div class="stat-icon red-bg"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+                            <div class="stat-info">
+                                <p class="label">Balance Due</p>
+                                <h3 id="total-udhaar-amount" style="color: #ef4444;">₹0</h3>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon orange-bg"><i class="fa-solid fa-user-clock"></i></div>
+                            <div class="stat-info">
+                                <p class="label">Pending Customers</p>
+                                <h3 id="pending-count">0</h3>
+                            </div>
                         </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon orange-bg"><i class="fa-solid fa-clock"></i></div>
-                        <div class="stat-info">
-                            <p class="label">Pending Records</p>
-                            <h3 id="pending-count">0</h3>
-                        </div>
-                    </div>
+                    
                     <button class="btn-add-udhaar" id="btn-add-udhaar">
-                        <i class="fa-solid fa-plus"></i> Add New Record
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Add New Credit Record</span>
                     </button>
-
                 </div>
 
                 <!-- Table Section -->
