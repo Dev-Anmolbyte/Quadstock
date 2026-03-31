@@ -13,8 +13,8 @@ export const apiRequest = async (endpoint, options = {}) => {
         'Content-Type': 'application/json',
     };
 
-    // Inject Auth Token if available
-    const token = localStorage.getItem('authToken');
+    // Inject Auth Token if available in sessionStorage
+    const token = sessionStorage.getItem('authToken');
     if (token) {
         defaultHeaders['Authorization'] = `Bearer ${token}`;
     }
@@ -37,7 +37,7 @@ export const apiRequest = async (endpoint, options = {}) => {
 
         // Handle Token Expiry (401)
         if (response.status === 401) {
-            const refreshToken = localStorage.getItem('refreshToken');
+            const refreshToken = sessionStorage.getItem('refreshToken');
 
             if (refreshToken) {
                 // Try to refresh the token
@@ -53,9 +53,9 @@ export const apiRequest = async (endpoint, options = {}) => {
                     const newRefreshToken = result.data.refreshToken;
 
                     // Update storage
-                    localStorage.setItem('authToken', newAccessToken);
+                    sessionStorage.setItem('authToken', newAccessToken);
                     if (newRefreshToken) {
-                        localStorage.setItem('refreshToken', newRefreshToken);
+                        sessionStorage.setItem('refreshToken', newRefreshToken);
                     }
 
                     // Retry original request with new token
@@ -86,9 +86,9 @@ export const apiRequest = async (endpoint, options = {}) => {
 };
 
 const forceLogout = () => {
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('currentEmployee');
+    sessionStorage.removeItem('currentUser');
+    sessionStorage.removeItem('authToken');
+    sessionStorage.removeItem('refreshToken');
+    sessionStorage.removeItem('currentEmployee');
     window.location.href = '/landing/landing.html'; 
 };

@@ -11,7 +11,7 @@ const checkDB = async () => {
     const users = await User.find({}).toArray();
     
     console.log("Current Usernames:");
-    users.forEach(u => console.log(`- ${u.username} (${u.email}) | Verified: ${u.isVerified}`));
+    users.forEach(u => console.log(`- ${u.username} (${u.email}) | Role: ${u.role} | StoreId: ${u.storeId} | Verified: ${u.isVerified}`));
     
     await mongoose.disconnect();
     process.exit(0);

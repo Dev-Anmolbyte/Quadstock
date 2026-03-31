@@ -1,4 +1,5 @@
 import { User } from "./user.model.js";
+import { Employee } from "../employee/employee.model.js";
 import { Store } from "../store/store.model.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { generateOTP } from "../../utils/generateOtp.js";
@@ -80,12 +81,24 @@ class UserService {
     }
 
     async loginUser(emailOrUsername, password) {
-        const user = await User.findOne({ 
+        // Try User Collection First (Owners)
+        let user = await User.findOne({ 
             $or: [
                 { email: emailOrUsername.toLowerCase() },
                 { username: emailOrUsername.toLowerCase() }
             ]
         }).populate("storeId");
+
+        // Try Employee Collection Second (Staff)
+        if (!user) {
+            user = await Employee.findOne({ 
+                $or: [
+                    { email: emailOrUsername.toLowerCase() },
+                    { username: emailOrUsername.toLowerCase() }
+                ]
+            }).populate("storeId");
+        }
+
         if (!user) {
             throw new ApiError(404, "User does not exist");
         }
@@ -97,7 +110,7 @@ class UserService {
 
         // Block login for unverified accounts
         if (!user.isVerified) {
-            throw new ApiError(403, "Please verify your email before logging in. Check your inbox for the OTP.");
+            throw new ApiError(403, "Please verify your account before logging in.");
         }
 
         const accessToken = user.generateAccessToken();
@@ -106,7 +119,9 @@ class UserService {
         user.refreshToken = refreshToken;
         await user.save({ validateBeforeSave: false });
 
-        const loggedInUser = await User.findById(user._id).populate("storeId").select("-password -refreshToken");
+        // Select correct model for final return
+        const ModelToUse = user.role === 'owner' ? User : Employee;
+        const loggedInUser = await ModelToUse.findById(user._id).populate("storeId").select("-password -refreshToken");
 
         return { user: loggedInUser, accessToken, refreshToken };
     }

@@ -2,8 +2,10 @@
  * QuadStock API Configuration
  */
 const CONFIG = {
-    API_BASE_URL: "http://localhost:3000/api", // Use :3000 from Backend .env
-    // API_BASE_URL: "https://your-production-app.com/api", 
+    // Dynamically detect API base URL for deployment (Vercel)
+    API_BASE_URL: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+                  ? "http://localhost:3000/api" 
+                  : "/api",
 };
 
 export default CONFIG;

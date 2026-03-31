@@ -95,11 +95,11 @@
         <div class="modal-content">
             <h2 class="text-xl font-bold mb-4">Add New Employee</h2>
             <form id="add-employee-form">
-
                 <!-- Section 1: Personal Details -->
-                <h3 class="text-sm font-bold text-muted uppercase mb-3"
-                    style="border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">Personal Details</h3>
-                <div class="grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-section-title">
+                    <i class="fa-solid fa-user"></i> Personal Details
+                </div>
+                <div class="form-grid">
                     <div class="form-group">
                         <label class="form-label">Full Name <span class="text-red-500">*</span></label>
                         <input type="text" id="emp-name" class="form-input" placeholder="e.g. Rahul Kumar" required>
@@ -108,50 +108,44 @@
                         <label class="form-label">Employee Photo</label>
                         <input type="file" id="emp-photo" class="form-input" accept="image/*">
                     </div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Aadhaar Number (Optional)</label>
-                    <input type="text" id="emp-aadhaar" class="form-input" placeholder="XXXX-XXXX-XXXX">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Address</label>
-                    <textarea id="emp-address" class="form-input" rows="2"
-                        placeholder="Full residential address"></textarea>
+                    <div class="form-group full-width">
+                        <label class="form-label">Aadhaar Number <span class="text-red-500">*</span></label>
+                        <input type="text" id="emp-aadhaar" class="form-input" placeholder="XXXX-XXXX-XXXX" required>
+                    </div>
+                    <div class="form-group full-width">
+                        <label class="form-label">Residential Address</label>
+                        <textarea id="emp-address" class="form-input" rows="2" placeholder="Full residential address"></textarea>
+                    </div>
                 </div>
 
                 <!-- Section 2: Contact Info -->
-                <h3 class="text-sm font-bold text-muted uppercase mb-3 mt-4"
-                    style="border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">Contact Information</h3>
-                <div class="grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-section-title">
+                    <i class="fa-solid fa-address-book"></i> Contact Information
+                </div>
+                <div class="form-grid">
                     <div class="form-group">
                         <label class="form-label">Phone Number <span class="text-red-500">*</span></label>
-                        <input type="tel" id="emp-phone" class="form-input" placeholder="10-digit mobile"
-                            pattern="[0-9]{10}" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '');"
-                            required title="Please enter exactly 10 digits">
+                        <input type="tel" id="emp-phone" class="form-input" placeholder="10-digit mobile" maxlength="10" required>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Email Address <span class="text-red-500">*</span></label>
                         <input type="email" id="emp-email" class="form-input" placeholder="email@example.com" required>
                     </div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Emergency Contact</label>
-                    <input type="tel" id="emp-emergency" class="form-input" placeholder="Parent/Spouse Name & Number">
+                    <div class="form-group full-width">
+                        <label class="form-label">Emergency Contact (Nme & Num)</label>
+                        <input type="tel" id="emp-emergency" class="form-input" placeholder="Parent/Spouse Name & Number">
+                    </div>
                 </div>
 
                 <!-- Section 3: Job & Work Details -->
-                <h3 class="text-sm font-bold text-muted uppercase mb-3 mt-4"
-                    style="border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">Job Details</h3>
-                <div class="grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-section-title">
+                    <i class="fa-solid fa-briefcase"></i> Job Details
+                </div>
+                <div class="form-grid">
                     <div class="form-group">
-                        <label class="form-label">Role <span class="text-red-500">*</span></label>
+                        <label class="form-label">Designation / Role <span class="text-red-500">*</span></label>
                         <select id="emp-role" class="form-select" required>
                             <option value="staff">Sales Staff</option>
-                            <option value="manager">Manager</option>
-                            <option value="inventory_manager">Inventory Manager</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -161,22 +155,21 @@
                 </div>
 
                 <!-- Section 4: Login Credentials -->
-                <h3 class="text-sm font-bold text-muted uppercase mb-3 mt-4"
-                    style="border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">Login Credentials</h3>
+                <div class="form-section-title">
+                    <i class="fa-solid fa-key"></i> Security
+                </div>
                 <div class="form-group">
                     <label class="form-label">Login Password</label>
-                    <input type="password" id="emp-password" class="form-input"
-                        placeholder="Leave empty for default (123456)">
-                    <p class="text-xs text-muted mt-1">If set to default, the employee will be prompted to change it at
-                        their first login.</p>
+                    <input type="password" id="emp-password" class="form-input" placeholder="Leave empty for default (123456)">
+                    <p class="text-xs text-muted mt-1">Username will be auto-generated upon creation.</p>
                 </div>
 
                 <div class="modal-actions">
-                    <button type="button" id="btn-cancel" class="action-btn">Cancel</button>
-                    <button type="submit" class="action-btn"
-                        style="background:var(--primary); color:white; border:none;">Create Employee</button>
+                    <button type="button" id="btn-cancel" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary">Create Employee</button>
                 </div>
             </form>
+
         </div>
     </div>
 

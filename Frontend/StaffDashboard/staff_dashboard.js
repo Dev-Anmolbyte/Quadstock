@@ -1,12 +1,38 @@
+import CONFIG from '../Shared/Utils/config.js';
+
 document.addEventListener('DOMContentLoaded', () => {
     // --- 1. Authentication & Session ---
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    const currentEmployee = JSON.parse(localStorage.getItem('currentEmployee'));
+    // Switched to sessionStorage for consistency with guard.js
+    const sessionToken = sessionStorage.getItem('authToken');
+    const currentEmployee = JSON.parse(sessionStorage.getItem('currentEmployee'));
     const emp = currentEmployee;
 
-    if (!emp) {
+    if (!emp || !sessionToken) {
         window.location.href = '../Authentication/employee_login.html';
         return;
+    }
+
+    const API_BASE = CONFIG.API_BASE_URL;
+    const HEADERS = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${sessionToken}`
+    };
+
+    // --- Live Status Sync ---
+    async function syncStatusToBackend(status) {
+        try {
+            const response = await fetch(`${API_BASE}/employees/status`, {
+                method: 'PATCH',
+                headers: HEADERS,
+                body: JSON.stringify({ status })
+            });
+            const result = await response.json();
+            if (!result.success) {
+                console.error("Failed to sync status:", result.message);
+            }
+        } catch (error) {
+            console.error("Network error while syncing status:", error);
+        }
     }
 
     const userRole = emp.role || 'staff';
@@ -150,23 +176,37 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             dailyRecord.sessions.push({ in: now.toISOString(), out: null, isBreak: false });
         }
+        
         saveAttendance();
         updateUI();
+        
+        // SYNC TO BACKEND
+        const syncedSession = dailyRecord.sessions[dailyRecord.sessions.length - 1];
+        const status = (syncedSession && !syncedSession.out) ? 'active' : 'offline';
+        syncStatusToBackend(status);
     };
 
     btnSub.onclick = () => {
         const now = new Date();
         const lastSession = dailyRecord.sessions[dailyRecord.sessions.length - 1];
+        let status = 'active';
+
         if (lastSession && !lastSession.out) {
             // Take Break
             lastSession.out = now.toISOString();
             lastSession.isBreak = true;
+            status = 'break';
         } else if (lastSession && lastSession.isBreak) {
             // Resume Duty
             dailyRecord.sessions.push({ in: now.toISOString(), out: null, isBreak: false });
+            status = 'active';
         }
+
         saveAttendance();
         updateUI();
+
+        // SYNC TO BACKEND
+        syncStatusToBackend(status);
     };
 
     function saveAttendance() {
@@ -216,7 +256,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function logout() {
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('currentEmployee');
+    sessionStorage.clear();
     window.location.href = '../Authentication/employee_login.html';
 }

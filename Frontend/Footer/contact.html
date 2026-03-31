@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="../Shared/Vendor/font-awesome/css/all.min.css">
 </head>
 
-<body>
+<body data-slug="contact">
 
     <!-- Shared Navigation -->
     <nav class="component-nav">
@@ -25,24 +25,8 @@
             <p style="color: var(--text-muted);">Have questions about QuadStock? Reach out to our 24/7 support team.</p>
         </div>
 
-        <div class="contact-grid">
-            <div class="contact-card">
-                <div class="icon-box"><i class="fa-solid fa-phone"></i></div>
-                <h3>Phone Support</h3>
-                <p style="color: var(--text-muted); margin: 0.5rem 0;">Direct line for premium stores</p>
-                <p style="font-weight: bold;">+91 98765 43210</p>
-            </div>
-            <div class="contact-card">
-                <div class="icon-box"><i class="fa-solid fa-envelope"></i></div>
-                <h3>Email Us</h3>
-                <p style="color: var(--text-muted); margin: 0.5rem 0;">Response within 2 hours</p>
-                <p style="font-weight: bold;">support@quadstock.in</p>
-            </div>
-            <div class="contact-card">
-                <div class="icon-box"><i class="fa-solid fa-location-dot"></i></div>
-                <h3>Headquarters</h3>
-                <p style="color: var(--text-muted); margin: 0.5rem 0;">Patna, Bihar, India</p>
-            </div>
+        <div class="contact-grid" id="dynamic-sections">
+            <!-- Dynamic Sections Inject Here -->
         </div>
 
         <!-- Support Form -->
@@ -64,7 +48,7 @@
         </form>
     </div>
 
-    <script src="quicklink.js"></script>
+    <script src="quicklink.js" type="module"></script>
 </body>
 
 </html>

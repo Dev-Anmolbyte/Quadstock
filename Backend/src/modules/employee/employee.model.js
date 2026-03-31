@@ -2,7 +2,7 @@ import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-const userSchema = new Schema(
+const employeeSchema = new Schema(
     {
         name: { type: String, required: true, trim: true },
         username: {
@@ -15,10 +15,9 @@ const userSchema = new Schema(
         },
         email: { type: String, required: true, unique: true, lowercase: true, trim: true },
         password: { type: String, required: [true, 'Password is required'] },
-        photo: { type: String }, // Cloudinary URL
         role: {
             type: String,
-            enum: ['owner', 'staff'],
+            enum: ['staff', 'manager', 'inventory_manager'],
             default: 'staff'
         },
         storeId: {
@@ -27,36 +26,44 @@ const userSchema = new Schema(
             required: true,
             index: true
         },
+        ownerId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: true,
+            index: true
+        },
         phoneNumber: { type: String, trim: true },
+        aadhaar: { type: String, required: true, trim: true },
         address: { type: String, trim: true },
+        emergencyContact: { type: String, trim: true },
+        salary: { type: Number, default: 0 },
+        designation: { type: String, default: 'Staff' },
         status: {
             type: String,
-            enum: ['active', 'offline', 'break', 'leave', 'pending'],
-            default: 'pending'
+            enum: ['active', 'offline', 'break', 'leave', 'absent'],
+            default: 'offline'
         },
+        joinedDate: { type: Date, default: Date.now },
+        photo: { type: String },
         refreshToken: { type: String },
-        lastUsernameChange: { type: Date },
-        // OTP Verification
-        otp: { type: String },           // Stores SHA-256 hashed OTP
-        otpExpiry: { type: Date },
-        isVerified: { type: Boolean, default: false },
-        otpAttempts: { type: Number, default: 0 }
+        isVerified: { type: Boolean, default: true }
     },
     {
-        timestamps: true
+        timestamps: true,
+        collection: 'employees' // Explicitly set collection name
     }
 );
 
-userSchema.pre("save", async function () {
+employeeSchema.pre("save", async function () {
     if (!this.isModified("password")) return;
     this.password = await bcrypt.hash(this.password, 10);
 });
 
-userSchema.methods.isPasswordCorrect = async function (password) {
+employeeSchema.methods.isPasswordCorrect = async function (password) {
     return await bcrypt.compare(password, this.password);
 };
 
-userSchema.methods.generateAccessToken = function () {
+employeeSchema.methods.generateAccessToken = function () {
     return jwt.sign(
         {
             _id: this._id.toString(),
@@ -73,7 +80,7 @@ userSchema.methods.generateAccessToken = function () {
     );
 };
 
-userSchema.methods.generateRefreshToken = function () {
+employeeSchema.methods.generateRefreshToken = function () {
     return jwt.sign(
         {
             _id: this._id
@@ -85,4 +92,4 @@ userSchema.methods.generateRefreshToken = function () {
     );
 };
 
-export const User = mongoose.model("User", userSchema);
+export const Employee = mongoose.model("Employee", employeeSchema);

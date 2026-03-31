@@ -12,6 +12,7 @@ const addEmployee = asyncHandler(async (req, res) => {
     const employee = await employeeService.addEmployee(
         { name, email, password, role, phoneNumber, aadhaar, address, emergencyContact, salary },
         req.user.storeId,
+        req.user._id, // ownerId
         req.file
     );
 
@@ -54,9 +55,21 @@ const deleteEmployee = asyncHandler(async (req, res) => {
     });
 });
 
+const updateEmployeeStatus = asyncHandler(async (req, res) => {
+    const { status } = req.body;
+    const employee = await employeeService.updateEmployeeStatus(req.user._id, status, req.user.storeId);
+    
+    return res.status(200).json({
+        success: true,
+        data: employee,
+        message: `Status updated to ${status}`
+    });
+});
+
 export {
     addEmployee,
     getEmployees,
     updateEmployee,
-    deleteEmployee
+    deleteEmployee,
+    updateEmployeeStatus
 };

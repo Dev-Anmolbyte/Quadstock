@@ -85,9 +85,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (userResult.success && storeResult.success) {
-                // Update local storage for immediate UI sync
+                // Update storage for immediate UI sync
                 const updatedUser = { ...user, ...userResult.data.user };
-                localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+                sessionStorage.setItem('currentUser', JSON.stringify(updatedUser));
                 
                 // Update UI Header (Shop Name)
                 if (userRole === 'owner') {

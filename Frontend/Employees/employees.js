@@ -164,6 +164,23 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- Aadhaar Formatting ---
+    const aadhaarInput = document.getElementById('emp-aadhaar');
+    if (aadhaarInput) {
+        aadhaarInput.addEventListener('input', (e) => {
+            // 1. Remove all non-digits
+            let val = e.target.value.replace(/\D/g, '');
+            
+            // 2. Limit to 12 digits
+            val = val.substring(0, 12);
+            
+            // 3. Add space every 4 digits using regex
+            const formatted = val.match(/.{1,4}/g)?.join(' ') || val;
+            
+            e.target.value = formatted;
+        });
+    }
+
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 

@@ -38,31 +38,38 @@ class UdhaarService {
         };
     }
 
-    async recordPayment(id, storeId, paymentData) {
-        const { amount, date, mode, description } = paymentData;
+    async addTransaction(id, storeId, transactionData) {
+        const { amount, date, mode, description, type } = transactionData;
         const record = await Udhaar.findOne(withStore({ _id: id }, { storeId }));
 
         if (!record) {
             throw new ApiError(404, "Udhaar record not found or unauthorized");
         }
 
-        if (amount > record.balance) {
-            throw new ApiError(400, `Payment amount (₹${amount}) exceeds remaining balance (₹${record.balance})`);
+        if (type === 'payment') {
+            if (amount > record.balance) {
+                throw new ApiError(400, `Payment amount (₹${amount}) exceeds remaining balance (₹${record.balance})`);
+            }
+            record.balance -= amount;
+        } else if (type === 'taken') {
+            record.totalAmount += amount;
+            record.balance += amount;
+        } else {
+            throw new ApiError(400, "Invalid transaction type");
         }
 
         record.transactions.push({
             date: date || new Date().toISOString().split('T')[0],
-            type: 'payment',
+            type: type || 'payment',
             amount,
             mode: mode || 'Cash',
-            description: description || `Partial Payment (${mode || 'Cash'})`
+            description: description || (type === 'payment' ? `Payment Received (${mode || 'Cash'})` : 'Additional Credit Taken')
         });
 
-        record.balance -= amount;
         if (record.balance <= 0) {
             record.balance = 0;
             record.status = 'paid';
-        } else {
+        } else if (record.balance > 0) {
             record.status = 'pending';
         }
 

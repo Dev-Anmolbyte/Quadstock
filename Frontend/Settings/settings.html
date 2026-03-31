@@ -239,26 +239,29 @@
                     <div class="card-body">
                         <div class="form-group">
                             <label>Current Password</label>
-                            <div class="password-wrapper">
+                            <div class="input-with-icon">
+                                <i class="fa-solid fa-lock"></i>
                                 <input type="password" id="current-password" placeholder="Enter current password">
-                                <i class="fa-solid fa-eye toggle-password"
-                                    onclick="togglePassword('current-password', this)"></i>
+                                <i class="fa-solid fa-eye password-toggle-btn" 
+                                   onclick="togglePassword('current-password', this)"></i>
                             </div>
                         </div>
                         <div class="form-group">
                             <label>New Password</label>
-                            <div class="password-wrapper">
+                            <div class="input-with-icon">
+                                <i class="fa-solid fa-shield-halved"></i>
                                 <input type="password" id="new-password" placeholder="Enter new password">
-                                <i class="fa-solid fa-eye toggle-password"
-                                    onclick="togglePassword('new-password', this)"></i>
+                                <i class="fa-solid fa-eye password-toggle-btn" 
+                                   onclick="togglePassword('new-password', this)"></i>
                             </div>
                         </div>
                         <div class="form-group">
                             <label>Confirm New Password</label>
-                            <div class="password-wrapper">
+                            <div class="input-with-icon">
+                                <i class="fa-solid fa-check-double"></i>
                                 <input type="password" id="confirm-password" placeholder="Confirm new password">
-                                <i class="fa-solid fa-eye toggle-password"
-                                    onclick="togglePassword('confirm-password', this)"></i>
+                                <i class="fa-solid fa-eye password-toggle-btn" 
+                                   onclick="togglePassword('confirm-password', this)"></i>
                             </div>
                         </div>
                         <button class="btn-save" onclick="changePassword()">Update Password</button>

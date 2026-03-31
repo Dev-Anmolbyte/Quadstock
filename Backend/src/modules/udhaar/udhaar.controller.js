@@ -23,13 +23,13 @@ const getUdhaarRecords = asyncHandler(async (req, res) => {
     });
 });
 
-const updatePayment = asyncHandler(async (req, res) => {
+const recordTransaction = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const record = await udhaarService.recordPayment(id, req.user.storeId, req.body);
+    const record = await udhaarService.addTransaction(id, req.user.storeId, req.body);
     return res.status(200).json({
         success: true,
         data: record,
-        message: "Payment recorded successfully"
+        message: req.body.type === 'payment' ? "Payment recorded successfully" : "Credit added successfully"
     });
 });
 
@@ -45,6 +45,6 @@ const deleteUdhaarRecord = asyncHandler(async (req, res) => {
 export {
     addUdhaarRecord,
     getUdhaarRecords,
-    updatePayment,
+    recordTransaction,
     deleteUdhaarRecord
 };

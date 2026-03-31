@@ -45,6 +45,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         dateInput.valueAsDate = new Date();
     }
 
+    // Live Preview for Modal
+    const amountInput = document.getElementById('u-amount');
+    const previewTotalEl = document.getElementById('preview-new-total');
+    const previewCountEl = document.getElementById('preview-new-count');
+
+    function updateModalPreview() {
+        if (!amountInput || !previewTotalEl || !previewCountEl) return;
+        
+        const currentTotal = udhaarList.reduce((sum, item) => sum + item.balance, 0);
+        const addedAmount = parseFloat(amountInput.value) || 0;
+        const newTotal = currentTotal + addedAmount;
+        
+        previewTotalEl.textContent = formatCurrency(newTotal);
+        previewCountEl.textContent = `+1 (${udhaarList.length + 1} total)`;
+        
+        // Add a little highlight effect
+        previewTotalEl.style.color = addedAmount > 0 ? 'var(--primary)' : 'var(--text-main)';
+    }
+
+    if (amountInput) {
+        amountInput.addEventListener('input', updateModalPreview);
+    }
+
     // Contact Number Restriction (Only Numbers, Max 10)
     const contactInput = document.getElementById('u-contact');
     if (contactInput) {
@@ -55,7 +78,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Also validate on blur for user feedback
         contactInput.addEventListener('blur', (e) => {
             if (e.target.value.length > 0 && e.target.value.length < 10) {
-                alert('Contact number must be exactly 10 digits.');
+                // Subtle validation instead of alert
+                contactInput.style.borderColor = '#ef4444';
+            } else {
+                contactInput.style.borderColor = '';
             }
         });
     }
@@ -67,6 +93,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Modal Events
     addBtn.addEventListener('click', () => {
         modal.classList.add('active');
+        updateModalPreview(); // Initial preview
     });
 
     closeBtns.forEach(btn => {
@@ -123,11 +150,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
 
             if (result.success) {
+                // Success feedback
+                const submitBtn = form.querySelector('.btn-submit');
+                const originalContent = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Saved!';
+                submitBtn.style.background = 'var(--accent-green)';
 
-                refreshUdhaarData();
-                form.reset();
-                if (dateInput) dateInput.valueAsDate = new Date();
-                modal.classList.remove('active');
+                setTimeout(async () => {
+                    await refreshUdhaarData();
+                    form.reset();
+                    if (dateInput) dateInput.valueAsDate = new Date();
+                    modal.classList.remove('active');
+                    
+                    // Reset button
+                    submitBtn.innerHTML = originalContent;
+                    submitBtn.style.background = '';
+                }, 1000);
             } else {
                 alert("Failed to save record.");
             }
@@ -256,61 +294,73 @@ document.addEventListener('DOMContentLoaded', async () => {
         const paidAmount = record.totalAmount - record.balance;
 
         detailsModal.innerHTML = `
-            <div class="modal-content" style="max-width: 650px; display:flex; flex-direction:column; gap:1.5rem;">
+            <div class="modal-content" style="max-width: 650px;">
                 <div class="modal-header">
-                    <h2>${record.name}</h2>
-                    <button class="close-details-modal" style="background:none; border:none; font-size:1.5rem; cursor:pointer;" onclick="closeDetailsModal()">&times;</button>
+                    <h2>${record.name} - Credit Details</h2>
+                    <button class="close-modal" onclick="closeDetailsModal()">&times;</button>
                 </div>
                 
-                <!-- Summary Cards -->
-                <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:1rem;">
-                     <div style="background:#f8fafc; padding:1rem; border-radius:0.5rem; text-align:center;">
-                        <span style="font-size:0.8rem; color:#64748b;">Total Udhaar</span>
-                        <h3 style="margin:0.25rem 0; font-size:1.25rem;">${formatCurrency(record.totalAmount)}</h3>
+                <!-- Premium Summary Cards -->
+                <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:1rem; margin-bottom: 2rem;">
+                     <div class="stat-card" style="padding: 1rem; min-width: auto; flex-direction: column; gap: 0.5rem; text-align: center;">
+                        <span class="label" style="font-size: 0.75rem;">Total</span>
+                        <h4 style="margin:0; font-size: 1.1rem;">${formatCurrency(record.totalAmount)}</h4>
                      </div>
-                     <div style="background:#f0fdf4; padding:1rem; border-radius:0.5rem; text-align:center;">
-                        <span style="font-size:0.8rem; color:#166534;">Paid So Far</span>
-                        <h3 style="margin:0.25rem 0; font-size:1.25rem; color:#16a34a;">${formatCurrency(paidAmount)}</h3>
+                     <div class="stat-card" style="padding: 1rem; min-width: auto; flex-direction: column; gap: 0.5rem; text-align: center; border-color: var(--accent-green-light);">
+                        <span class="label" style="font-size: 0.75rem; color: var(--accent-green);">Paid</span>
+                        <h4 style="margin:0; font-size: 1.1rem; color: var(--accent-green);">${formatCurrency(paidAmount)}</h4>
                      </div>
-                      <div style="background:#fef2f2; padding:1rem; border-radius:0.5rem; text-align:center;">
-                        <span style="font-size:0.8rem; color:#991b1b;">Balance Due</span>
-                        <h3 style="margin:0.25rem 0; font-size:1.25rem; color:#ef4444;">${formatCurrency(record.balance)}</h3>
+                      <div class="stat-card" style="padding: 1rem; min-width: auto; flex-direction: column; gap: 0.5rem; text-align: center; border-color: var(--accent-red-light);">
+                        <span class="label" style="font-size: 0.75rem; color: var(--accent-red);">Due</span>
+                        <h4 style="margin:0; font-size: 1.1rem; color: var(--accent-red);">${formatCurrency(record.balance)}</h4>
                      </div>
                 </div>
 
-                <!-- Add Payment Form -->
-                ${record.balance > 0 ? `
-                <div style="background:#f9fafb; padding:1rem; border-radius:0.5rem; border:1px dashed #cbd5e1;">
-                    <h4 style="margin-bottom:0.75rem; font-size:0.95rem;">Record New Payment</h4>
-                    <form id="payment-form" style="display:grid; grid-template-columns: 1fr 1fr 1fr auto; gap:0.75rem; align-items:end;">
-                        <div>
-                            <label style="font-size:0.8rem; font-weight:600;">Amount (₹)</label>
-                            <input type="number" id="pay-amount" placeholder="Max ${record.balance}" max="${record.balance}" min="1" step="0.01" style="width:100%; padding:0.5rem; border-radius:0.25rem; border:1px solid #ccc;">
+                <!-- Tabs for New Transaction -->
+                <div class="transaction-tabs" style="display:flex; gap:0.5rem; margin-bottom:1.5rem; background:var(--primary-light); padding:0.4rem; border-radius:14px;">
+                    <button class="tab-btn active" onclick="switchTxTab('payment')" id="tab-payment" style="flex:1; padding:0.8rem; border-radius:10px; border:none; cursor:pointer; font-weight:800; transition:all 0.3s; background:var(--primary); color:white;">
+                        <i class="fa-solid fa-hand-holding-dollar"></i> Recv. Payment
+                    </button>
+                    <button class="tab-btn" onclick="switchTxTab('credit')" id="tab-credit" style="flex:1; padding:0.8rem; border-radius:10px; border:none; cursor:pointer; font-weight:800; transition:all 0.3s; background:transparent; color:var(--primary);">
+                        <i class="fa-solid fa-plus-circle"></i> Add Credit
+                    </button>
+                </div>
+
+                <!-- Record Transaction Form -->
+                <div id="tx-form-container" style="background: rgba(var(--primary-rgb), 0.05); padding: 1.5rem; border-radius: 24px; border: 1px solid var(--card-border); margin-bottom: 2rem;">
+                    <h4 id="tx-title" style="margin-bottom: 1.25rem; font-size: 0.9rem; font-weight: 800; text-transform: uppercase; color: var(--primary);">Record New Payment</h4>
+                    <form id="payment-form" style="display:grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="font-size: 0.7rem;">Amount (₹)</label>
+                            <input type="number" id="pay-amount" placeholder="0.00" min="1" step="0.01" required>
                         </div>
-                        <div>
-                            <label style="font-size:0.8rem; font-weight:600;">Date</label>
-                            <input type="date" id="pay-date" style="width:100%; padding:0.5rem; border-radius:0.25rem; border:1px solid #ccc;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="font-size: 0.7rem;">Date</label>
+                            <input type="date" id="pay-date">
                         </div>
-                        <div>
-                            <label style="font-size:0.8rem; font-weight:600;">Mode</label>
-                            <select id="pay-mode" style="width:100%; padding:0.5rem; border-radius:0.25rem; border:1px solid #ccc;">
+                        <div class="form-group" style="margin-bottom: 0;" id="mode-group">
+                            <label style="font-size: 0.7rem;">Mode</label>
+                            <select id="pay-mode">
                                 <option value="Cash">Cash</option>
                                 <option value="UPI">UPI</option>
                                 <option value="Card">Card</option>
                                 <option value="Other">Other</option>
                             </select>
                         </div>
-                        <button type="button" onclick="addPayment('${record._id}')" style="background:#22c55e; color:white; border:none; padding:0.6rem 1rem; border-radius:12px; cursor:pointer; font-weight:700; transition:all 0.2s;">
-                            Received
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="font-size: 0.7rem;">Description / Note</label>
+                            <input type="text" id="pay-desc" placeholder="Optional note">
+                        </div>
+                        <button type="button" id="btn-confirm-tx" onclick="submitTransaction('${record._id}')" class="btn-submit" style="grid-column: span 2; margin-top: 0.5rem; padding: 1rem;">
+                            <i class="fa-solid fa-check-circle"></i> Confirm Transaction
                         </button>
                     </form>
                 </div>
-                ` : '<div style="background:#dcfce7; color:#15803d; padding:1rem; border-radius:0.5rem; text-align:center; font-weight:bold;">Fully Settled! No balance due.</div>'}
 
-                <!-- Transaction Timeline -->
+                <!-- Transaction History -->
                 <div>
-                     <h4 style="margin-bottom:1rem; font-size:0.95rem; color:var(--text-secondary);">Transaction History</h4>
-                     <div class="payment-timeline" id="history-timeline" style="max-height:250px; overflow-y:auto; padding-right:0.5rem;">
+                     <h4 style="margin-bottom: 1.25rem; font-size: 0.9rem; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Transaction History</h4>
+                     <div class="payment-timeline" id="history-timeline" style="max-height: 250px; overflow-y: auto; padding-right: 0.5rem;">
                         ${renderTimeline(record.transactions)}
                      </div>
                 </div>
@@ -328,36 +378,67 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('udhaarHistoryModal').classList.remove('active');
     };
 
-    window.addPayment = async (id) => {
+    let currentTxType = 'payment';
+    window.switchTxTab = (type) => {
+        currentTxType = type;
+        const pBtn = document.getElementById('tab-payment');
+        const cBtn = document.getElementById('tab-credit');
+        const title = document.getElementById('tx-title');
+        const modeGroup = document.getElementById('mode-group');
+
+        if (type === 'payment') {
+            pBtn.style.background = 'var(--primary)';
+            pBtn.style.color = 'white';
+            cBtn.style.background = 'transparent';
+            cBtn.style.color = 'var(--primary)';
+            title.textContent = 'Record New Payment';
+            if (modeGroup) modeGroup.style.display = 'block';
+        } else {
+            cBtn.style.background = 'var(--primary)';
+            cBtn.style.color = 'white';
+            pBtn.style.background = 'transparent';
+            pBtn.style.color = 'var(--primary)';
+            title.textContent = 'Add Additional Credit';
+            if (modeGroup) modeGroup.style.display = 'none';
+        }
+    };
+
+    window.submitTransaction = async (id) => {
         const record = udhaarList.find(r => r._id === id);
         const amountInput = document.getElementById('pay-amount');
         const dateInput = document.getElementById('pay-date');
         const modeInput = document.getElementById('pay-mode');
+        const descInput = document.getElementById('pay-desc');
 
         if (!record || !amountInput.value || !dateInput.value) return alert('Please enter amount and date');
 
         const amount = parseFloat(amountInput.value);
-        if (amount <= 0 || amount > record.balance) return alert(`Amount must be between 1 and ${record.balance}`);
+        if (amount <= 0) return alert('Amount must be positive');
+        
+        if (currentTxType === 'payment' && amount > record.balance) {
+            return alert(`Payment (₹${amount}) cannot exceed remaining balance (₹${record.balance})`);
+        }
 
-        const paymentData = {
+        const txData = {
+            type: currentTxType,
             amount,
             date: dateInput.value,
-            mode: modeInput ? modeInput.value : 'Cash'
+            mode: modeInput ? modeInput.value : 'Cash',
+            description: descInput ? descInput.value : ''
         };
 
         try {
             const result = await apiRequest(`/udhaar/${id}`, {
                 method: 'PATCH',
-                body: JSON.stringify(paymentData)
+                body: JSON.stringify(txData)
             });
 
             if (result.success) {
-
                 await refreshUdhaarData();
                 viewDetails(id); 
             }
         } catch (err) {
-            console.error("Payment Error:", err);
+            console.error("Transaction Error:", err);
         }
     };
 
@@ -409,11 +490,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function updateStats() {
         const totalPending = udhaarList.reduce((sum, item) => sum + item.balance, 0);
+        const totalRecovered = udhaarList.reduce((sum, item) => sum + (item.totalAmount - item.balance), 0);
         const countPending = udhaarList.filter(item => item.balance > 0).length;
+
         const totalAmountEl = document.getElementById('total-udhaar-amount');
         const pendingCountEl = document.getElementById('pending-count');
+        const totalRecoveredEl = document.getElementById('total-recovered-amount');
+
         if (totalAmountEl) totalAmountEl.textContent = formatCurrency(totalPending);
         if (pendingCountEl) pendingCountEl.textContent = countPending;
+        if (totalRecoveredEl) totalRecoveredEl.textContent = formatCurrency(totalRecovered);
     }
 
     window.markAsPaid = (id) => {

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { addEmployee, getEmployees, updateEmployee, deleteEmployee } from "./employee.controller.js";
+import { addEmployee, getEmployees, updateEmployee, deleteEmployee, updateEmployeeStatus } from "./employee.controller.js";
 import { authMiddleware, authorizeRoles } from "../../middleware/auth.middleware.js";
 import { upload } from "../../middleware/multer.middleware.js";
 
@@ -11,6 +11,8 @@ employeeRouter.use(authMiddleware);
 employeeRouter.route("/")
     .post(authorizeRoles("owner"), upload.single("photo"), addEmployee)
     .get(getEmployees);
+
+employeeRouter.patch("/status", updateEmployeeStatus);
 
 employeeRouter.route("/:id")
     .patch(authorizeRoles("owner"), upload.single("photo"), updateEmployee)

@@ -18,6 +18,13 @@
 </head>
 
 <body>
+    <!-- Background Decoration -->
+    <div class="background-decor">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
     <div class="layout-container">
         <!-- Sidebar (populated by sidebar.js) -->
         <aside class="sidebar"></aside>
@@ -44,6 +51,13 @@
                             <div class="stat-info">
                                 <p class="label">Pending Customers</p>
                                 <h3 id="pending-count">0</h3>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon green-bg"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                            <div class="stat-info">
+                                <p class="label">Total Recovered</p>
+                                <h3 id="total-recovered-amount" style="color: #10b981;">₹0</h3>
                             </div>
                         </div>
                     </div>
@@ -98,33 +112,62 @@
                 <button class="close-modal">&times;</button>
             </div>
             <form id="udhaar-form">
-                <div class="form-group">
-                    <label for="u-date">Date</label>
-                    <input type="date" id="u-date" required>
+                <div class="modal-grid">
+                    <div class="form-group">
+                        <label for="u-date"><i class="fa-solid fa-calendar-day"></i> Date</label>
+                        <input type="date" id="u-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="u-due-date"><i class="fa-solid fa-calendar-check"></i> Expected Payment</label>
+                        <input type="date" id="u-due-date" required>
+                    </div>
                 </div>
+
                 <div class="form-group">
-                    <label for="u-due-date">Expected Payment Date</label>
-                    <input type="date" id="u-due-date" required>
+                    <label for="u-name"><i class="fa-solid fa-user"></i> Customer Name</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="u-name" placeholder="Enter customer name" required>
+                        <i class="fa-solid fa-id-card input-icon"></i>
+                    </div>
                 </div>
+
                 <div class="form-group">
-                    <label for="u-name">Customer Name</label>
-                    <input type="text" id="u-name" placeholder="Enter customer name" required>
+                    <label for="u-contact"><i class="fa-solid fa-phone"></i> Contact Number</label>
+                    <div class="input-wrapper">
+                        <input type="tel" id="u-contact" placeholder="10-digit number" maxlength="10">
+                        <i class="fa-solid fa-mobile-screen input-icon"></i>
+                    </div>
                 </div>
+
                 <div class="form-group">
-                    <label for="u-contact">Contact Number</label>
-                    <input type="tel" id="u-contact" placeholder="Enter phone number" maxlength="10">
+                    <label for="u-amount"><i class="fa-solid fa-indian-rupee-sign"></i> Amount</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="u-amount" placeholder="0.00" min="0" step="0.01" required>
+                        <i class="fa-solid fa-coins input-icon"></i>
+                    </div>
                 </div>
+
                 <div class="form-group">
-                    <label for="u-amount">Amount (₹)</label>
-                    <input type="number" id="u-amount" placeholder="0.00" min="0" step="0.01" required>
+                    <label for="u-desc"><i class="fa-solid fa-comment-dots"></i> Note / Description</label>
+                    <textarea id="u-desc" placeholder="Items purchased or special note" rows="2"></textarea>
                 </div>
-                <div class="form-group">
-                    <label for="u-desc">Description</label>
-                    <textarea id="u-desc" placeholder="Items purchased / Note" rows="3"></textarea>
+
+                <div class="modal-summary" id="modal-summary-preview">
+                    <div class="preview-item">
+                        <span class="p-label">New Total Balance</span>
+                        <span class="p-value" id="preview-new-total">₹0</span>
+                    </div>
+                    <div class="preview-item">
+                        <span class="p-label">Records Count</span>
+                        <span class="p-value" id="preview-new-count">+1</span>
+                    </div>
                 </div>
+
                 <div class="modal-actions">
                     <button type="button" class="btn-cancel close-modal">Cancel</button>
-                    <button type="submit" class="btn-submit">Save Record</button>
+                    <button type="submit" class="btn-submit">
+                        <i class="fa-solid fa-save"></i> Save Record
+                    </button>
                 </div>
             </form>
         </div>

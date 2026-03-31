@@ -1,19 +1,19 @@
 import { User } from "../user/user.model.js";
+import { Employee } from "./employee.model.js";
 import { uploadOnCloudinary } from "../../utils/cloudinary.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { withStore } from "../../utils/storeHelper.js";
 
 class EmployeeService {
-    async addEmployee(employeeData, storeId, file) {
+    async addEmployee(employeeData, storeId, ownerId, file) {
         const { name, email, password, role, phoneNumber, aadhaar, address, emergencyContact, salary } = employeeData;
 
-        // Check if employee already exists by email
-        const existingEmployee = await User.findOne({ email });
-        if (existingEmployee) {
-            throw new ApiError(409, "User with this email already exists");
-        }
-        if (!password) {
-            throw new Error("Password is required for staff accounts");
+        // Check if employee already exists by email in BOTH collections
+        const existingInUser = await User.findOne({ email: email.toLowerCase() });
+        const existingInEmployee = await Employee.findOne({ email: email.toLowerCase() });
+        
+        if (existingInUser || existingInEmployee) {
+            throw new ApiError(409, "User/Employee with this email already exists");
         }
 
         let photoUrl = null;
@@ -22,31 +22,43 @@ class EmployeeService {
             if (upload) photoUrl = upload.url;
         }
 
-        // Generate a simple username if not provided (lowercase name + random digits)
-        const baseUsername = name.toLowerCase().replace(/\s+/g, "");
-        const username = `${baseUsername}${Math.floor(Math.random() * 1000)}`;
+        // Generate a TRULY UNIQUE username
+        // Pattern: fistname_random4
+        const baseUsername = name.split(' ')[0].toLowerCase().replace(/[^a-z0-9]/g, "");
+        let username = "";
+        let isUnique = false;
+        let attempts = 0;
 
-        const newEmployee = await User.create({
+        while (!isUnique && attempts < 10) {
+            const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+            username = `${baseUsername}_${randomSuffix}`;
+            
+            // Check in both collections for username uniqueness
+            const check1 = await User.findOne({ username });
+            const check2 = await Employee.findOne({ username });
+            if (!check1 && !check2) isUnique = true;
+            attempts++;
+        }
+
+        const newEmployee = await Employee.create({
             name,
             username,
-            email,
-            password,
+            email: email.toLowerCase(),
+            password: password || '123456', // Default password
             role: role || 'staff',
             storeId,
+            ownerId, // Linked to owner
             phoneNumber,
             aadhaar,
             address,
             emergencyContact,
             salary,
             photo: photoUrl,
-            status: 'offline', // Default status when added by owner
-            isVerified: true // Employees added by owners are pre-verified? Or maybe they should verify?
-            // User requested "employee only login when it was added in the database".
-            // If we mark them as verified, they can login immediately.
+            status: 'offline', 
+            isVerified: true 
         });
 
-        const employee = await User.findById(newEmployee._id).select("-password -refreshToken");
-        return employee;
+        return await Employee.findById(newEmployee._id).select("-password -refreshToken");
     }
 
     async getEmployees(storeId, query = {}) {
@@ -54,8 +66,8 @@ class EmployeeService {
         const skip = (page - 1) * limit;
         const filter = withStore({ role: { $ne: 'owner' } }, { storeId });
         
-        const total = await User.countDocuments(filter);
-        const employees = await User.find(filter)
+        const total = await Employee.countDocuments(filter);
+        const employees = await Employee.find(filter)
             .select("-password -refreshToken")
             .skip(skip)
             .limit(parseInt(limit))
@@ -70,7 +82,7 @@ class EmployeeService {
     }
 
     async updateEmployee(id, updateData, storeId, file) {
-        const employee = await User.findOne({ _id: id, storeId });
+        const employee = await Employee.findOne({ _id: id, storeId });
         if (!employee) {
             throw new Error("Employee not found or unauthorized");
         }
@@ -92,11 +104,25 @@ class EmployeeService {
         });
 
         await employee.save();
-        return await User.findById(id).select("-password -refreshToken");
+        return await Employee.findById(id).select("-password -refreshToken");
+    }
+
+    async updateEmployeeStatus(id, status, storeId) {
+        const employee = await Employee.findOneAndUpdate(
+            { _id: id, storeId },
+            { $set: { status } },
+            { new: true }
+        ).select("-password -refreshToken");
+
+        if (!employee) {
+            throw new ApiError(404, "Employee not found or unauthorized");
+        }
+
+        return employee;
     }
 
     async deleteEmployee(id, storeId) {
-        const employee = await User.findOneAndDelete(withStore({ _id: id }, { storeId }));
+        const employee = await Employee.findOneAndDelete(withStore({ _id: id }, { storeId }));
         if (!employee) throw new ApiError(404, "Employee not found or unauthorized");
         return employee;
     }

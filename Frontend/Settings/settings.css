@@ -390,30 +390,31 @@ input:checked + .slider:before {
     transform: translateX(24px);
 }
 
-/* Password Toggle Styles */
-.password-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
+/* Password Toggle Styles Refined */
+.input-with-icon input[type="password"],
+.input-with-icon input[type="text"] {
+    padding-right: 3.5rem !important;
 }
 
-.password-wrapper input {
-    padding-left: 1.25rem !important; /* No left icon */
-    padding-right: 3rem !important;
-}
-
-.password-wrapper i.toggle-password {
+.input-with-icon i.password-toggle-btn {
     position: absolute;
-    right: 1.25rem;
-    left: auto;
-    font-size: 1.1rem;
+    right: 1.25rem !important;
+    left: auto !important;
+    font-size: 1rem;
     color: var(--text-secondary);
     cursor: pointer;
-    transition: color 0.3s;
+    transition: all 0.3s ease;
+    width: auto !important;
+    height: auto !important;
+    box-shadow: none !important;
+    background: none !important;
+    z-index: 10;
+    line-height: normal;
 }
 
-.password-wrapper i.toggle-password:hover {
+.input-with-icon i.password-toggle-btn:hover {
     color: var(--primary);
+    transform: scale(1.1);
 }
 
 /* Danger Zone */
