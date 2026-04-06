@@ -14,6 +14,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- State & Constants ---
     let udhaarList = [];
+    let isEditingRecord = false;
+    let editingRecordId = null;
 
     async function refreshUdhaarData() {
         try {
@@ -92,9 +94,44 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Modal Events
     addBtn.addEventListener('click', () => {
+        isEditingRecord = false;
+        editingRecordId = null;
+        form.reset();
+        if (dateInput) dateInput.valueAsDate = new Date();
+        document.getElementById('u-amount').setAttribute('required', 'required');
+        document.getElementById('amount-group').style.display = 'block';
+        document.getElementById('modal-summary-preview').style.display = 'flex';
+        modal.querySelector('h2').textContent = 'Add Udhaar Record';
+        form.querySelector('.btn-submit').innerHTML = '<i class="fa-solid fa-save"></i> Save Record';
+        
         modal.classList.add('active');
         updateModalPreview(); // Initial preview
     });
+
+    window.editRecord = (id) => {
+        const record = udhaarList.find(r => r._id === id);
+        if (!record) return;
+
+        isEditingRecord = true;
+        editingRecordId = id;
+        
+        // Populate
+        document.getElementById('u-name').value = record.name;
+        document.getElementById('u-contact').value = record.contact || '';
+        document.getElementById('u-amount').value = record.totalAmount;
+        document.getElementById('u-amount').setAttribute('required', 'required');
+        document.getElementById('u-date').value = record.date ? record.date.split('T')[0] : '';
+        document.getElementById('u-due-date').value = record.dueDate ? record.dueDate.split('T')[0] : '';
+        document.getElementById('u-desc').value = record.transactions?.[0]?.description || '';
+
+        // UI Adjustments
+        document.getElementById('amount-group').style.display = 'block'; // Keep it visible for adjustment
+        document.getElementById('modal-summary-preview').style.display = 'none';
+        modal.querySelector('h2').textContent = 'Edit Record Details';
+        form.querySelector('.btn-submit').innerHTML = '<i class="fa-solid fa-save"></i> Update Record';
+
+        modal.classList.add('active');
+    };
 
     closeBtns.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -113,64 +150,105 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // Form Submit (Add New Record)
+    // Form Submit (Add or Edit Record)
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const initialAmount = parseFloat(document.getElementById('u-amount').value);
+        const name = document.getElementById('u-name').value;
+        const contact = document.getElementById('u-contact').value;
         const date = document.getElementById('u-date').value;
         const dueDate = document.getElementById('u-due-date').value;
         const note = document.getElementById('u-desc').value;
-        const contact = document.getElementById('u-contact').value;
 
-        if (!dueDate) return alert('Please select an Expected Payment Date.');
-        if (contact && contact.length !== 10) return alert('Contact number must be exactly 10 digits.');
+        if (!dueDate) {
+            QuadModals.alert("Selection Missing", "Please select an Expected Payment Date.", "warning");
+            return;
+        }
+        if (contact && contact.length !== 10) {
+            QuadModals.alert("Invalid Data", "Contact number must be exactly 10 digits.", "warning");
+            return;
+        }
 
-        const newRecord = {
-            ownerId: currentOwnerId,
-            date: date,
-            dueDate: dueDate,
-            name: document.getElementById('u-name').value,
-            contact: contact,
-            totalAmount: initialAmount,
-            balance: initialAmount,
-            status: 'pending',
-            transactions: [{
-                date: date,
-                type: 'taken',
-                amount: initialAmount,
-                description: note || 'Initial Credit'
-            }]
-        };
+        if (isEditingRecord) {
+            // --- UPDATE Mode ---
+            try {
+                const updateData = {
+                    name,
+                    contact,
+                    date,
+                    dueDate,
+                    totalAmount: parseFloat(document.getElementById('u-amount').value),
+                    description: note
+                };
 
-        try {
-            const result = await apiRequest('/udhaar/', {
-                method: 'POST',
-                body: JSON.stringify(newRecord)
-            });
+                const result = await apiRequest(`/udhaar/${editingRecordId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(updateData)
+                });
 
-            if (result.success) {
-                // Success feedback
-                const submitBtn = form.querySelector('.btn-submit');
-                const originalContent = submitBtn.innerHTML;
-                submitBtn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Saved!';
-                submitBtn.style.background = 'var(--accent-green)';
-
-                setTimeout(async () => {
+                if (result.success) {
+                    QuadModals.showToast("Record Updated Successfully!", "success");
                     await refreshUdhaarData();
-                    form.reset();
-                    if (dateInput) dateInput.valueAsDate = new Date();
                     modal.classList.remove('active');
-                    
-                    // Reset button
-                    submitBtn.innerHTML = originalContent;
-                    submitBtn.style.background = '';
-                }, 1000);
-            } else {
-                alert("Failed to save record.");
+                } else {
+                    QuadModals.alert("Update Failed", result.message || "Failed to update record.", "error");
+                }
+            } catch (err) {
+                console.error("Update Error:", err);
+                QuadModals.alert("Network Error", "Technical issue or session expired.", "error");
             }
-        } catch (err) {
-            console.error("Save Error:", err);
+        } else {
+            // --- CREATE Mode ---
+            const initialAmount = parseFloat(document.getElementById('u-amount').value);
+            
+            const newRecord = {
+                ownerId: currentOwnerId,
+                date: date,
+                dueDate: dueDate,
+                name: name,
+                contact: contact,
+                totalAmount: initialAmount,
+                balance: initialAmount,
+                status: 'pending',
+                transactions: [{
+                    date: date,
+                    type: 'taken',
+                    amount: initialAmount,
+                    description: note || 'Initial Credit'
+                }]
+            };
+
+            try {
+                const result = await apiRequest('/udhaar/', {
+                    method: 'POST',
+                    body: JSON.stringify(newRecord)
+                });
+
+                if (result.success) {
+                    QuadModals.showToast("New Record Created!", "success");
+                    // Success feedback
+                    const submitBtn = form.querySelector('.btn-submit');
+                    const originalContent = submitBtn.innerHTML;
+                    submitBtn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Saved!';
+                    submitBtn.style.background = 'var(--accent-green)';
+
+                    setTimeout(async () => {
+                        await refreshUdhaarData();
+                        form.reset();
+                        if (dateInput) dateInput.valueAsDate = new Date();
+                        modal.classList.remove('active');
+                        
+                        // Reset button
+                        submitBtn.innerHTML = originalContent;
+                        submitBtn.style.background = '';
+                    }, 1000);
+                } else {
+                    QuadModals.alert("Failed", result.message || "Failed to save record.", "error");
+                }
+            } catch (err) {
+                console.error("Save Error:", err);
+                QuadModals.alert("Network Error", "Failed to connect to the server.", "error");
+            }
         }
     });
 
@@ -267,13 +345,24 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </td>
                 <td data-label="Status"><span class="status-badge ${statusClass}">${statusText}</span></td>
                 <td data-label="Actions">
-                    <button class="action-btn" onclick="viewDetails('${item._id}')" title="View Details" style="color:#6366f1;"><i class="fa-solid fa-eye"></i></button>
+                    <button class="action-btn view" onclick="viewDetails('${item._id}')" title="View Details"><i class="fa-solid fa-eye"></i></button>
+                    <button class="action-btn edit" onclick="editRecord('${item._id}')" title="Edit Entry"><i class="fa-solid fa-edit"></i></button>
                     <button class="action-btn delete" onclick="deleteRecord('${item._id}')" title="Delete Record"><i class="fa-solid fa-trash"></i></button>
-                     ${item.contact ? `<a href="https://wa.me/${item.contact}?text=Hello ${item.name}, regarding your pending payment of ${formattedBalance} due on ${dueDateStr}." target="_blank" class="action-btn" style="color:#25D366;"><i class="fa-brands fa-whatsapp"></i></a>` : ''}
+                    ${item.contact ? `<a href="https://wa.me/${item.contact}?text=Hello ${item.name}, regarding your pending payment of ${formattedBalance} due on ${dueDateStr}." target="_blank" class="action-btn whatsapp"><i class="fa-brands fa-whatsapp"></i></a>` : ''}
                 </td>
             `;
             udhaarTableBody.appendChild(tr);
         });
+    }
+
+    // Add RGB helper for glass effects
+    const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
+    if (primaryColor) {
+        // Convert #f97316 to 249, 115, 22
+        const r = parseInt(primaryColor.slice(1, 3), 16);
+        const g = parseInt(primaryColor.slice(3, 5), 16);
+        const b = parseInt(primaryColor.slice(5, 7), 16);
+        document.documentElement.style.setProperty('--primary-rgb', `${r}, ${g}, ${b}`);
     }
 
     // --- Details & Partial Payment Modal ---
@@ -290,86 +379,98 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.body.appendChild(detailsModal);
         }
 
-        // Calculate Paid Amount
         const paidAmount = record.totalAmount - record.balance;
 
         detailsModal.innerHTML = `
-            <div class="modal-content" style="max-width: 650px;">
+            <div class="modal-content" style="max-width: 700px;">
                 <div class="modal-header">
-                    <h2>${record.name} - Credit Details</h2>
+                    <h2>Credit Profile: ${record.name}</h2>
                     <button class="close-modal" onclick="closeDetailsModal()">&times;</button>
                 </div>
                 
-                <!-- Premium Summary Cards -->
-                <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:1rem; margin-bottom: 2rem;">
-                     <div class="stat-card" style="padding: 1rem; min-width: auto; flex-direction: column; gap: 0.5rem; text-align: center;">
-                        <span class="label" style="font-size: 0.75rem;">Total</span>
-                        <h4 style="margin:0; font-size: 1.1rem;">${formatCurrency(record.totalAmount)}</h4>
+                <!-- Summary Section -->
+                <div class="summary-cards" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 2.5rem; gap: 1rem;">
+                     <div class="stat-card" style="padding: 1.25rem; flex-direction: column; gap: 0.25rem;">
+                        <span class="label" style="font-size: 0.65rem;">Initial Udhaar</span>
+                        <h4 style="font-size: 1.2rem; font-weight:900;">${formatCurrency(record.totalAmount)}</h4>
                      </div>
-                     <div class="stat-card" style="padding: 1rem; min-width: auto; flex-direction: column; gap: 0.5rem; text-align: center; border-color: var(--accent-green-light);">
-                        <span class="label" style="font-size: 0.75rem; color: var(--accent-green);">Paid</span>
-                        <h4 style="margin:0; font-size: 1.1rem; color: var(--accent-green);">${formatCurrency(paidAmount)}</h4>
+                     <div class="stat-card" style="padding: 1.25rem; flex-direction: column; gap: 0.25rem; border-color: var(--accent-green-light);">
+                        <span class="label" style="font-size: 0.65rem; color: var(--accent-green);">Received</span>
+                        <h4 style="font-size: 1.2rem; font-weight:900; color: var(--accent-green);">${formatCurrency(paidAmount)}</h4>
                      </div>
-                      <div class="stat-card" style="padding: 1rem; min-width: auto; flex-direction: column; gap: 0.5rem; text-align: center; border-color: var(--accent-red-light);">
-                        <span class="label" style="font-size: 0.75rem; color: var(--accent-red);">Due</span>
-                        <h4 style="margin:0; font-size: 1.1rem; color: var(--accent-red);">${formatCurrency(record.balance)}</h4>
+                      <div class="stat-card" style="padding: 1.25rem; flex-direction: column; gap: 0.25rem; border-color: var(--accent-red-light);">
+                        <span class="label" style="font-size: 0.65rem; color: var(--accent-red);">Remaining</span>
+                        <h4 style="font-size: 1.2rem; font-weight:900; color: var(--accent-red);">${formatCurrency(record.balance)}</h4>
                      </div>
                 </div>
 
-                <!-- Tabs for New Transaction -->
-                <div class="transaction-tabs" style="display:flex; gap:0.5rem; margin-bottom:1.5rem; background:var(--primary-light); padding:0.4rem; border-radius:14px;">
-                    <button class="tab-btn active" onclick="switchTxTab('payment')" id="tab-payment" style="flex:1; padding:0.8rem; border-radius:10px; border:none; cursor:pointer; font-weight:800; transition:all 0.3s; background:var(--primary); color:white;">
-                        <i class="fa-solid fa-hand-holding-dollar"></i> Recv. Payment
+                <!-- Tabs -->
+                <div class="transaction-tabs">
+                    <button class="tab-btn active" onclick="switchTxTab('payment')" id="tab-payment">
+                        <i class="fa-solid fa-receipt"></i> Payment Recv.
                     </button>
-                    <button class="tab-btn" onclick="switchTxTab('credit')" id="tab-credit" style="flex:1; padding:0.8rem; border-radius:10px; border:none; cursor:pointer; font-weight:800; transition:all 0.3s; background:transparent; color:var(--primary);">
+                    <button class="tab-btn" onclick="switchTxTab('taken')" id="tab-credit">
                         <i class="fa-solid fa-plus-circle"></i> Add Credit
                     </button>
                 </div>
 
-                <!-- Record Transaction Form -->
-                <div id="tx-form-container" style="background: rgba(var(--primary-rgb), 0.05); padding: 1.5rem; border-radius: 24px; border: 1px solid var(--card-border); margin-bottom: 2rem;">
-                    <h4 id="tx-title" style="margin-bottom: 1.25rem; font-size: 0.9rem; font-weight: 800; text-transform: uppercase; color: var(--primary);">Record New Payment</h4>
-                    <form id="payment-form" style="display:grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
-                        <div class="form-group" style="margin-bottom: 0;">
-                            <label style="font-size: 0.7rem;">Amount (₹)</label>
+                <!-- Entry Form -->
+                <div id="tx-form-container" class="payment-entry-form">
+                    <h4 id="tx-title" class="entry-title">New Payment Entry</h4>
+                    <form id="payment-form" class="modal-grid">
+                        <div class="form-group" style="margin: 0; position: relative;">
+                            <label>Amount (₹)</label>
                             <input type="number" id="pay-amount" placeholder="0.00" min="1" step="0.01" required>
+                            <div id="pay-amount-error" style="color: var(--accent-red); font-size: 0.7rem; font-weight: 700; margin-top: 0.25rem; display: none;"></div>
                         </div>
-                        <div class="form-group" style="margin-bottom: 0;">
-                            <label style="font-size: 0.7rem;">Date</label>
+                        <div class="form-group" style="margin: 0;">
+                            <label>Transaction Date</label>
                             <input type="date" id="pay-date">
                         </div>
-                        <div class="form-group" style="margin-bottom: 0;" id="mode-group">
-                            <label style="font-size: 0.7rem;">Mode</label>
+                        <div class="form-group" style="margin: 0;" id="mode-group">
+                            <label>Payment Mode</label>
                             <select id="pay-mode">
                                 <option value="Cash">Cash</option>
-                                <option value="UPI">UPI</option>
+                                <option value="UPI">UPI / Digital</option>
                                 <option value="Card">Card</option>
-                                <option value="Other">Other</option>
                             </select>
                         </div>
-                        <div class="form-group" style="margin-bottom: 0;">
-                            <label style="font-size: 0.7rem;">Description / Note</label>
-                            <input type="text" id="pay-desc" placeholder="Optional note">
+                        <div class="form-group" style="margin: 0;">
+                            <label>Internal Note</label>
+                            <input type="text" id="pay-desc" placeholder="e.g. Paid via PhonePe">
                         </div>
-                        <button type="button" id="btn-confirm-tx" onclick="submitTransaction('${record._id}')" class="btn-submit" style="grid-column: span 2; margin-top: 0.5rem; padding: 1rem;">
-                            <i class="fa-solid fa-check-circle"></i> Confirm Transaction
+                        <button type="button" id="btn-confirm-tx" onclick="submitTransaction('${record._id}')" class="btn-submit" style="grid-column: span 2;">
+                            <i class="fa-solid fa-check-circle"></i> Post Transaction
                         </button>
                     </form>
                 </div>
 
-                <!-- Transaction History -->
-                <div>
-                     <h4 style="margin-bottom: 1.25rem; font-size: 0.9rem; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Transaction History</h4>
-                     <div class="payment-timeline" id="history-timeline" style="max-height: 250px; overflow-y: auto; padding-right: 0.5rem;">
-                        ${renderTimeline(record.transactions)}
-                     </div>
+                <!-- History -->
+                <h4 style="margin-bottom: 1.5rem; font-size: 0.8rem; font-weight: 850; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em;">Transaction Timeline</h4>
+                <div class="payment-timeline" id="history-timeline" style="max-height: 280px; overflow-y: auto; padding-right: 1rem;">
+                    ${renderTimeline(record.transactions)}
                 </div>
             </div>
         `;
 
         detailsModal.classList.add('active');
+        
+        // Add dynamic validation for "proper way" message
+        const amountInput = document.getElementById('pay-amount');
+        const errorDiv = document.getElementById('pay-amount-error');
+        if (amountInput && errorDiv) {
+            amountInput.addEventListener('input', () => {
+                const val = parseFloat(amountInput.value) || 0;
+                if (currentTxType === 'payment' && val > record.balance) {
+                    errorDiv.textContent = `Payment (₹${val}) cannot exceed remaining balance (₹${record.balance})`;
+                    errorDiv.style.display = 'block';
+                    errorDiv.style.animation = 'shake 0.3s ease';
+                } else {
+                    errorDiv.style.display = 'none';
+                }
+            });
+        }
 
-        // Set Default Date in Payment Form
         const payDate = document.getElementById('pay-date');
         if (payDate) payDate.valueAsDate = new Date();
     };
@@ -385,20 +486,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         const cBtn = document.getElementById('tab-credit');
         const title = document.getElementById('tx-title');
         const modeGroup = document.getElementById('mode-group');
+        const errorDiv = document.getElementById('pay-amount-error');
+        if (errorDiv) errorDiv.style.display = 'none'; // Clear error on tab switch
 
         if (type === 'payment') {
-            pBtn.style.background = 'var(--primary)';
-            pBtn.style.color = 'white';
-            cBtn.style.background = 'transparent';
-            cBtn.style.color = 'var(--primary)';
-            title.textContent = 'Record New Payment';
+            pBtn.classList.add('active');
+            cBtn.classList.remove('active');
+            title.textContent = 'New Payment Entry';
             if (modeGroup) modeGroup.style.display = 'block';
         } else {
-            cBtn.style.background = 'var(--primary)';
-            cBtn.style.color = 'white';
-            pBtn.style.background = 'transparent';
-            pBtn.style.color = 'var(--primary)';
-            title.textContent = 'Add Additional Credit';
+            cBtn.classList.add('active');
+            pBtn.classList.remove('active');
+            title.textContent = 'Additional Credit Entry';
             if (modeGroup) modeGroup.style.display = 'none';
         }
     };
@@ -410,13 +509,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         const modeInput = document.getElementById('pay-mode');
         const descInput = document.getElementById('pay-desc');
 
-        if (!record || !amountInput.value || !dateInput.value) return alert('Please enter amount and date');
+        if (!record || !amountInput.value || !dateInput.value) {
+            QuadModals.alert("Selection Details Missing", "Please enter payment amount and date.", "warning");
+            return;
+        }
 
         const amount = parseFloat(amountInput.value);
-        if (amount <= 0) return alert('Amount must be positive');
+        if (amount <= 0) {
+            QuadModals.alert("Invalid Input", "Amount must be positive.", "warning");
+            return;
+        }
         
         if (currentTxType === 'payment' && amount > record.balance) {
-            return alert(`Payment (₹${amount}) cannot exceed remaining balance (₹${record.balance})`);
+            QuadModals.alert("Limit Exceeded", `Payment (₹${amount}) cannot exceed remaining balance (₹${record.balance})`, "error");
+            return;
         }
 
         const txData = {
@@ -434,54 +540,72 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
 
             if (result.success) {
+                QuadModals.showToast("Transaction Recorded!", "success");
                 await refreshUdhaarData();
                 viewDetails(id); 
+            } else {
+                QuadModals.alert("Failed", result.message || "Could not save transaction", "error");
             }
         } catch (err) {
             console.error("Transaction Error:", err);
+            QuadModals.alert("Network Error", "Technical issue or session expired.", "error");
         }
     };
 
     window.deleteRecord = async (id) => {
-        if (userRole === 'staff') return alert('Access Denied: Staff cannot delete records.');
+        if (userRole === 'staff') {
+            QuadModals.alert("Access Denied", "Only administrators can delete financial records permanently.", "error");
+            return;
+        }
 
         if (confirm('Are you sure you want to delete this record irrecoverably?')) {
             try {
                 const result = await apiRequest(`/udhaar/${id}`, {
                     method: 'DELETE'
                 });
-                if (result.success) refreshUdhaarData();
+                if (result.success) {
+                    QuadModals.showToast("Record Deleted", "success");
+                    refreshUdhaarData();
+                } else {
+                    QuadModals.alert("Delete Failed", result.message || "Operation failed", "error");
+                }
 
             } catch (err) {
                 console.error("Delete Error:", err);
+                QuadModals.alert("Error", "Could not delete record.", "error");
             }
         }
     };
 
+    // --- TIMELINE RENDERER (New Styling) ---
     function renderTimeline(transactions) {
-        if (!transactions || transactions.length === 0) return '<p>No history</p>';
+        if (!transactions || transactions.length === 0) return '<p style="text-align:center; color:var(--text-secondary); font-style:italic;">No history</p>';
         const sorted = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
         return sorted.map(t => {
-            const isPayment = t.type === 'payment';
-            const color = isPayment ? '#22c55e' : '#ef4444';
-            const icon = isPayment ? 'fa-arrow-down' : 'fa-arrow-up';
-            const dateStr = new Date(t.date).toLocaleDateString('en-GB');
+            const isPayment = t.type === 'payment' || t.type === 'taken';
+            const isNeutral = t.type === 'taken';
+            const color = t.type === 'payment' ? 'var(--accent-green)' : 'var(--accent-red)';
+            const icon = t.type === 'payment' ? 'fa-arrow-down' : 'fa-arrow-up';
+            const dateStr = new Date(t.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            
             return `
-                <div style="display:flex; gap:1rem; margin-bottom:1.25rem;">
-                    <div style="display:flex; flex-direction:column; align-items:center;">
-                        <div style="width:30px; height:30px; border-radius:50%; background:${color}20; display:flex; align-items:center; justify-content:center; color:${color};">
-                            <i class="fa-solid ${icon}" style="font-size:0.8rem;"></i>
-                        </div>
-                        <div style="width:2px; height:100%; background:#e2e8f0; margin-top:0.5rem; min-height:20px;"></div>
+                <div class="timeline-item">
+                    <div class="timeline-dot" style="background: ${color}20; color: ${color};">
+                        <i class="fa-solid ${icon}"></i>
                     </div>
-                    <div style="flex:1;">
-                        <div style="display:flex; justify-content:space-between;">
-                            <span style="font-weight:600; font-size:0.9rem;">${isPayment ? `Payment Received (${t.mode || 'Cash'})` : 'Udhaar Taken'}</span>
-                            <span style="font-weight:700; color:${color};">${isPayment ? '-' : '+'} ${formatCurrency(t.amount)}</span>
+                    <div class="timeline-line"></div>
+                    <div class="timeline-content">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.5rem;">
+                            <span style="font-weight:850; font-size:0.95rem;">${t.type === 'payment' ? 'Payment Received' : 'Udhaar Taken'}</span>
+                            <span style="font-weight:900; color:${color}; font-size: 1.1rem;">
+                                ${t.type === 'payment' ? '-' : '+'} ${formatCurrency(t.amount)}
+                            </span>
                         </div>
-                        <div style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.25rem;">
-                            ${dateStr} • ${t.description}
+                        <div style="font-size:0.8rem; font-weight: 700; color:var(--text-secondary);">
+                            <i class="fa-solid fa-clock"></i> ${dateStr} 
+                            ${t.mode ? ` • <i class="fa-solid fa-wallet"></i> ${t.mode}` : ''}
                         </div>
+                        ${t.description ? `<div style="margin-top: 0.75rem; font-size: 0.85rem; color: var(--text-main); font-weight: 600;">${t.description}</div>` : ''}
                     </div>
                 </div>
             `;

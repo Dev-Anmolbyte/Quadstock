@@ -25,6 +25,7 @@
             { id: 'query',       icon: 'fa-clipboard-question',  label: 'Queries',     href: '../Query/query.html' },
             { id: 'complain',    icon: 'fa-circle-exclamation',  label: 'Complaints',  href: '../Complain/complain.html' },
             { id: 'udhaar',      icon: 'fa-indian-rupee-sign',   label: 'Udhaar',      href: '../Udhaar/udhaar.html' },
+            { id: 'sales',       icon: 'fa-receipt',             label: 'POS Terminal',href: '../Sales/sales.html' },
         ];
 
         const FOOTER_ITEMS = [

@@ -209,7 +209,7 @@ body {
    ============================================================ */
 .analytics-grid {
     display: grid;
-    grid-template-columns: 2fr 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 1.5rem;
 }
 
@@ -219,9 +219,9 @@ body {
     flex-direction: column;
 }
 
-.chart-large { grid-column: 1 / 2; }
-.chart-medium { grid-column: 2 / 3; }
-.chart-full-width { grid-column: 1 / 3; }
+.chart-full-width { 
+    grid-column: 1 / -1; 
+}
 
 .card-header {
     display: flex;
@@ -602,6 +602,10 @@ body {
 /* ============================================================
    Animations & Responsive
    ============================================================ */
+@media (max-width: 960px) {
+    .analytics-grid { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 640px) {
     .content-scrollable { padding: 1.5rem; }
     .stats-row { grid-template-columns: 1fr; }
@@ -676,13 +680,7 @@ body {
     border-color: var(--primary);
 }
 
-.analytics-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-    gap: 1.5rem;
-}
-
-.chart-full-width { grid-column: 1 / -1; }
+/* Grid responsiveness handled at line 210 with media queries */
 
 .table-responsive {
     background: rgba(255, 255, 255, 0.02);
@@ -699,8 +697,38 @@ body {
     padding: 1rem;
 }
 
-/* High Visibility Colors for Themes */
-/* Badge Styling for Alerts */
+/* Alert Section Styling */
+.alert-section-header td {
+    background: rgba(0, 0, 0, 0.05);
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    padding: 0.75rem 1rem !important;
+}
+
+[data-theme="dark"] .alert-section-header td {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.alert-row {
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.alert-row:hover {
+    background: rgba(var(--primary-rgb), 0.05) !important;
+}
+
+.alert-row:hover td {
+    color: var(--primary);
+}
+
+.alert-row td {
+    border-bottom: 1px solid var(--glass-border);
+}
+
 .badge {
     padding: 0.35rem 0.85rem;
     border-radius: 2rem;
@@ -709,6 +737,17 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.5px;
     display: inline-block;
+}
+
+/* Modal Open State */
+.modal-overlay.open {
+    display: flex;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-overlay.open .modal-container {
+    transform: translateY(0);
+    opacity: 1;
 }
 
 .badge.warning { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.2); }
@@ -723,3 +762,30 @@ body {
 [data-theme="dark"] .text-green { color: #34d399 !important; }
 [data-theme="dark"] .text-orange { color: #fbbf24 !important; }
 
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.stat-card, .card {
+    opacity: 0;
+}
+
+.animate-on-load {
+    animation: fadeInUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }

@@ -14,6 +14,10 @@ const smartExpirySchema = new Schema(
             required: true,
             index: true
         },
+        batchNumber: {
+            type: String,
+            trim: true
+        },
         expiryDate: {
             type: Date,
             required: true,

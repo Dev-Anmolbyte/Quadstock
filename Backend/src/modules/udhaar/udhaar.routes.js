@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { addUdhaarRecord, getUdhaarRecords, recordTransaction, deleteUdhaarRecord } from "./udhaar.controller.js";
+import { addUdhaarRecord, getUdhaarRecords, recordTransaction, updateUdhaarRecord, deleteUdhaarRecord } from "./udhaar.controller.js";
 import { authMiddleware } from "../../middleware/auth.middleware.js";
 
 const udhaarRouter = Router();
@@ -11,6 +11,7 @@ udhaarRouter.route("/")
 
 udhaarRouter.route("/:id")
     .patch(authMiddleware, recordTransaction)
+    .put(authMiddleware, updateUdhaarRecord)
     .delete(authMiddleware, deleteUdhaarRecord);
 
 export default udhaarRouter;

@@ -33,6 +33,16 @@ const recordTransaction = asyncHandler(async (req, res) => {
     });
 });
 
+const updateUdhaarRecord = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const record = await udhaarService.updateRecord(id, req.user.storeId, req.body);
+    return res.status(200).json({
+        success: true,
+        data: record,
+        message: "Record updated successfully"
+    });
+});
+
 const deleteUdhaarRecord = asyncHandler(async (req, res) => {
     const { id } = req.params;
     await udhaarService.deleteRecord(id, req.user.storeId);
@@ -46,5 +56,6 @@ export {
     addUdhaarRecord,
     getUdhaarRecords,
     recordTransaction,
+    updateUdhaarRecord,
     deleteUdhaarRecord
 };

@@ -50,9 +50,23 @@
                     </a>
                 </div>
 
-                <div class="hidden md:flex items-center gap-8">
-                    <a href="#features" class="text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-primary transition-all uppercase tracking-widest">Kirana</a>
-                    <a href="#solutions" class="text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-primary transition-all uppercase tracking-widest">Kapda Vyapaar</a>
+                <div class="hidden lg:flex items-center gap-10">
+                    <a href="#home" class="text-xs font-black text-slate-700 dark:text-white hover:text-primary transition-all uppercase tracking-widest group">
+                        Home
+                        <span class="block h-0.5 w-0 group-hover:w-full bg-primary transition-all duration-300"></span>
+                    </a>
+                    <a href="#problem" class="text-xs font-black text-slate-700 dark:text-white hover:text-primary transition-all uppercase tracking-widest group">
+                        Problem
+                        <span class="block h-0.5 w-0 group-hover:w-full bg-primary transition-all duration-300"></span>
+                    </a>
+                    <a href="#features" class="text-xs font-black text-slate-700 dark:text-white hover:text-primary transition-all uppercase tracking-widest group">
+                        Features
+                        <span class="block h-0.5 w-0 group-hover:w-full bg-primary transition-all duration-300"></span>
+                    </a>
+                    <a href="#features" class="text-xs font-black text-slate-700 dark:text-white hover:text-primary transition-all uppercase tracking-widest group">
+                        Pricing
+                        <span class="block h-0.5 w-0 group-hover:w-full bg-primary transition-all duration-300"></span>
+                    </a>
                     
                     <div class="flex items-center gap-3 ml-4 bg-slate-900/5 dark:bg-white/5 p-1 rounded-xl">
                         <a href="../Authentication/owner_login.html" class="nav-btn text-slate-700 dark:text-white hover:bg-white/10 px-4">Owner Login</a>
@@ -89,8 +103,9 @@
             </button>
         </div>
         <div class="flex flex-col gap-6">
-            <a href="#features" class="text-lg font-bold text-slate-600 dark:text-slate-300 hover:text-primary" onclick="toggleMobileSidebar()">Kirana Store</a>
-            <a href="#solutions" class="text-lg font-bold text-slate-600 dark:text-slate-300 hover:text-primary" onclick="toggleMobileSidebar()">Kapda Vyapaar</a>
+            <a href="#home" class="text-lg font-bold text-slate-600 dark:text-slate-300 hover:text-primary" onclick="toggleMobileSidebar()">Home</a>
+            <a href="#problem" class="text-lg font-bold text-slate-600 dark:text-slate-300 hover:text-primary" onclick="toggleMobileSidebar()">Problem</a>
+            <a href="#features" class="text-lg font-bold text-slate-600 dark:text-slate-300 hover:text-primary" onclick="toggleMobileSidebar()">Features</a>
             <hr class="border-slate-100 dark:border-slate-800">
             <a href="../Authentication/owner_login.html" class="text-lg font-bold text-slate-600 dark:text-slate-300">Owner Login</a>
             <a href="../Authentication/employee_login.html" class="text-lg font-bold text-slate-600 dark:text-slate-300">Employee Login</a>
@@ -99,9 +114,9 @@
     </div>
 
     <!-- Hero Section -->
-    <section class="relative pt-40 pb-20 lg:pt-56 lg:pb-32 overflow-hidden">
+    <section id="home" class="relative pt-40 pb-20 lg:pt-56 lg:pb-32 overflow-hidden">
         <div class="max-w-7xl mx-auto px-6 lg:px-12 text-center relative z-10">
-            <div class="fade-up inline-flex items-center gap-2 px-6 py-2 rounded-full bg-white/50 dark:bg-white/5 border border-white/20 backdrop-blur-md text-slate-900 dark:text-white text-xs font-black mb-8 shadow-sm">
+            <div class="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-white/50 dark:bg-slate-950 border border-white/10 dark:border-primary/40 text-slate-900 dark:text-white text-xs font-black mb-8 shadow-xl">
                 <span class="made-in-india-badge">PROUDLY MADE IN INDIA</span>
                 <span class="w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></span>
             </div>
@@ -127,35 +142,51 @@
                 </a>
             </div>
 
-            <!-- Hero Visual Showcase -->
-            <div class="fade-up showcase-grid" style="transition-delay: 800ms">
-                <!-- Small Feature: Kirana Billing -->
-                <div class="showcase-item bg-slate-900 border-2 border-primary/20 shadow-xl self-start h-auto">
-                    <img src="../../assets/kirana_billing.png" alt="Kirana Billing" class="w-full aspect-video object-cover">
-                    <div class="showcase-label text-left px-5 py-4">
-                        <span class="block text-primary text-[10px] font-black uppercase tracking-widest mb-1 italic">Kirana Billing</span>
-                        <h4 class="text-lg font-black mb-1">Ultra-Fast 10s Billing</h4>
-                        <p class="text-xs opacity-80 leading-snug">Desi Items & GST ready.</p>
-                    </div>
+            <!-- Chaos to Clarity Section -->
+            <div id="problem" class="fade-up mt-24" style="transition-delay: 800ms">
+                <div class="text-center mb-12">
+                    <span class="text-primary font-black uppercase tracking-[0.3em] text-xs">Traditional Retail Chaos</span>
+                    <h2 class="text-3xl md:text-5xl font-black text-slate-900 dark:text-white mt-4">Puraane Tareeke, <span class="text-red-500">Badi Mushkil.</span></h2>
                 </div>
 
-                <!-- Small Feature: Inventory -->
-                <div class="showcase-item bg-slate-900 border-2 border-primary/20 shadow-xl self-start h-auto">
-                    <img src="../../assets/garment_stock.png" alt="Garment Stock" class="w-full aspect-video object-cover">
-                    <div class="showcase-label text-left px-5 py-4">
-                        <span class="block text-blue-400 text-[10px] font-black uppercase tracking-widest mb-1 italic">Garment Stock</span>
-                        <h4 class="text-lg font-black mb-1">Kapda Stock (S/M/L)</h4>
-                        <p class="text-xs opacity-80 leading-snug">Track colors & sizes easily.</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Billing Chaos -->
+                    <div class="relative group rounded-3xl overflow-hidden glass border-white/10 shadow-2xl">
+                        <div class="aspect-video relative overflow-hidden">
+                            <img src="../../assets/billing_chaos.png" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" alt="Manual Billing">
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 to-transparent opacity-60"></div>
+                        </div>
+                        <div class="p-6">
+                            <span class="text-red-500 text-[10px] font-black uppercase tracking-widest mb-2 block italic">Lost Revenue</span>
+                            <h4 class="text-xl font-black text-slate-900 dark:text-white mb-2">Kagaz Ki Chinta</h4>
+                            <p class="text-sm text-slate-500 dark:text-slate-400">Manual bills gets lost easily, and managing registers consumes 4-5 hours daily.</p>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Small Feature: Udhaar -->
-                <div class="showcase-item bg-slate-900 border-2 border-primary/20 shadow-xl self-start h-auto">
-                    <img src="../../assets/udhaar_tracking.png" alt="Udhaar Tracking" class="w-full aspect-video object-cover">
-                    <div class="showcase-label text-left px-5 py-4">
-                        <span class="block text-purple-400 text-[10px] font-black uppercase tracking-widest mb-1 italic">Udhaar Tracking</span>
-                        <h4 class="text-lg font-black mb-1">Digital Udhaar Khata</h4>
-                        <p class="text-xs opacity-80 leading-snug">No more manual register entry.</p>
+                    <!-- Expired Wastage -->
+                    <div class="relative group rounded-3xl overflow-hidden glass border-white/10 shadow-2xl">
+                        <div class="aspect-video relative overflow-hidden">
+                            <img src="../../assets/expired_wastage.png" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" alt="Expired Stock">
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 to-transparent opacity-60"></div>
+                        </div>
+                        <div class="p-6">
+                            <span class="text-red-500 text-[10px] font-black uppercase tracking-widest mb-2 block italic">Stock Leakage</span>
+                            <h4 class="text-xl font-black text-slate-900 dark:text-white mb-2">Expired Saman</h4>
+                            <p class="text-sm text-slate-500 dark:text-slate-400">Inventory worth lakhs get expired on shelves because you forgot track of it.</p>
+                        </div>
+                    </div>
+
+                    <!-- Udhaar Chaos -->
+                    <div class="relative group rounded-3xl overflow-hidden glass border-white/10 shadow-2xl">
+                        <div class="aspect-video relative overflow-hidden">
+                            <img src="../../assets/udhaar_chaos.png" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" alt="Udhaar Problems">
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 to-transparent opacity-60"></div>
+                        </div>
+                        <div class="p-6">
+                            <span class="text-red-500 text-[10px] font-black uppercase tracking-widest mb-2 block italic">Bad Debt</span>
+                            <h4 class="text-xl font-black text-slate-900 dark:text-white mb-2">Udhaar Ka Hisaab</h4>
+                            <p class="text-sm text-slate-500 dark:text-slate-400">Old diaries are unreliable. People forget their debt, and you lose your hard-earned money.</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -213,49 +244,78 @@
         </div>
     </section>
 
-    <!-- Features -->
     <section id="features" class="py-32 relative">
-        <div class="max-w-7xl mx-auto px-12">
+        <div class="max-w-7xl mx-auto px-6 lg:px-12">
             <div class="text-center mb-24">
                 <h2 class="text-primary font-black uppercase tracking-[0.3em] text-sm mb-4">Core Ecosystem</h2>
-                <h3 class="text-4xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tight">Tailored for Every <span class="text-gradient-emerald">Dukandaar.</span></h3>
+                <h3 class="text-4xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tight">Everything you need to <span class="text-gradient-primary">Grow.</span></h3>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                <!-- Udhaar Khata -->
+                <div class="fade-up feature-card glass p-0 rounded-[3xl] overflow-hidden group border-transparent hover:border-primary/20" style="transition-delay: 100ms">
+                    <div class="aspect-video overflow-hidden">
+                        <img src="../../assets/udhaar_khata.png" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt="Udhaar Khata">
+                    </div>
+                    <div class="p-8">
+                        <h4 class="text-2xl font-black text-slate-900 dark:text-white mb-4">Digital Udhaar Khata</h4>
+                        <p class="text-slate-500 dark:text-slate-400 font-medium">Paperless credit management. Track customer dues, set limits, and record payments with a single tap.</p>
+                    </div>
+                </div>
+
+                <!-- Inventory Management -->
+                <div class="fade-up feature-card glass p-0 rounded-[3xl] overflow-hidden group border-transparent hover:border-accent/20" style="transition-delay: 200ms">
+                    <div class="aspect-video overflow-hidden">
+                        <img src="../../assets/inventory_mgmt.png" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt="Inventory Management">
+                    </div>
+                    <div class="p-8">
+                        <h4 class="text-2xl font-black text-slate-900 dark:text-white mb-4">Inventory Engine</h4>
+                        <p class="text-slate-500 dark:text-slate-400 font-medium">Real-time stock tracking across categories. Bulk upload via Excel and smart low-stock notifications.</p>
+                    </div>
+                </div>
+
+                <!-- Employee Data -->
+                <div class="fade-up feature-card glass p-0 rounded-[3xl] overflow-hidden group border-transparent hover:border-blue-500/20" style="transition-delay: 300ms">
+                    <div class="aspect-video overflow-hidden">
+                        <img src="../../assets/employee_data.png" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt="Employee Data">
+                    </div>
+                    <div class="p-8">
+                        <h4 class="text-2xl font-black text-slate-900 dark:text-white mb-4">Staff Analytics</h4>
+                        <p class="text-slate-500 dark:text-slate-400 font-medium">Register employees, manage unique Store IDs, and track performance stats to optimize your shop operations.</p>
+                    </div>
+                </div>
+
+                <!-- Selling Page -->
+                <div class="fade-up feature-card glass p-0 rounded-[3xl] overflow-hidden group border-transparent hover:border-orange-500/20" style="transition-delay: 400ms">
+                    <div class="aspect-video overflow-hidden">
+                        <img src="../../assets/selling_page.png" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt="Selling Page">
+                    </div>
+                    <div class="p-8">
+                        <h4 class="text-2xl font-black text-slate-900 dark:text-white mb-4">Turbo Selling Page</h4>
+                        <p class="text-slate-500 dark:text-slate-400 font-medium">A high-performance POS interface built for speed. Search, select, and bill in under 10 seconds.</p>
+                    </div>
+                </div>
+
+                <!-- WhatsApp Billing -->
+                <div class="fade-up feature-card glass p-0 rounded-[3xl] overflow-hidden group border-transparent hover:border-green-500/20" style="transition-delay: 500ms">
+                    <div class="aspect-video overflow-hidden">
+                        <img src="../../assets/whatsapp_billing.png" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt="WhatsApp Billing">
+                    </div>
+                    <div class="p-8">
+                        <h4 class="text-2xl font-black text-slate-900 dark:text-white mb-4">WhatsApp Billing</h4>
+                        <p class="text-slate-500 dark:text-slate-400 font-medium">Go green with paperless billing. Send professional GST invoices directly to the customer's WhatsApp instantly.</p>
+                    </div>
+                </div>
+
                 <!-- Smart Expiry -->
-                <div class="fade-up feature-card glass p-10 rounded-[3xl] group border-transparent hover:border-primary/20" style="transition-delay: 100ms">
-                    <div class="icon-box mb-8 bg-orange-100 dark:bg-orange-900/30 text-primary">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <div class="fade-up feature-card glass p-0 rounded-[3xl] overflow-hidden group border-transparent hover:border-red-500/20" style="transition-delay: 600ms">
+                    <div class="aspect-video overflow-hidden">
+                        <img src="../../assets/smart_expiry.png" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt="Smart Expiry">
                     </div>
-                    <h4 class="text-2xl font-black text-slate-900 dark:text-white mb-4">Smart Expiry Engine</h4>
-                    <p class="text-slate-500 dark:text-slate-400 font-medium">Automatic tracking for dairy, grocery, and FMCG items. Save lakhs by reducing stock wastage with proactive alerts.</p>
-                </div>
-
-                <!-- GST Billing -->
-                <div id="solutions" class="fade-up feature-card glass p-10 rounded-[3xl] group border-transparent hover:border-accent/20" style="transition-delay: 200ms">
-                    <div class="icon-box mb-8 bg-green-100 dark:bg-green-900/30 text-accent">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                    <div class="p-8">
+                        <h4 class="text-2xl font-black text-slate-900 dark:text-white mb-4">Smart Expiry Guard</h4>
+                        <p class="text-slate-500 dark:text-slate-400 font-medium">Prevent losses with proactive expiry alerts. Automated tracking for food, FMCG, and dairy products.</p>
                     </div>
-                    <h4 class="text-2xl font-black text-slate-900 dark:text-white mb-4">Precision GST Billing</h4>
-                    <p class="text-slate-500 dark:text-slate-400 font-medium">Generate professional GST/Tax invoices in under 10 seconds. Compatible with all thermal and laser printers.</p>
-                </div>
-
-                <!-- Vastra Bhandar -->
-                <div class="fade-up feature-card glass p-10 rounded-[3xl] group border-transparent hover:border-blue-500/20" style="transition-delay: 300ms">
-                    <div class="icon-box mb-8 bg-blue-100 dark:bg-blue-900/30 text-blue-500">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
-                    </div>
-                    <h4 class="text-2xl font-black text-slate-900 dark:text-white mb-4">Vastra Bhandar Special</h4>
-                    <p class="text-slate-500 dark:text-slate-400 font-medium">Advanced variant management for clothing. Track S/M/L/XL and colors across thousands of SKUs easily.</p>
-                </div>
-
-                <!-- Udhaar Management -->
-                <div class="fade-up feature-card glass p-10 rounded-[3xl] group border-transparent hover:border-purple-500/20" style="transition-delay: 400ms">
-                    <div class="icon-box mb-8 bg-purple-100 dark:bg-purple-900/30 text-purple-500">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-                    </div>
-                    <h4 class="text-2xl font-black text-slate-900 dark:text-white mb-4">Digital Udhaar Khata</h4>
-                    <p class="text-slate-500 dark:text-slate-400 font-medium">Say goodbye to old diaries. Track customer credit (Udhaar) with automatic WhatsApp reminders and easy settlements.</p>
                 </div>
             </div>
         </div>

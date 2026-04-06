@@ -16,6 +16,7 @@ import complaintRouter from './modules/complaint/complaint.routes.js';
 import categoryRouter from './modules/category/category.routes.js';
 import employeeRouter from './modules/employee/employee.routes.js';
 import pageRouter from './modules/page/page.routes.js';
+import orderRouter from './modules/order/order.routes.js';
 import { errorHandler } from './middleware/error.middleware.js';
 
 // Environment Validation
@@ -52,6 +53,7 @@ app.use("/api/complaints", complaintRouter);
 app.use("/api/categories", categoryRouter);
 app.use("/api/employees", employeeRouter);
 app.use("/api/pages", pageRouter);
+app.use("/api/sales", orderRouter);
 
 app.get("/", (req, res) => {
     res.status(200).send("API is running...");

@@ -32,7 +32,7 @@
             <div class="summary-deck">
                 <div class="summary-card">
                     <div class="card-icon icon-blue">
-                        <i class="fa-solid fa-sack-dollar"></i>
+                        <i class="fa-solid fa-indian-rupee-sign"></i>
                     </div>
                     <div class="card-info">
                         <h3>Total Inventory Value</h3>
@@ -160,7 +160,17 @@
                             style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                             <h4 class="section-title" style="margin-bottom: 0;"><i class="fa-solid fa-box"></i> Basic
                                 Details</h4>
-                            <div class="barcode-input-wrapper" style="display: flex; gap: 8px; align-items: center;">
+                            <div class="product-type-selector" style="display: flex; gap: 12px; background: var(--bg-soft); padding: 4px; border-radius: 8px;">
+                                <label class="type-pill" style="cursor:pointer; display:flex; align-items:center; gap:6px; padding:6px 12px; border-radius:6px; font-size:0.85rem; font-weight:600; transition: all 0.2s;">
+                                    <input type="radio" name="product-type-radio" value="packed" checked style="display:none;">
+                                    <i class="fa-solid fa-box"></i> Packed
+                                </label>
+                                <label class="type-pill" style="cursor:pointer; display:flex; align-items:center; gap:6px; padding:6px 12px; border-radius:6px; font-size:0.85rem; font-weight:600; transition: all 0.2s; color: var(--text-muted);">
+                                    <input type="radio" name="product-type-radio" value="loose" style="display:none;">
+                                    <i class="fa-solid fa-scale-balanced"></i> Loose
+                                </label>
+                            </div>
+                            <div id="barcode-wrapper" class="barcode-input-wrapper" style="display: flex; gap: 8px; align-items: center;">
                                 <i class="fa-solid fa-barcode" style="color: var(--primary);"></i>
                                 <input type="text" id="product-barcode" placeholder="Hardware Scan Here"
                                     style="width: 180px; padding: 0.4rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem;">
@@ -224,10 +234,7 @@
 
                             <!-- Tab-like layout for options or stacked -->
                             <div class="image-controls" style="display:flex; flex-direction:column; gap:8px;">
-                                <input type="url" id="product-image" placeholder="Paste Image URL">
-
                                 <div style="display:flex; gap:10px; align-items:center;">
-                                    <span style="font-size:0.8rem; color:var(--text-secondary);">OR</span>
                                     <input type="file" id="product-image-file" accept="image/*" style="padding:0.4rem;">
                                 </div>
 
@@ -272,31 +279,53 @@
                         <!-- Section B: Stock & Smart Expiry Tracking -->
                         <div id="section-stock" class="form-section">
                             <h4 class="section-title"><i class="fa-solid fa-boxes-stacked"></i> Stock & Batch</h4>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Batch / Lot Number <span class="required">*</span></label>
-                                    <div class="input-with-action">
-                                        <input type="text" id="batch-number" required placeholder="BAT-001">
-                                        <button type="button" id="btn-scan-barcode" class="btn-icon"
-                                            title="Scan Barcode">
-                                            <i class="fa-solid fa-barcode"></i>
-                                        </button>
-                                        <button type="button" id="btn-gen-batch" class="btn-icon"
-                                            title="Generate Batch #"><i
-                                                class="fa-solid fa-wand-magic-sparkles"></i></button>
+                            <div id="packed-stock-fields">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Batch / Lot Number <span class="required">*</span></label>
+                                        <div class="input-with-action">
+                                            <input type="text" id="batch-number" placeholder="BAT-001">
+                                            <button type="button" id="btn-scan-barcode" class="btn-icon"
+                                                title="Scan Barcode">
+                                                <i class="fa-solid fa-barcode"></i>
+                                            </button>
+                                            <button type="button" id="btn-gen-batch" class="btn-icon"
+                                                title="Generate Batch #"><i
+                                                    class="fa-solid fa-wand-magic-sparkles"></i></button>
+                                        </div>
                                     </div>
-                                    <!-- Barcode Scanner Container -->
-                                    <div id="barcode-reader"
-                                        style="width: 100%; display:none; margin-top:10px; border-radius:8px; overflow:hidden;">
+                                    <div class="form-group">
+                                        <label>Stock Quantity <span class="required">*</span></label>
+                                        <div class="input-with-unit">
+                                            <input type="number" id="product-quantity" min="0" placeholder="0">
+                                            <select id="product-unit" class="unit-select">
+                                                <!-- Populated via JS -->
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="form-group">
-                                    <label>Stock Quantity <span class="required">*</span></label>
-                                    <div class="input-with-unit">
-                                        <input type="number" id="product-quantity" required min="0" placeholder="0">
-                                        <select id="product-unit" class="unit-select">
-                                            <!-- Populated via JS -->
-                                        </select>
+                            </div>
+
+                            <div id="loose-stock-fields" style="display: none;">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Stock Quantity (Loose) <span class="required">*</span></label>
+                                        <div class="input-with-unit">
+                                            <input type="number" id="loose-stock-quantity" min="0" step="0.001" placeholder="0.000">
+                                            <select id="loose-product-unit" class="unit-select">
+                                                <option value="kg">kg</option>
+                                                <option value="g">g</option>
+                                                <option value="L">L</option>
+                                                <option value="ml">ml</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Price Per Unit <span class="required">*</span></label>
+                                        <div class="input-with-unit">
+                                            <input type="number" id="price-per-unit" min="0" step="0.01" placeholder="0.00">
+                                            <span style="padding: 0 10px; background: var(--bg-soft); border: 1px solid var(--border-color); border-left: none; display: flex; align-items: center; border-radius: 0 8px 8px 0;">/ Unit</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -412,17 +441,17 @@
                 <h4 class="section-title">Expiry Alerts (Days)</h4>
                 <div class="form-group">
                     <label>Alert (Caution)</label>
-                    <input type="number" id="setting-expiry-alert" value="30">
+                    <input type="number" id="setting-expiry-alert" value="30" min="0">
                     <small style="color:var(--text-secondary); display:block; margin-top:2px;">Show orange icon when
                         days left <= this</small>
                 </div>
                 <div class="form-group">
                     <label>Warning (Urgent)</label>
-                    <input type="number" id="setting-expiry-warning" value="14">
+                    <input type="number" id="setting-expiry-warning" value="14" min="0">
                 </div>
                 <div class="form-group">
                     <label>Critical (Last Week)</label>
-                    <input type="number" id="setting-expiry-critical" value="7">
+                    <input type="number" id="setting-expiry-critical" value="7" min="0">
                 </div>
                 <div class="form-actions" style="margin-top: 20px; justify-content: flex-end; gap: 10px;">
                     <button type="button" class="btn-secondary"

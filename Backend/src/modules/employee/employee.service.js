@@ -111,7 +111,7 @@ class EmployeeService {
         const employee = await Employee.findOneAndUpdate(
             { _id: id, storeId },
             { $set: { status } },
-            { new: true }
+            { returnDocument: 'after' }
         ).select("-password -refreshToken");
 
         if (!employee) {

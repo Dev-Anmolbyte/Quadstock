@@ -1,5 +1,6 @@
 import { Product } from "./product.model.js";
 import { Category } from "../category/category.model.js";
+import { Store } from "../store/store.model.js";
 import { SmartExpiry } from "./smartExpiry.model.js";
 import { Inventory } from "./inventory.model.js";
 import { ApiError } from "../../utils/ApiError.js";
@@ -38,16 +39,30 @@ class ProductService {
             image: imageUrl,
             description: rest.description,
             barcode: rest.barcode,
-            unit: rest.unit || 'pcs'
+            unit: rest.unit || 'pcs',
+            batchNumber: rest.batchNumber,
+            productType: rest.productType || 'packed',
+            quantity: rest.quantity || 0,
+            pricePerUnit: rest.pricePerUnit || 0,
+            stockQuantity: rest.stockQuantity || 0,
+            mfd: rest.mfd,
+            exp: rest.exp,
+            pp: rest.pp || 0,
+            cp: rest.cp || 0,
+            price: rest.price || 0,
+            reorderPoint: rest.reorderPoint || 10,
+            weight: rest.weight,
+            size: rest.size,
+            color: rest.color
         });
 
         // Create Inventory record for this batch
         const inventory = await Inventory.create({
             productId: product._id,
             storeId,
-            batchNumber: rest.batchNumber || `BAT-${Date.now()}`,
-            quantity: rest.quantity || 0,
-            unit: rest.unit || 'pcs',
+            batchNumber: rest.batchNumber || (rest.productType === 'loose' ? 'LOOSE' : `BAT-${Date.now()}`),
+            quantity: rest.productType === 'loose' ? (rest.stockQuantity || 0) : (rest.quantity || 0),
+            unit: rest.unit || (rest.productType === 'loose' ? 'kg' : 'pcs'),
             mfd: rest.mfd,
             exp: rest.exp,
             pp: rest.pp || 0,
@@ -126,8 +141,8 @@ class ProductService {
         }
 
         // Separate Product updates from Inventory updates
-        const productFields = ['name', 'brand', 'type', 'description', 'barcode', 'image', 'unit'];
-        const inventoryFields = ['batchNumber', 'quantity', 'unit', 'mfd', 'exp', 'pp', 'cp', 'price', 'reorderPoint'];
+        const productFields = ['name', 'brand', 'type', 'description', 'barcode', 'image', 'unit', 'batchNumber', 'quantity', 'productType', 'pricePerUnit', 'stockQuantity', 'mfd', 'exp', 'pp', 'cp', 'price', 'reorderPoint', 'weight', 'size', 'color'];
+        const inventoryFields = ['batchNumber', 'quantity', 'unit', 'mfd', 'exp', 'pp', 'cp', 'price', 'reorderPoint', 'stockQuantity'];
 
         const productUpdates = {};
         const inventoryUpdates = {};
@@ -143,6 +158,10 @@ class ProductService {
         // Update Inventory record (Primary batch)
         let inventory = await Inventory.findOne({ productId: product._id, storeId }).sort({ createdAt: -1 });
         if (inventory) {
+            // If productType changed to loose, adjust quantity to stockQuantity
+            if (updates.productType === 'loose' && updates.stockQuantity !== undefined) {
+                inventoryUpdates.quantity = updates.stockQuantity;
+            }
             Object.assign(inventory, inventoryUpdates);
             await inventory.save();
         } else if (Object.keys(inventoryUpdates).length > 0) {
@@ -224,7 +243,7 @@ class ProductService {
                 status,
                 storeId
             },
-            { upsert: true, new: true }
+            { upsert: true, returnDocument: 'after' }
         );
     }
 

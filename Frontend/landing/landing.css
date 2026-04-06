@@ -31,7 +31,7 @@ body {
   transition: background-color 0.4s ease;
 }
 
-body.dark, [data-theme="dark"] body {
+.dark body, [data-theme="dark"] body {
   background-color: var(--bg-dark);
   color: #f8fafc;
 }
@@ -51,7 +51,7 @@ body.dark, [data-theme="dark"] body {
     radial-gradient(at 50% 100%, rgba(56, 189, 248, 0.1) 0, transparent 50%);
 }
 
-[data-theme="dark"] .mesh-bg {
+.dark .mesh-bg, [data-theme="dark"] .mesh-bg {
   background-color: var(--bg-dark);
   background-image: 
     radial-gradient(at 0% 0%, rgba(255, 126, 54, 0.1) 0, transparent 40%),
@@ -68,7 +68,7 @@ body.dark, [data-theme="dark"] body {
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
 }
 
-[data-theme="dark"] .glass {
+.dark .glass, [data-theme="dark"] .glass {
   background: rgba(15, 23, 42, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.05);
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
@@ -155,6 +155,22 @@ body.dark, [data-theme="dark"] body {
 }
 
 /* --- Section Icons --- */
+.feature-card {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.feature-card:hover {
+  transform: translateY(-12px);
+  box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+[data-theme="dark"] .feature-card {
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
 .icon-box {
   width: 56px;
   height: 56px;
@@ -167,7 +183,7 @@ body.dark, [data-theme="dark"] body {
   transition: transform 0.3s ease;
 }
 
-[data-theme="dark"] .icon-box {
+.dark .icon-box, [data-theme="dark"] .icon-box {
   background: rgba(30, 41, 59, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
@@ -190,11 +206,17 @@ body.dark, [data-theme="dark"] body {
 
 /* --- India India ! --- */
 .made-in-india-badge {
-  background: linear-gradient(to right, #FF9933 0%, #FFFFFF 50%, #128807 100%);
+  background: linear-gradient(to right, #FF9933 0%, #334155 50%, #128807 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   font-weight: 800;
+  display: inline-block;
+}
+
+.dark .made-in-india-badge,
+[data-theme="dark"] .made-in-india-badge {
+  background-image: linear-gradient(to right, #FF9933 0%, #FFFFFF 45%, #FFFFFF 55%, #128807 100%);
 }
 
 /* --- Custom Selection --- */

@@ -85,74 +85,91 @@ document.addEventListener('DOMContentLoaded', function () {
                 animateValue('dash-expiring-alert', 0, d.expiringSoonCount || 0, duration, false);
 
                 // 4. Update Tables (Capped at 6 items by backend)
-                const tables = {
-                    highValue: document.getElementById('top-products-tbody'),
-                    lowStock: document.getElementById('low-stock-tbody'),
-                    outOfStock: document.getElementById('out-of-stock-tbody'),
-                    soonExpiry: document.getElementById('expiring-soon-tbody')
-                };
-
-                // A. High Value Stock
-                if (tables.highValue && d.topProducts) {
-                    tables.highValue.innerHTML = d.topProducts.map(p => `
-                        <tr>
-                            <td><div class="prod-name-simple" title="${p.name}">${p.name}</div></td>
-                            <td><span class="badge ${p.quantity <= 10 ? 'amber' : 'blue'}">${p.quantity} Units</span></td>
-                            <td class="price" style="text-align: right;">${formatter.format(p.totalValue)}</td>
-                        </tr>
-                    `).join('') || '<tr><td colspan="3" style="text-align:center; padding:2rem; opacity:0.6;">No data</td></tr>';
-                }
-
-                // B. Low Stock Items
-                if (tables.lowStock && d.lowStockList) {
-                    tables.lowStock.innerHTML = d.lowStockList.map(p => `
-                        <tr>
-                            <td><div class="prod-name-simple">${p.name}</div></td>
-                            <td style="text-align: right;"><span class="badge orange">${p.quantity} left</span></td>
-                        </tr>
-                    `).join('') || '<tr><td colspan="2" style="text-align:center; padding:2rem; opacity:0.5;">✅ Stock OK</td></tr>';
-                }
-
-                // C. Out of Stock Items
-                if (tables.outOfStock && d.outOfStockList) {
-                    tables.outOfStock.innerHTML = d.outOfStockList.map(p => `
-                        <tr>
-                            <td><div class="prod-name-simple">${p.name}</div></td>
-                            <td style="text-align: right;"><span class="badge red">Stock Out</span></td>
-                        </tr>
-                    `).join('') || '<tr><td colspan="2" style="text-align:center; padding:2rem; opacity:0.5;">✅ Full Stock</td></tr>';
-                }
-
-                // D. Soon Expiry Items
-                if (tables.soonExpiry && d.expiringSoonList) {
-                    tables.soonExpiry.innerHTML = d.expiringSoonList.map(item => `
-                        <tr>
-                            <td><div class="prod-name-simple">${item.name}</div></td>
-                            <td style="text-align: right;"><span class="badge red">${item.daysLeft}d left</span></td>
-                        </tr>
-                    `).join('') || '<tr><td colspan="2" style="text-align:center; padding: 2rem; opacity: 0.5;">✅ Safe</td></tr>';
-                }
+                updateDashboardTables(d);
             }
         } catch (err) {
             console.error("Dashboard Refresh Error:", err);
         }
     }
 
-    // Initial load and set interval (Every 5 minutes)
-    refreshDashboardData();
-    setInterval(refreshDashboardData, 300000); // 300,000 ms = 5 minutes
-
-    // Store Info handled by guard.js
-
-
-    // Attach Notification Reset Listeners
-
-    const complainLink = document.querySelector('a[href*="Complain/complain.html"]');
-    if (complainLink) {
-        complainLink.addEventListener('click', () => resetNotification('complain'));
+    // Refined: Only refresh monthly stats when month changes (prevents whole page "refresh" feeling)
+    async function refreshMonthlyStats() {
+        try {
+            const m = document.getElementById('revenue-month-select')?.value || new Date().getMonth() + 1;
+            const y = new Date().getFullYear();
+            
+            // Only fetch for the specific month
+            const result = await apiRequest(`/stats/owner?month=${m}&year=${y}`);
+            if (result.success) {
+                const d = result.data;
+                // Only update the revenue card with animation
+                animateValue('dash-monthly-revenue', 0, d.totalRevenue || 0, 1000, true);
+            }
+        } catch (err) {
+            console.error("Monthly Stats Error:", err);
+        }
     }
 
-    // --- Logout Functionality ---
+    function updateDashboardTables(d) {
+        const tables = {
+            highValue: document.getElementById('top-products-tbody'),
+            lowStock: document.getElementById('low-stock-tbody'),
+            outOfStock: document.getElementById('out-of-stock-tbody'),
+            soonExpiry: document.getElementById('expiring-soon-tbody')
+        };
+
+        if (tables.highValue && d.topProducts) {
+            tables.highValue.innerHTML = d.topProducts.map(p => `
+                <tr>
+                    <td><div class="prod-name-simple" title="${p.name}">${p.name}</div></td>
+                    <td><span class="badge ${p.quantity <= 10 ? 'amber' : 'blue'}">${p.quantity} Units</span></td>
+                    <td class="price" style="text-align: right;">${formatter.format(p.totalValue)}</td>
+                </tr>
+            `).join('') || '<tr><td colspan="3" style="text-align:center; padding:2rem; opacity:0.6;">No data</td></tr>';
+        }
+
+        if (tables.lowStock && d.lowStockList) {
+            tables.lowStock.innerHTML = d.lowStockList.map(p => `
+                <tr>
+                    <td><div class="prod-name-simple">${p.name}</div></td>
+                    <td style="text-align: right;"><span class="badge orange">${p.quantity} left</span></td>
+                </tr>
+            `).join('') || '<tr><td colspan="2" style="text-align:center; padding:2rem; opacity:0.5;">✅ Stock OK</td></tr>';
+        }
+
+        if (tables.outOfStock && d.outOfStockList) {
+            tables.outOfStock.innerHTML = d.outOfStockList.map(p => `
+                <tr>
+                    <td><div class="prod-name-simple">${p.name}</div></td>
+                    <td style="text-align: right;"><span class="badge red">Stock Out</span></td>
+                </tr>
+            `).join('') || '<tr><td colspan="2" style="text-align:center; padding:2rem; opacity:0.5;">✅ Full Stock</td></tr>';
+        }
+
+        if (tables.soonExpiry && d.expiringSoonList) {
+            const uniqueSoonExpiry = [];
+            const seenNames = new Set();
+            d.expiringSoonList.forEach(item => {
+                if (!seenNames.has(item.name)) {
+                    seenNames.add(item.name);
+                    uniqueSoonExpiry.push(item);
+                }
+            });
+
+            tables.soonExpiry.innerHTML = uniqueSoonExpiry.slice(0, 6).map(item => `
+                <tr>
+                    <td><div class="prod-name-simple">${item.name}</div></td>
+                    <td style="text-align: right;"><span class="badge red">${item.daysLeft}d left</span></td>
+                </tr>
+            `).join('') || '<tr><td colspan="2" style="text-align:center; padding: 2rem; opacity: 0.5;">✅ Safe</td></tr>';
+        }
+    }
+
+    // Initial load and set interval (Every 5 minutes)
+    refreshDashboardData();
+    setInterval(refreshDashboardData, 300000); 
+
+    // Logout Functionality
     const logoutBtn = document.querySelector('a[title="Logout"]');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', async (e) => {
@@ -162,21 +179,10 @@ document.addEventListener('DOMContentLoaded', function () {
             } catch (err) {
                 console.error("Logout Error:", err);
             }
-            localStorage.removeItem('currentUser');
-            localStorage.removeItem('currentEmployee');
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('refreshToken');
+            localStorage.clear();
             window.location.replace('../Authentication/login.html');
         });
     }
-
-
-
-
-
-    // Clock and Theme handled by guard.js
-
-    // Sidebar toggle and theme handled by shared sidebar.js
 
     // --- Dropdowns Initialization ---
     const monthSelect = document.getElementById('revenue-month-select');
@@ -185,15 +191,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const currentMonthIndex = new Date().getMonth();
         months.forEach((month, index) => {
             const option = document.createElement('option');
-            option.value = index + 1; // 1-12
+            option.value = index + 1;
             option.textContent = month;
             if (index === currentMonthIndex) option.selected = true;
             monthSelect.appendChild(option);
         });
 
-        monthSelect.addEventListener('change', refreshDashboardData);
+        monthSelect.addEventListener('change', refreshMonthlyStats);
     }
-
-
 });
 

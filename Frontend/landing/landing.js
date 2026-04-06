@@ -128,4 +128,31 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('close-sidebar-btn').onclick = () => window.toggleMobileSidebar(false);
     overlay.onclick = () => window.toggleMobileSidebar(false);
 
+    // --- 5. Smooth Scrolling for Navigation ---
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            const href = this.getAttribute('href');
+            if (href === '#') return;
+            
+            e.preventDefault();
+            const targetId = href.slice(1);
+            const targetEl = document.getElementById(targetId);
+            
+            if (targetEl) {
+                const navHeight = 100; // Account for fixed navbar
+                const targetPosition = targetEl.getBoundingClientRect().top + window.pageYOffset - navHeight;
+                
+                window.scrollTo({
+                    top: targetPosition,
+                    behavior: 'smooth'
+                });
+                
+                // If it's a mobile link, close the sidebar
+                if (window.toggleMobileSidebar) {
+                    window.toggleMobileSidebar(false);
+                }
+            }
+        });
+    });
+
 });

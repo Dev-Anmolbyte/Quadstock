@@ -18,7 +18,7 @@ class PageService {
                 ...data,
                 slug: slug.toLowerCase()
             },
-            { new: true, upsert: true }
+            { returnDocument: 'after', upsert: true }
         );
         return page;
     }

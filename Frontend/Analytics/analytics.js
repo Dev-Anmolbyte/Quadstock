@@ -81,14 +81,25 @@ document.addEventListener('DOMContentLoaded', function () {
         const ctx = document.getElementById('mainTrendsChart')?.getContext('2d');
         if (!ctx) return;
 
-        // Mock data for trends if real daily data isn't available in summary
-        const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-        const revenueData = [45000, 52000, 38000, 65000, 80000, 95000, 42000];
-        const creditData = [12000, 15000, 10000, 18000, 25000, 30000, 15000];
+        // Dynamic Real-Time Data from Backend
+        const labels = d.trends?.labels || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        const revenueData = d.trends?.revenueData || [0, 0, 0, 0, 0, 0, 0];
+        const creditData = d.trends?.creditData || [0, 0, 0, 0, 0, 0, 0];
 
         if (mainTrendsChartInstance) {
             mainTrendsChartInstance.destroy();
         }
+
+        // Premium Gradient Styling
+        const revGrad = ctx.createLinearGradient(0, 0, 0, 350);
+        revGrad.addColorStop(0, 'rgba(16, 185, 129, 0.5)'); // Emerald Green
+        revGrad.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+
+        const credGrad = ctx.createLinearGradient(0, 0, 0, 350);
+        credGrad.addColorStop(0, 'rgba(244, 63, 94, 0.5)'); // Rose Red
+        credGrad.addColorStop(1, 'rgba(244, 63, 94, 0.0)');
+        
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
 
         mainTrendsChartInstance = new Chart(ctx, {
             type: 'line',
@@ -96,36 +107,91 @@ document.addEventListener('DOMContentLoaded', function () {
                 labels: labels,
                 datasets: [
                     {
-                        label: 'Revenue',
+                        label: 'Product Sales',
                         data: revenueData,
-                        borderColor: '#6366f1',
-                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        borderColor: '#10b981',
+                        backgroundColor: revGrad,
                         fill: true,
-                        tension: 0.4
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#10b981',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
                     },
                     {
                         label: 'New Credit (Udhaar)',
                         data: creditData,
                         borderColor: '#f43f5e',
-                        backgroundColor: 'rgba(244, 63, 94, 0.1)',
+                        backgroundColor: credGrad,
                         fill: true,
-                        tension: 0.4
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#f43f5e',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
                     }
                 ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
                 scales: {
                     y: { 
                         beginAtZero: true, 
-                        grid: { color: 'rgba(255,255,255,0.05)' },
-                        ticks: { callback: v => formatter.format(v) }
+                        grid: { color: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' },
+                        ticks: { 
+                            callback: v => formatter.format(v),
+                            color: isDark ? '#94a3b8' : '#64748b',
+                            font: { family: "'Plus Jakarta Sans', sans-serif", weight: '600' }
+                        },
+                        border: { display: false }
                     },
-                    x: { grid: { display: false } }
+                    x: { 
+                        grid: { display: false },
+                        ticks: { 
+                            color: isDark ? '#94a3b8' : '#64748b',
+                            font: { family: "'Plus Jakarta Sans', sans-serif", weight: '600' }
+                        },
+                        border: { display: false }
+                    }
                 },
                 plugins: {
-                    legend: { position: 'top', align: 'end' }
+                    legend: { 
+                        position: 'top', 
+                        align: 'end',
+                        labels: { 
+                            usePointStyle: true, 
+                            boxWidth: 8, 
+                            color: isDark ? '#f8fafc' : '#0f172a',
+                            font: { family: "'Plus Jakarta Sans', sans-serif", weight: '700' }
+                        } 
+                    },
+                    tooltip: {
+                        backgroundColor: isDark ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+                        titleColor: isDark ? '#f8fafc' : '#0f172a',
+                        bodyColor: isDark ? '#cbd5e1' : '#475569',
+                        borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                        borderWidth: 1,
+                        padding: 12,
+                        boxPadding: 6,
+                        usePointStyle: true,
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) label += ': ';
+                                if (context.parsed.y !== null) label += formatter.format(context.parsed.y);
+                                return label;
+                            }
+                        }
+                    }
                 }
             }
         });
@@ -171,48 +237,74 @@ document.addEventListener('DOMContentLoaded', function () {
             `).join('') : '<tr><td colspan="3" style="text-align:center; opacity:0.5; padding: 2rem;">No sales data</td></tr>';
         }
 
-        // C. Alerts Summary
+        // C. Alerts Summary (Categorized Sections & Row Expansion)
         const alertsBody = document.getElementById('alerts-summary-body');
         if (alertsBody) {
-            const lowStock = (d.lowStockList || []).slice(0, 3).map(item => ({ 
-                name: item.name, 
-                status: 'Low Stock', 
-                reason: `${item.quantity} units left`,
-                badge: 'warning',
-                icon: 'fa-triangle-exclamation'
-            }));
+            const sections = [
+                { id: 'expired', title: 'Expired Products', data: d.expiredList || [], badge: 'danger', icon: 'fa-calendar-xmark' },
+                { id: 'outOfStock', title: 'Out of Stock', data: d.outOfStockList || [], badge: 'danger', icon: 'fa-box-open' },
+                { id: 'expiring', title: 'Expiring Soon', data: d.expiringSoonList || [], badge: 'warning', icon: 'fa-clock' },
+                { id: 'lowStock', title: 'Low Stock', data: d.lowStockList || [], badge: 'warning', icon: 'fa-triangle-exclamation' },
+                { id: 'highStock', title: 'High Stock (Dead/Idle)', data: d.highStockList || [], badge: 'info', icon: 'fa-circle-info' }
+            ];
 
-            const highStock = (d.highStockList || []).slice(0, 2).map(item => ({ 
-                name: item.name, 
-                status: 'High Stock', 
-                reason: `${item.quantity} units (Idle Capital)`,
-                badge: 'info',
-                icon: 'fa-circle-info'
-            }));
+            let html = '';
+            sections.forEach(sec => {
+                if (sec.data.length > 0) {
+                    html += `
+                        <tr class="alert-section-header">
+                            <td colspan="3"><i class="fa-solid ${sec.icon}"></i> ${sec.title}</td>
+                        </tr>
+                    `;
+                    sec.data.forEach(item => {
+                        let reason = '';
+                        if (sec.id === 'expired') reason = `Expired ${item.daysPast} days ago`;
+                        else if (sec.id === 'outOfStock') reason = 'Zero units available';
+                        else if (sec.id === 'expiring') reason = `Expires in ${item.daysLeft} days`;
+                        else if (sec.id === 'lowStock') reason = `${item.quantity} units left`;
+                        else if (sec.id === 'highStock') reason = `${item.quantity} units (Idle Capital)`;
 
-            const deadStock = (d.deadStockList || []).slice(0, 2).map(item => ({ 
-                name: item.name, 
-                status: 'Dead Stock', 
-                reason: `No sales for ${item.daysInactive || 90}+ days`,
-                badge: 'danger',
-                icon: 'fa-skull-crossbones'
-            }));
+                        html += `
+                            <tr class="alert-row" onclick="openAlertDetail('${sec.id}', '${item.name}')">
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                        <i class="fa-solid fa-box" style="font-size: 0.7rem; opacity: 0.4;"></i>
+                                        <strong>${item.name}</strong>
+                                    </div>
+                                </td>
+                                <td><span class="badge ${sec.badge}">${item.status || sec.title.split(' ')[0]}</span></td>
+                                <td style="font-size: 0.85rem; color: var(--text-secondary);">${reason}</td>
+                            </tr>
+                        `;
+                    });
+                }
+            });
 
-            const combined = [...lowStock, ...highStock, ...deadStock];
-
-            alertsBody.innerHTML = combined.length ? combined.map(item => `
-                <tr>
-                    <td>
-                        <div style="display: flex; align-items: center; gap: 0.75rem;">
-                            <i class="fa-solid ${item.icon}" style="opacity: 0.6;"></i>
-                            <strong>${item.name}</strong>
-                        </div>
-                    </td>
-                    <td><span class="badge ${item.badge}">${item.status}</span></td>
-                    <td style="font-size: 0.85rem; color: var(--text-secondary);">${item.reason}</td>
-                </tr>
-            `).join('') : '<tr><td colspan="3" style="text-align:center; opacity:0.5; padding: 2rem;">✅ Inventory is well-balanced!</td></tr>';
+            alertsBody.innerHTML = html || '<tr><td colspan="3" style="text-align:center; opacity:0.5; padding: 2rem;">✅ Inventory is well-balanced!</td></tr>';
         }
+
+        // New helper for full window enlargement
+        window.openAlertDetail = (type, productName) => {
+            const modal = document.getElementById('godamModal');
+            const modalTable = document.getElementById('modalTable');
+            const modalTitle = document.getElementById('modalTitle');
+            if (!modal || !modalTable) return;
+
+            modalTitle.innerText = `Detailed View: ${productName || type}`;
+            
+            // Logic to find detailed product info if we had more in the 'd' object
+            // For now, we'll use a placeholder detail view but we can improve this
+            modalTable.innerHTML = `
+                <tbody>
+                    <tr><th>Parameter</th><th>Details</th></tr>
+                    <tr><td>Tracking Category</td><td>${type.toUpperCase()}</td></tr>
+                    <tr><td>Item Name</td><td>${productName}</td></tr>
+                    <tr><td>Status</td><td>Critical Attention Needed</td></tr>
+                    <tr><td>Action Required</td><td>Adjust Inventory / Return to Vendor</td></tr>
+                </tbody>
+            `;
+            modal.classList.add('open');
+        };
     }
 
     // --- Chart Type Switching ---

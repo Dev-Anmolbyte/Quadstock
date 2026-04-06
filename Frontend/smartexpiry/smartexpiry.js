@@ -1,4 +1,5 @@
 import CONFIG from '../Shared/Utils/config.js';
+import { apiRequest } from '../Shared/Utils/api.js';
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -24,41 +25,41 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function fetchInventory() {
+        const listContainer = document.getElementById('expiry-list');
+        listContainer.innerHTML = `<div style="padding:4rem; text-align:center; color: var(--text-secondary);">
+            <i class="fa-solid fa-spinner fa-spin" style="font-size: 3rem; color: var(--primary); margin-bottom: 2rem; display: block;"></i>
+            Analyzing inventory batches...
+        </div>`;
+
         try {
-            const token = localStorage.getItem('authToken');
-            
-            // Fetch store settings & products simultaneously 
+            // Fetch store settings & products simultaneously through centralized apiRequest
             const [storeRes, invRes] = await Promise.all([
-                fetch(`${CONFIG.API_BASE_URL}/stores/details`, { headers: { 'Authorization': `Bearer ${token}` } }),
-                fetch(`${CONFIG.API_BASE_URL}/products?limit=1000`, { headers: { 'Authorization': `Bearer ${token}` } })
+                apiRequest('/stores/details').catch(() => null),
+                apiRequest('/products?limit=1000').catch(() => null)
             ]);
 
-            try {
-                const storeResult = await storeRes.json();
-                if (storeResult.success) {
-                    if (storeResult.data.highStockThreshold !== undefined) highStockThreshold = storeResult.data.highStockThreshold;
-                    if (storeResult.data.healthyExpiryThreshold !== undefined) healthyExpiryThreshold = storeResult.data.healthyExpiryThreshold;
-                }
-            } catch(e) { console.error("Could not parse store threshold", e); }
+            if (storeRes && storeRes.success) {
+                if (storeRes.data.highStockThreshold !== undefined) highStockThreshold = storeRes.data.highStockThreshold;
+                if (storeRes.data.healthyExpiryThreshold !== undefined) healthyExpiryThreshold = storeRes.data.healthyExpiryThreshold;
+            }
 
-            const result = await invRes.json();
-            if (invRes.ok && result.success) {
-                // Ensure dates are parsed and we only show items with exp dates
-                inventory = result.data.filter(item => item.exp).map(item => ({
+            if (invRes && invRes.success) {
+                inventory = invRes.data.filter(item => item.exp).map(item => ({
                     ...item,
                     expiryDate: new Date(item.exp) 
                 }));
-                processInventory();
             } else {
                 inventory = [];
-                processInventory();
             }
+            processInventory();
+
         } catch (err) {
             console.error("Fetch Error:", err);
             inventory = [];
             processInventory();
         }
     }
+
 
     function processInventory() {
         calculateStats();
@@ -68,6 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function calculateStats() {
         const now = new Date();
+        now.setHours(0,0,0,0);
         stats = { expired: 0, critical: 0, warning: 0, healthy: 0 };
 
         inventory.forEach(item => {
@@ -87,7 +89,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('stat-30days').textContent = stats.warning;
         document.getElementById('stat-healthy').textContent = stats.healthy;
 
-        // Dynamic Label Updates
         const labelWarning = document.getElementById('label-warning-days');
         if (labelWarning) labelWarning.textContent = `Expiring (${healthyExpiryThreshold} Days)`;
         
@@ -105,13 +106,15 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderTimeline() {
         const listContainer = document.getElementById('expiry-list');
         listContainer.innerHTML = '';
+        const now = new Date();
+        now.setHours(0,0,0,0);
 
         let filtered = inventory.filter(item => {
             const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 (item.batchNumber && item.batchNumber.toLowerCase().includes(searchQuery.toLowerCase())) ||
                 (item.category && item.category.toLowerCase().includes(searchQuery.toLowerCase()));
 
-            const daysLeft = Math.ceil((item.expiryDate - new Date()) / (1000 * 60 * 60 * 24));
+            const daysLeft = Math.ceil((item.expiryDate - now) / (1000 * 60 * 60 * 24));
 
             if (activeFilter === 'expired') return matchesSearch && daysLeft <= 0;
             if (activeFilter === 'high-stock') return matchesSearch && item.quantity >= highStockThreshold;
@@ -132,15 +135,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (filtered.length === 0) {
-            listContainer.innerHTML = `<div style="padding:4rem; text-align:center; color: var(--text-secondary); background: var(--bg-card); border-radius: 1.5rem; border: 1px dashed var(--border-soft);">
-                <i class="fa-solid fa-folder-open" style="font-size: 3rem; opacity: 0.2; margin-bottom: 1rem; display: block;"></i>
-                No products match the selected criteria.
+            listContainer.innerHTML = `<div style="padding:4rem; text-align:center; color: var(--text-secondary); background: var(--card-bg); border-radius: 32px; border: 1px dashed var(--primary); box-shadow: var(--glass-shadow);">
+                <i class="fa-solid fa-folder-open" style="font-size: 3rem; opacity: 0.15; margin-bottom: 2rem; display: block; color: var(--primary);"></i>
+                <h4 style="font-size: 1.2rem; font-weight: 850; color: var(--text-main); margin-bottom: 0.5rem;">Inventory is looking good!</h4>
+                <p style="font-size: 0.9rem; opacity: 0.8;">No products match the selected criteria.</p>
             </div>`;
             return;
         }
 
-        filtered.forEach(item => {
-            const daysLeft = Math.ceil((item.expiryDate - new Date()) / (1000 * 60 * 60 * 24));
+        filtered.forEach((item, index) => {
+            const daysLeft = Math.ceil((item.expiryDate - now) / (1000 * 60 * 60 * 24));
             const statusClass = getStatusClass(daysLeft);
             let dayText = daysLeft <= 0 ? 'Expired' : `${daysLeft} Days left`;
             let badgeColor = daysLeft <= 0 ? 'red' : (daysLeft <= 7 ? 'orange' : (daysLeft <= healthyExpiryThreshold ? 'yellow' : 'blue'));
@@ -149,16 +153,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // discount info
             let discountHtml = item.discount > 0 
-                ? `<span class="badge green" style="background: rgba(16, 185, 129, 0.1); color: #10b981; margin-left:10px;">-${item.discountType === 'percentage' ? item.discount+'%' : '₹'+item.discount}</span>`
+                ? `<span class="days-badge green" style="background: rgba(16, 185, 129, 0.1); color: #10b981; margin-left:0;">-${item.discountType === 'percentage' ? item.discount+'%' : '₹'+item.discount}</span>`
                 : '';
 
             // high stock info
             let highStockBadge = item.quantity >= highStockThreshold 
-                ? `<span class="badge blue" style="background: rgba(99, 102, 241, 0.1); color: #6366f1; margin-left:10px;"><i class="fa-solid fa-arrow-trend-up"></i> High Stock</span>`
+                ? `<span class="days-badge blue" style="margin-left:0;"><i class="fa-solid fa-arrow-trend-up"></i> Bulk</span>`
                 : '';
 
             const el = document.createElement('div');
             el.className = `timeline-item ${statusClass}`;
+            el.style.animationDelay = `${index * 0.05}s`;
             
             el.innerHTML = `
                 <div class="item-check-wrapper">
@@ -166,20 +171,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="item-content">
                     <div class="item-main">
-                        <h4>${item.name} ${discountHtml} ${highStockBadge}</h4>
+                        <h4>${item.name}</h4>
                         <div class="item-meta">
-                            <span><i class="fa-solid fa-barcode"></i> Batch: ${item.batchNumber || 'N/A'}</span>
-                            <span style="margin-left:15px;"><i class="fa-solid fa-cubes"></i> Qty: ${item.quantity} ${item.unit || 'pcs'}</span>
+                            <span><i class="fa-solid fa-tag"></i> ${item.batchNumber || 'Batch-001'}</span>
+                            <span><i class="fa-solid fa-box"></i> ${item.quantity} ${item.unit || 'pcs'}</span>
                         </div>
                     </div>
                     <div class="item-expiry-info">
                         <span>EXPIRY DATE</span>
-                        ${item.expiryDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        <strong>${item.expiryDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</strong>
                     </div>
                     <div class="status-section">
-                        <div class="days-badge ${badgeColor}">${dayText}</div>
+                        <div style="display:flex; gap:0.5rem; justify-content:flex-end;">
+                           ${discountHtml}
+                           ${highStockBadge}
+                           <div class="days-badge ${badgeColor}">${dayText}</div>
+                        </div>
                         <a class="history-link" onclick="viewHistory('${item._id}')">
-                            <i class="fa-solid fa-clock-rotate-left"></i> History
+                            <i class="fa-solid fa-clock-rotate-left"></i> History Log
                         </a>
                     </div>
                 </div>
@@ -187,12 +196,22 @@ document.addEventListener('DOMContentLoaded', () => {
             listContainer.appendChild(el);
         });
 
-        // Add checkbox listeners
+        // Add checkbox listeners (Single-selection logic)
         document.querySelectorAll('.item-check').forEach(chk => {
             chk.addEventListener('change', (e) => {
                 const id = e.target.dataset.id;
-                if (e.target.checked) selectedItems.add(id);
-                else selectedItems.delete(id);
+                
+                if (e.target.checked) {
+                    // Deselect all others
+                    document.querySelectorAll('.item-check').forEach(other => {
+                        if (other !== e.target) other.checked = false;
+                    });
+                    selectedItems.clear();
+                    selectedItems.add(id);
+                } else {
+                    selectedItems.delete(id);
+                }
+                
                 updateBulkActions();
             });
         });
@@ -246,13 +265,74 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Apply Discount
-        document.querySelector('.btn-discount').addEventListener('click', () => {
-            if (selectedItems.size === 0) {
-                showToast("Please select at least one item", "error");
-                return;
-            }
-            showDiscountModal();
-        });
+        const btnDiscount = document.querySelector('.btn-discount');
+        if (btnDiscount) {
+            btnDiscount.addEventListener('click', () => {
+                if (selectedItems.size === 0) {
+                    showToast("Please select at least one item", "error");
+                    return;
+                }
+                showDiscountModal();
+            });
+        }
+
+        // Return to Vendor
+        const btnReturn = document.querySelector('.btn-return');
+        if (btnReturn) {
+            btnReturn.addEventListener('click', async () => {
+                const id = Array.from(selectedItems)[0];
+                if (!id) return;
+
+                const item = inventory.find(p => p._id === id);
+                const confirmed = await QuadModals.confirm(
+                    "Return to Vendor",
+                    `Are you sure you want to mark ${item?.name} for return? This will remove the batch from active inventory.`,
+                    { isDanger: true, confirmText: 'Process Return', icon: 'fa-truck-ramp-box' }
+                );
+
+                if (confirmed) {
+                    try {
+                        const res = await apiRequest(`/products/${id}`, { method: 'DELETE' });
+                        if (res.success) {
+                            showToast("Product marked for return and removed.", "success");
+                            selectedItems.clear();
+                            fetchInventory();
+                        }
+                    } catch (err) {
+                        showToast("Failed to process return.", "error");
+                    }
+                }
+            });
+        }
+
+        // Dispose / Write-off
+        const btnDispose = document.querySelector('.btn-dispose');
+        if (btnDispose) {
+            btnDispose.addEventListener('click', async () => {
+                const id = Array.from(selectedItems)[0];
+                if (!id) return;
+
+                const item = inventory.find(p => p._id === id);
+                const confirmed = await QuadModals.confirm(
+                    "Confirm Disposal",
+                    `You are about to write-off ${item?.name} due to expiry. This action is permanent.`,
+                    { isDanger: true, confirmText: 'Dispose Now', icon: 'fa-trash-can' }
+                );
+
+                if (confirmed) {
+                    try {
+                        const res = await apiRequest(`/products/${id}`, { method: 'DELETE' });
+                        if (res.success) {
+                            showToast("Product batch disposed successfully.", "success");
+                            selectedItems.clear();
+                            fetchInventory();
+                        }
+                    } catch (err) {
+                        showToast("Failed to dispose product.", "error");
+                    }
+                }
+            });
+        }
         
         // Setup Modal generic closing
         document.getElementById('modal-cancel').addEventListener('click', closeModal);
@@ -260,23 +340,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showDiscountModal() {
         const modal = document.getElementById('action-modal');
-        document.getElementById('modal-title').textContent = "Apply Discount";
+        document.getElementById('modal-title').innerHTML = "<i class='fa-solid fa-tags'></i> Apply Discount";
         document.getElementById('modal-body').innerHTML = `
-            <p style="margin-bottom:15px; font-size:0.9rem; color:var(--text-secondary);">Apply discount to ${selectedItems.size} selected items.</p>
-            <div style="margin-bottom:15px;">
-                <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.85rem;">Discount Type</label>
-                <select id="discount-type" style="width:100%; padding:0.75rem; border-radius:10px; border:1px solid var(--border-color); background:var(--bg-white); color:var(--text-primary);">
-                    <option value="percentage">Percentage (%)</option>
-                    <option value="fixed">Fixed Amount (₹)</option>
-                </select>
+            <p class="modal-subtitle">Apply discount to <strong>${selectedItems.size}</strong> selected items.</p>
+            <div class="form-group">
+                <label for="discount-type"><i class="fa-solid fa-percent"></i> Discount Type</label>
+                <div class="input-wrapper">
+                    <select id="discount-type">
+                        <option value="percentage">Percentage (%)</option>
+                        <option value="fixed">Fixed Amount (₹)</option>
+                    </select>
+                </div>
             </div>
-            <div style="margin-bottom:15px;">
-                <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.85rem;">Discount Value</label>
-                <input type="number" id="discount-value" value="0" min="0" style="width:100%; padding:0.75rem; border-radius:10px; border:1px solid var(--border-color); background:var(--bg-white); color:var(--text-primary);">
+            <div class="form-group">
+                <label for="discount-value"><i class="fa-solid fa-indian-rupee-sign"></i> Discount Value</label>
+                <div class="input-wrapper">
+                    <input type="number" id="discount-value" value="0" min="0" placeholder="0.00">
+                </div>
             </div>
-            <div style="margin-bottom:15px;">
-                <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.85rem;">Reason</label>
-                <input type="text" id="discount-reason" placeholder="e.g. Near expiry sale" style="width:100%; padding:0.75rem; border-radius:10px; border:1px solid var(--border-color); background:var(--bg-white); color:var(--text-primary);">
+            <div class="form-group">
+                <label for="discount-reason"><i class="fa-solid fa-comment-dots"></i> Reason</label>
+                <div class="input-wrapper">
+                    <input type="text" id="discount-reason" placeholder="e.g. Near expiry sale">
+                </div>
             </div>
         `;
         
@@ -284,6 +370,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Remove old listeners
         const newConfirmBtn = confirmBtn.cloneNode(true);
         confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+        newConfirmBtn.innerHTML = "<i class='fa-solid fa-check'></i> Confirm";
         
         newConfirmBtn.addEventListener('click', async () => {
             const type = document.getElementById('discount-type').value;
@@ -296,10 +383,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             try {
-                const token = localStorage.getItem('authToken');
-                const req = await fetch(`${CONFIG.API_BASE_URL}/products/bulk/discount`, {
+                const res = await apiRequest('/products/bulk/discount', {
                     method: 'PUT',
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         productIds: Array.from(selectedItems),
                         discount: value,
@@ -308,7 +393,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     })
                 });
 
-                const res = await req.json();
                 if (res.success) {
                     showToast("Discount applied successfully!", "success");
                     closeModal();
@@ -327,17 +411,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showSettingsModal() {
         const modal = document.getElementById('action-modal');
-        document.getElementById('modal-title').textContent = "Smart Expiry Settings";
+        document.getElementById('modal-title').innerHTML = "<i class='fa-solid fa-gear'></i> Smart Expiry Settings";
         document.getElementById('modal-body').innerHTML = `
-            <p style="margin-bottom:15px; font-size:0.9rem; color:var(--text-secondary);">Configure the thresholds. These settings are saved to your store database.</p>
-            <div style="margin-bottom:15px;">
-                <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.85rem;">High Stock Threshold (Quantity)</label>
-                <input type="number" id="setting-high-stock" value="${highStockThreshold}" min="1" style="width:100%; padding:0.75rem; border-radius:10px; border:1px solid var(--border-color); background:var(--bg-white); color:var(--text-primary);">
+            <p class="modal-subtitle">Configure thresholds. Changes are saved directly to your store configuration.</p>
+            <div class="form-group">
+                <label for="setting-high-stock"><i class="fa-solid fa-cubes"></i> High Stock Threshold (Quantity)</label>
+                <div class="input-wrapper">
+                    <input type="number" id="setting-high-stock" value="${highStockThreshold}" min="1">
+                </div>
             </div>
-            <div style="margin-bottom:15px;">
-                <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.85rem;">Healthy Stock Threshold (Days to Expiry Warning)</label>
-                <input type="number" id="setting-healthy-expiry" value="${healthyExpiryThreshold}" min="8" style="width:100%; padding:0.75rem; border-radius:10px; border:1px solid var(--border-color); background:var(--bg-white); color:var(--text-primary);" placeholder="e.g. 30">
-                <p style="font-size:0.75rem; color:var(--text-secondary); margin-top:5px;">Products expiring in more than this many days are considered "Healthy". Default is 30.</p>
+            <div class="form-group">
+                <label for="setting-healthy-expiry"><i class="fa-solid fa-calendar-check"></i> Healthy Stock Expiry (Days)</label>
+                <div class="input-wrapper">
+                    <input type="number" id="setting-healthy-expiry" value="${healthyExpiryThreshold}" min="8" placeholder="e.g. 30">
+                </div>
+                <p class="input-help">Products expiring in more than this many days are considered "Healthy". Default is 30.</p>
             </div>
         `;
         
@@ -356,17 +444,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             try {
-                const token = localStorage.getItem('authToken');
-                const req = await fetch(`${CONFIG.API_BASE_URL}/stores/update`, {
+                const res = await apiRequest('/stores/update', {
                     method: 'PUT',
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         highStockThreshold: valStock,
                         healthyExpiryThreshold: valExpiry 
                     })
                 });
 
-                const res = await req.json();
                 if (res.success) {
                     highStockThreshold = valStock;
                     healthyExpiryThreshold = valExpiry;
@@ -396,27 +481,34 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!item) return;
 
         const modal = document.getElementById('action-modal');
-        document.getElementById('modal-title').textContent = `Discount History: ${item.name}`;
+        document.getElementById('modal-title').innerHTML = `<i class="fa-solid fa-clock-rotate-left"></i> Discount History`;
         
         let historyHtml = '';
         if (item.discountHistory && item.discountHistory.length > 0) {
-            historyHtml = item.discountHistory.map(h => `
-                <div style="border-bottom:1px solid var(--border-color); padding: 10px 0;">
-                    <strong style="color:var(--text-primary)">
-                        ${h.type === 'percentage' ? h.amount+'%' : '₹'+h.amount} Discount
-                    </strong>
-                    <div style="font-size:0.8rem; color:var(--text-secondary); margin-top:5px;">
-                        By: ${h.appliedBy || 'System'} | ${new Date(h.date).toLocaleString()}
-                        <br> Reason: <em>${h.reason}</em>
+            historyHtml = `<div class="history-list">` + 
+                item.discountHistory.map(h => `
+                <div class="history-item">
+                    <div class="history-header">
+                        <span class="history-amount">${h.type === 'percentage' ? h.amount+'%' : '₹'+h.amount} Off</span>
+                        <span class="history-date">${new Date(h.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}</span>
+                    </div>
+                    <div class="history-detail">
+                        <p><i class="fa-solid fa-user-edit"></i> Applied by: <strong>${h.appliedBy || 'System'}</strong></p>
+                        <p><i class="fa-solid fa-comment-dots"></i> Reason: <em>${h.reason || 'No reason provided'}</em></p>
                     </div>
                 </div>
-            `).join('');
+            `).join('') + `</div>`;
         } else {
-            historyHtml = `<p style="color:var(--text-secondary)">No discount history available.</p>`;
+            historyHtml = `
+            <div class="empty-history">
+                <i class="fa-solid fa-ghost"></i>
+                <p>No discount history available for this item.</p>
+            </div>`;
         }
 
         document.getElementById('modal-body').innerHTML = `
-            <div style="max-height: 300px; overflow-y: auto;">
+            <p class="modal-subtitle">Showing all price adjustments for <strong>${item.name}</strong></p>
+            <div class="history-scrollable">
                 ${historyHtml}
             </div>
         `;

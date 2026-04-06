@@ -34,10 +34,7 @@ class UserService {
             throw new ApiError(409, "User with this email already exists");
         }
 
-        const existedStore = await Store.findOne({ name: shopName });
-        if (existedStore) {
-            throw new ApiError(409, "Shop name already taken");
-        }
+        // Check if username / email exists (omitting shopName check to allow duplicate shop names)
 
         // 1. Create Store first to get the ID
         const storeUniqueId = `QS-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
@@ -369,7 +366,7 @@ class UserService {
                     address
                 }
             },
-            { new: true, runValidators: true }
+            { returnDocument: 'after', runValidators: true }
         ).select("-password -refreshToken");
 
         if (!user) {

@@ -1,6 +1,7 @@
 import { Udhaar } from "./udhaar.model.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { withStore } from "../../utils/storeHelper.js";
+import statsService from "../stats/stats.service.js";
 
 class UdhaarService {
     async createRecord(data, storeId) {
@@ -12,7 +13,14 @@ class UdhaarService {
             balance: totalAmount,
             status: 'pending'
         };
-        return await Udhaar.create(finalData);
+        const record = await Udhaar.create(finalData);
+        
+        // Initial udhaar amount tracks towards issued stats
+        if (totalAmount > 0) {
+            await statsService.updateMonthlyStats(storeId, 'taken', totalAmount, data.date);
+        }
+        
+        return record;
     }
 
     async getRecords(storeId, query = {}) {
@@ -71,6 +79,43 @@ class UdhaarService {
             record.status = 'paid';
         } else if (record.balance > 0) {
             record.status = 'pending';
+        }
+
+        const saved = await record.save();
+
+        // [Performance Fix] Sync individual transaction to pre-calculated Monthly Stats
+        await statsService.updateMonthlyStats(storeId, type, amount, date);
+
+        return saved;
+    }
+
+    async updateRecord(id, storeId, updateData) {
+        const record = await Udhaar.findOne(withStore({ _id: id }, { storeId }));
+        if (!record) throw new ApiError(404, "Udhaar record not found or unauthorized");
+
+        // Basic fields
+        if (updateData.name) record.name = updateData.name;
+        if (updateData.contact !== undefined) record.contact = updateData.contact;
+        
+        // Handle Amount adjustment (difference)
+        if (updateData.totalAmount !== undefined && updateData.totalAmount !== record.totalAmount) {
+            const diff = updateData.totalAmount - record.totalAmount;
+            record.totalAmount = updateData.totalAmount;
+            record.balance += diff;
+            
+            // Correct the monthly stats if amount changed
+            await statsService.updateMonthlyStats(storeId, 'taken', diff, record.date);
+        }
+
+        if (updateData.date) record.date = updateData.date;
+        if (updateData.dueDate) record.dueDate = updateData.dueDate;
+
+        // Special handling for initial transaction if it was newly created
+        if (record.transactions && record.transactions.length > 0) {
+            // Usually the first transaction is the 'taken' one when record was created
+            if (updateData.date) record.transactions[0].date = updateData.date;
+            if (updateData.description) record.transactions[0].description = updateData.description;
+            if (updateData.totalAmount !== undefined) record.transactions[0].amount = updateData.totalAmount;
         }
 
         return await record.save();

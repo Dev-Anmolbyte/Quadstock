@@ -18,10 +18,17 @@ const productSchema = new Schema(
         },
         description: { type: String, trim: true },
         image: { type: String }, // Cloudinary URL
+        unit: { type: String, default: 'pcs' },
+        productType: { type: String, enum: ['packed', 'loose'], default: 'packed' },
+
+        // Packed specific
         barcode: { type: String, trim: true },
         batchNumber: { type: String, trim: true },
-        quantity: { type: Number, default: 0 },
-        unit: { type: String, default: 'pcs' },
+        quantity: { type: Number, default: 0, min: 0 },
+
+        // Loose specific
+        pricePerUnit: { type: Number, default: 0, min: 0 },
+        stockQuantity: { type: Number, default: 0, min: 0 },
 
         // Grocery specific
         mfd: { type: String },
@@ -32,12 +39,12 @@ const productSchema = new Schema(
         size: { type: String },
         color: { type: String },
 
-        reorderPoint: { type: Number, default: 10 },
+        reorderPoint: { type: Number, default: 10, min: 0 },
 
         // Pricing
-        pp: { type: Number, default: 0 }, // Purchase Price
-        cp: { type: Number, default: 0 }, // Cost Price / MRP
-        price: { type: Number, default: 0 }, // Selling Price
+        pp: { type: Number, default: 0, min: 0 }, // Purchase Price
+        cp: { type: Number, default: 0, min: 0 }, // Cost Price / MRP
+        price: { type: Number, default: 0, min: 0 }, // Selling Price
 
         // Discounts
         discount: { type: Number, default: 0 }, // Current active discount amount or percentage

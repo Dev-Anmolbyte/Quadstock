@@ -15,7 +15,7 @@ const inventorySchema = new Schema(
             index: true
         },
         batchNumber: { type: String, trim: true },
-        quantity: { type: Number, default: 0 },
+        quantity: { type: Number, default: 0, min: 0 },
         unit: { type: String, default: 'pcs' },
         
         // Dates
@@ -23,11 +23,11 @@ const inventorySchema = new Schema(
         exp: { type: String },
         
         // Pricing for this batch
-        pp: { type: Number, default: 0 }, // Purchase Price
-        cp: { type: Number, default: 0 }, // MRP
-        price: { type: Number, default: 0 }, // Selling Price
+        pp: { type: Number, default: 0, min: 0 }, // Purchase Price
+        cp: { type: Number, default: 0, min: 0 }, // MRP
+        price: { type: Number, default: 0, min: 0 }, // Selling Price
         
-        reorderPoint: { type: Number, default: 10 }
+        reorderPoint: { type: Number, default: 10, min: 0 }
     },
     {
         timestamps: true
