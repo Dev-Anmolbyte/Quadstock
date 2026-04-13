@@ -1,13 +1,13 @@
 /**
  * QuadStock — Shared Sidebar & Top Bar Component
  * -----------------------------------------------
- * Drop this script at the BOTTOM of any owner page (before </body>).
+ * Drop this script at the BOTTOM of any owner or staff page (before </body>).
  * It will:
  *   1. Replace the <aside class="sidebar"> with a consistent sidebar.
  *   2. Insert a standardized .top-bar into .main-content (at the top).
  *   3. Start the live clock.
  *   4. Wire the theme toggle.
- *   5. Display store name & ID fetched from window.authContext (guard.js).
+ *   5. Display store name & ID fetched from window.authContext or session.
  *
  * Usage — each page must declare which link is "active":
  *   <script>window.ACTIVE_PAGE = 'inventory';</script>
@@ -15,22 +15,53 @@
  */
 (function () {
     const initSidebar = () => {
-        // ── 1. NAV ITEMS (label → href relative to each module folder) ──────────
-        const NAV_ITEMS = [
-            { id: 'dashboard',   icon: 'fa-house',               label: 'Dashboard',   href: '../Ownerdashboard/dashboard.html' },
-            { id: 'analytics',   icon: 'fa-chart-simple',        label: 'Analytics',   href: '../Analytics/analytics.html' },
-            { id: 'inventory',   icon: 'fa-boxes-stacked',       label: 'Inventory',   href: '../Inventory/inventory.html' },
-            { id: 'employees',   icon: 'fa-users',               label: 'Employees',   href: '../Employees/employees.html' },
-            { id: 'smartexpiry', icon: 'fa-hourglass-end',       label: 'Smart Expiry',href: '../smartexpiry/smartexpiry.html' },
-            { id: 'query',       icon: 'fa-clipboard-question',  label: 'Queries',     href: '../Query/query.html' },
-            { id: 'complain',    icon: 'fa-circle-exclamation',  label: 'Complaints',  href: '../Complain/complain.html' },
-            { id: 'udhaar',      icon: 'fa-indian-rupee-sign',   label: 'Udhaar',      href: '../Udhaar/udhaar.html' },
-            { id: 'sales',       icon: 'fa-receipt',             label: 'POS Terminal',href: '../Sales/sales.html' },
+        // ── 1. NAV ITEMS (Can be overridden by window.CUSTOM_NAV_ITEMS) ──────────
+        const TRANSLATIONS = {
+            hi: {
+                dashboard: 'डैशबोर्ड',
+                analytics: 'एनालिटिक्स',
+                inventory: 'इन्वेंटरी',
+                employees: 'कर्मचारी',
+                smartexpiry: 'स्मार्ट एक्सपायरी',
+                query: 'पूछताछ',
+                complain: 'शिकायतें',
+                udhaar: 'उधार',
+                sales: 'पीओएस टर्मिनल',
+                settings: 'सेटिंग्स',
+                logout: 'लॉगआउट',
+                store: 'स्टोर',
+                store_id: 'स्टोर आईडी'
+            }
+        };
+
+        const lang = localStorage.getItem('language') || 'en';
+
+        const DEFAULT_NAV_ITEMS = [
+            { id: 'dashboard',   icon: 'fa-house',               label: (lang === 'hi' ? TRANSLATIONS.hi.dashboard : 'Dashboard'),   href: '../Ownerdashboard/dashboard.html' },
+            { id: 'analytics',   icon: 'fa-chart-simple',        label: (lang === 'hi' ? TRANSLATIONS.hi.analytics : 'Analytics'),   href: '../Analytics/analytics.html' },
+            { id: 'inventory',   icon: 'fa-boxes-stacked',       label: (lang === 'hi' ? TRANSLATIONS.hi.inventory : 'Inventory'),   href: '../Inventory/inventory.html' },
+            { id: 'employees',   icon: 'fa-users',               label: (lang === 'hi' ? TRANSLATIONS.hi.employees : 'Employees'),   href: '../Employees/employees.html' },
+            { id: 'smartexpiry', icon: 'fa-hourglass-end',       label: (lang === 'hi' ? TRANSLATIONS.hi.smartexpiry : 'Smart Expiry'),href: '../smartexpiry/smartexpiry.html' },
+            { id: 'query',       icon: 'fa-clipboard-question',  label: (lang === 'hi' ? TRANSLATIONS.hi.query : 'Queries'),     href: '../Query/query.html' },
+            { id: 'complain',    icon: 'fa-circle-exclamation',  label: (lang === 'hi' ? TRANSLATIONS.hi.complain : 'Complaints'),  href: '../Complain/complain.html' },
+            { id: 'udhaar',      icon: 'fa-indian-rupee-sign',   label: (lang === 'hi' ? TRANSLATIONS.hi.udhaar : 'Udhaar'),      href: '../Udhaar/udhaar.html' },
+            { id: 'sales',       icon: 'fa-receipt',             label: (lang === 'hi' ? TRANSLATIONS.hi.sales : 'POS Terminal'),href: '../Sales/sales.html' },
         ];
 
+        const user = (window.authContext && window.authContext.user) || JSON.parse(sessionStorage.getItem('user'));
+        const userRole = (window.authContext && window.authContext.role) || (user && user.role) || 'staff';
+
+        const NAV_ITEMS = (window.CUSTOM_NAV_ITEMS || DEFAULT_NAV_ITEMS).filter(item => {
+            // If user is staff, hide owner-only pages
+            if (userRole === 'staff') {
+                return !['analytics', 'employees', 'inventory', 'smartexpiry', 'udhaar', 'sales'].includes(item.id);
+            }
+            return true;
+        });
+
         const FOOTER_ITEMS = [
-            { id: 'settings', icon: 'fa-gear',               label: 'Settings', href: '../Settings/settings.html' },
-            { id: 'logout',   icon: 'fa-right-from-bracket', label: 'Logout',   href: '../landing/landing.html', cls: 'logout' },
+            { id: 'settings', icon: 'fa-gear',               label: (lang === 'hi' ? TRANSLATIONS.hi.settings : 'Settings'), href: '../Settings/settings.html' },
+            { id: 'logout',   icon: 'fa-right-from-bracket', label: (lang === 'hi' ? TRANSLATIONS.hi.logout : 'Logout'),   href: '../landing/landing.html', cls: 'logout' },
         ];
 
         const activePage = window.ACTIVE_PAGE || '';
@@ -39,8 +70,14 @@
         function buildNavLink(item) {
             const isActive = item.id === activePage ? ' active' : '';
             const extraCls = item.cls ? ' ' + item.cls : '';
-            return `<a href="${item.href}" class="menu-item${isActive}${extraCls}" title="${item.label}">
-                        <i class="fa-solid ${item.icon}"></i>
+            const href = item.href === '#' ? '#' : item.href;
+            const clickAttr = item.onclick ? `onclick="${item.onclick}"` : '';
+
+            // Badge Placeholder
+            const badgeHTML = `<span class="nav-badge" id="badge-${item.id}" style="display:none;"></span>`;
+
+            return `<a href="${href}" class="menu-item${isActive}${extraCls}" title="${item.label}" ${clickAttr} id="${item.id}-btn-sidebar">
+                        <i class="fa-solid ${item.icon}">${badgeHTML}</i>
                         <span>${item.label}</span>
                     </a>`;
         }
@@ -72,60 +109,93 @@
                     <div class="store-identity">
                         <i class="fa-solid fa-store store-identity-icon"></i>
                         <div class="shop-name-topbar shop-name">
-                            <div class="topbar-line">Store :- <span id="topbar-store-name">QuadStock</span></div>
-                            <div class="topbar-line">Store id :- <span id="topbar-store-id">...</span></div>
+                            <div class="topbar-line">${lang === 'hi' ? TRANSLATIONS.hi.store : 'Store'} :- <span id="topbar-store-name">QuadStock</span></div>
+                            <div class="topbar-line">${lang === 'hi' ? TRANSLATIONS.hi.store_id : 'Store id'} :- <span id="topbar-store-id">...</span></div>
                         </div>
                     </div>
                 </div>
                 <div class="header-right">
                     <div class="digital-clock" id="digital-clock">--:--:-- --</div>
                     <button class="theme-toggle-btn" id="theme-toggle" title="Toggle Theme">
-                        <i class="fa-solid fa-moon"></i>
+                        <i class="fa-solid fa-sun"></i>
                     </button>
                 </div>
             </div>
         `;
 
+        const overlayHTML = `<div class="sidebar-overlay" id="sidebar-overlay"></div>`;
+
         // ── 4. INJECT INTO DOM ───────────────────────────────────────────────────
-        const sidebar = document.querySelector('aside.sidebar');
+        const sidebar = document.querySelector('aside.sidebar') || document.getElementById('sidebar-target');
         if (sidebar) {
             sidebar.innerHTML = sidebarHTML;
         }
 
         // Inject top bar at the very top of .main-content (before existing children)
         const mainContent = document.querySelector('.main-content');
-        if (mainContent) {
+        if (mainContent && !window.HIDE_TOP_BAR) {
             // Remove any existing top-bar or top-header to avoid duplicates
             const existing = mainContent.querySelector('.top-bar, .top-header, header');
-            if (existing) existing.remove();
+            // If the user has a custom top-header they want to KEEP, we should be careful.
+            // But here we enforce the global top bar.
+            if (existing && existing.id !== 'shared-top-bar') existing.remove();
 
-            mainContent.insertAdjacentHTML('afterbegin', topBarHTML);
+            if (!mainContent.querySelector('#shared-top-bar')) {
+                mainContent.insertAdjacentHTML('afterbegin', topBarHTML);
+            }
+        }
+
+        // Inject Overlay (for mobile)
+        if (!document.getElementById('sidebar-overlay')) {
+            document.body.insertAdjacentHTML('beforeend', overlayHTML);
         }
 
         // ── 5. SIDEBAR TOGGLE & MOBILE DRAWER ───────────────────────────────────
         const desktopToggle = document.getElementById('sidebar-toggle');
         const mobileToggle = document.getElementById('mobile-menu-toggle');
         const container = document.querySelector('.layout-container');
-        const sidebarEl = document.querySelector('aside.sidebar');
+        const sidebarEl = document.querySelector('aside.sidebar') || document.getElementById('sidebar-target');
 
         // Desktop Toggle
         if (desktopToggle && container) {
             desktopToggle.addEventListener('click', function () {
+                container.classList.toggle('sidebar-collapsed');
                 document.documentElement.classList.toggle('sidebar-collapsed');
                 const isCollapsed = document.documentElement.classList.contains('sidebar-collapsed');
                 localStorage.setItem('sidebarCollapsed', isCollapsed ? '1' : '0');
             });
             if (localStorage.getItem('sidebarCollapsed') === '1') {
+                container.classList.add('sidebar-collapsed');
                 document.documentElement.classList.add('sidebar-collapsed');
             }
         }
 
         // Mobile Toggle (Slide out Drawer)
+        const overlayEl = document.getElementById('sidebar-overlay');
+        
+        const toggleMobileMenu = (active) => {
+            if (active) {
+                sidebarEl.classList.add('mobile-active');
+                overlayEl.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            } else {
+                sidebarEl.classList.remove('mobile-active');
+                overlayEl.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        };
+
         if (mobileToggle && sidebarEl) {
             mobileToggle.addEventListener('click', function (e) {
                 e.stopPropagation();
-                sidebarEl.classList.toggle('mobile-active');
+                const isActive = sidebarEl.classList.contains('mobile-active');
+                toggleMobileMenu(!isActive);
             });
+
+            // Close when clicking overlay
+            if (overlayEl) {
+                overlayEl.addEventListener('click', () => toggleMobileMenu(false));
+            }
 
             // Close sidebar when clicking outside on mobile
             document.addEventListener('click', function (e) {
@@ -140,70 +210,95 @@
             sidebarEl.querySelectorAll('.menu-item').forEach(item => {
                 item.addEventListener('click', () => {
                     if (window.innerWidth <= 768) {
-                        sidebarEl.classList.remove('mobile-active');
+                        toggleMobileMenu(false);
                     }
                 });
             });
         }
 
-        // ── 6. STORE NAME & ID FROM DATABASE (via window.authContext) ───────────
-        const user = window.authContext && window.authContext.user;
-        if (user) {
-            // 6.1 Function to update UI with store data
-            const updateStoreUI = (name, id) => {
-                // Update sidebar brand text
-                document.querySelectorAll('.brand-text').forEach(function (el) {
-                    el.textContent = name;
-                });
+        // ── 6. STORE NAME & ID FROM DATABASE ────────────────────────────────────
+        const updateStoreUI = (name, id) => {
+            document.querySelectorAll('.brand-text').forEach(el => el.textContent = name);
+            const topbarStoreName = document.getElementById('topbar-store-name');
+            const topbarStoreId = document.getElementById('topbar-store-id');
+            if (topbarStoreName) topbarStoreName.textContent = name;
+            if (topbarStoreId) topbarStoreId.textContent = id;
 
-                // Update top bar formatted string
-                const topbarStoreName = document.getElementById('topbar-store-name');
-                const topbarStoreId = document.getElementById('topbar-store-id');
-                if (topbarStoreName) topbarStoreName.textContent = name;
-                if (topbarStoreId) topbarStoreId.textContent = id;
+            document.querySelectorAll('.shop-name').forEach(el => {
+                if (!el.classList.contains('shop-name-topbar')) el.textContent = name;
+            });
+        };
 
-                // Maintain compatibility with any other .shop-name elements if they exist
-                document.querySelectorAll('.shop-name').forEach(function (el) {
-                    if (!el.classList.contains('shop-name-topbar')) {
-                        el.textContent = name;
-                    }
-                });
-            };
+        const emp = JSON.parse(sessionStorage.getItem('currentEmployee'));
 
-            // 6.2 Display cached data first to prevent UI jumping
-            let shopName = user.shopName || (user.storeId && user.storeId.name) || 'QuadStock';
-            let storeUniqueId = user.storeUniqueId || (user.storeId && user.storeId.storeUniqueId) || 'N/A';
-            updateStoreUI(shopName, storeUniqueId);
+        if (user || emp) {
+            let shopName = (user && user.shopName) || (emp && emp.shopName) || 'QuadStock';
+            let storeId = (user && (user.storeUniqueId || (user.storeId && user.storeId.storeUniqueId))) || (emp && emp.storeId) || 'N/A';
+            updateStoreUI(shopName, storeId);
 
-            // 6.3 Fetch Live Data from Database
-            const token = localStorage.getItem('authToken');
+            const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
             if (token) {
                 const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-                                ? 'http://localhost:3000/api' 
-                                : '/api'; // Fallback for production
+                                ? 'http://localhost:3000/api' : '/api';
                 
                 fetch(`${apiBase}/stores/details`, {
-                    headers: {
-                        'Authorization': 'Bearer ' + token,
-                        'Content-Type': 'application/json'
-                    }
+                    headers: { 'Authorization': 'Bearer ' + token }
                 })
                 .then(res => res.json())
                 .then(result => {
                     if (result.success && result.data) {
-                        const liveName = result.data.name || 'QuadStock';
-                        const liveId = result.data.storeUniqueId || 'N/A';
-                        updateStoreUI(liveName, liveId);
+                        const store = result.data;
+                        updateStoreUI(store.name || 'QuadStock', store.storeUniqueId || 'N/A');
+                        
+                        // Save localization settings
+                        if (store.timeFormat) localStorage.setItem('timeFormat', store.timeFormat);
+                        if (store.language) localStorage.setItem('language', store.language);
+                        
+                        // Signal clock update if needed (it reads from localStorage or state)
+                        if (window.updateClockFormat) window.updateClockFormat();
                     }
                 })
-                .catch(err => console.error("Could not fetch live store details:", err));
+                .catch(err => {});
+
+                // ── 6.5 FETCH NOTIFICATION BADGES ───────────────────────────
+                fetch(`${apiBase}/stores/notifications`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                })
+                .then(res => res.json())
+                .then(result => {
+                    if (result.success && result.data) {
+                        const { queries, complaints } = result.data;
+                        
+                        const updateBadge = (id, count) => {
+                            const badge = document.getElementById(`badge-${id}`);
+                            if (badge) {
+                                if (count > 0) {
+                                    badge.textContent = count > 99 ? '9'+'+' : count;
+                                    badge.style.display = 'flex';
+                                } else {
+                                    badge.style.display = 'none';
+                                }
+                            }
+                        };
+                        
+                        updateBadge('query', queries);
+                        updateBadge('complain', complaints);
+                    }
+                })
+                .catch(err => {});
             }
         }
 
         // ── 7. DIGITAL CLOCK ─────────────────────────────────────────────────────
         var clockEl = document.getElementById('digital-clock');
         if (clockEl) {
-            let timeFormat = '12'; // Default
+            // Load initial format from localStorage or default
+            let timeFormat = localStorage.getItem('timeFormat') || '12';
+
+            window.updateClockFormat = function() {
+                timeFormat = localStorage.getItem('timeFormat') || '12';
+                updateClock();
+            };
 
             function updateClock() {
                 var now = new Date();
@@ -223,25 +318,7 @@
                 }
 
                 clockEl.innerHTML =
-                    '<span style="opacity:0.6;font-size:0.85em;margin-right:5px;">' +
-                    DAYS[now.getDay()] + ', ' + now.getDate() + ' ' + MONTHS[now.getMonth()] +
-                    '</span>' + displayTime;
-            }
-
-            // Sync formatting with live store data
-            const token = localStorage.getItem('authToken');
-            if (token) {
-                const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-                    ? 'http://localhost:3000/api'
-                    : '/api';
-                fetch(`${apiBase}/stores/details`, {
-                    headers: { 'Authorization': 'Bearer ' + token }
-                }).then(r => r.json()).then(res => {
-                    if (res.success && res.data.timeFormat) {
-                        timeFormat = res.data.timeFormat;
-                        updateClock();
-                    }
-                }).catch(e => { });
+                    `<span style="opacity:0.6;font-size:0.85em;margin-right:5px;">${DAYS[now.getDay()]}, ${now.getDate()} ${MONTHS[now.getMonth()]}</span>${displayTime}`;
             }
 
             updateClock();
@@ -249,25 +326,22 @@
         }
 
         // ── 8. THEME TOGGLE ──────────────────────────────────────────────────────
-        var savedTheme = localStorage.getItem('theme') || 'light';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        document.body.setAttribute('data-theme', savedTheme);
+        const themeBtn = document.getElementById('theme-toggle');
+        const applyTheme = (theme) => {
+            document.documentElement.setAttribute('data-theme', theme);
+            document.body.setAttribute('data-theme', theme);
+            if (themeBtn) {
+                themeBtn.innerHTML = theme === 'dark' ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
+            }
+        };
 
-        var themeBtn = document.getElementById('theme-toggle');
+        applyTheme(localStorage.getItem('theme') || 'light');
+
         if (themeBtn) {
-            themeBtn.innerHTML = savedTheme === 'dark'
-                ? '<i class="fa-solid fa-sun"></i>'
-                : '<i class="fa-solid fa-moon"></i>';
-
             themeBtn.addEventListener('click', function () {
-                var current = document.documentElement.getAttribute('data-theme');
-                var next = current === 'dark' ? 'light' : 'dark';
-                document.documentElement.setAttribute('data-theme', next);
-                document.body.setAttribute('data-theme', next);
+                const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
                 localStorage.setItem('theme', next);
-                themeBtn.innerHTML = next === 'dark'
-                    ? '<i class="fa-solid fa-sun"></i>'
-                    : '<i class="fa-solid fa-moon"></i>';
+                applyTheme(next);
             });
         }
     };
@@ -278,3 +352,4 @@
         initSidebar();
     }
 })();
+

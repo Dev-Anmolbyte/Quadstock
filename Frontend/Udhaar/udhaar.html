@@ -31,73 +31,70 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Top Bar injected by sidebar.js -->
-
-
-            <!-- Content -->
-            <div class="udhaar-container">
-                <!-- Stats Row -->
-                <div class="stats-row">
-                    <div class="summary-cards">
-                        <div class="stat-card">
-                            <div class="stat-icon red-bg"><i class="fa-solid fa-indian-rupee-sign"></i></div>
-                            <div class="stat-info">
-                                <p class="label">Balance Due</p>
-                                <h3 id="total-udhaar-amount" style="color: #ef4444;">₹0</h3>
+            <div class="content-scrollable">
+                <div class="udhaar-container">
+                    <!-- Header & Stats Row -->
+                    <div class="stats-row">
+                        <div class="summary-cards">
+                            <div class="stat-card">
+                                <div class="stat-icon red-bg">
+                                    <i class="fa-solid fa-hand-holding-dollar"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <div class="label">Total Credit</div>
+                                    <h3 id="total-udhaar-amount">₹0</h3>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon orange-bg">
+                                    <i class="fa-solid fa-hourglass-half"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <div class="label">Pending Today</div>
+                                    <h3 id="pending-count">0</h3>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon green-bg">
+                                    <i class="fa-solid fa-check-double"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <div class="label">Total Recovered</div>
+                                    <h3 id="total-recovered-amount">₹0</h3>
+                                </div>
                             </div>
                         </div>
-                        <div class="stat-card">
-                            <div class="stat-icon orange-bg"><i class="fa-solid fa-user-clock"></i></div>
-                            <div class="stat-info">
-                                <p class="label">Pending Customers</p>
-                                <h3 id="pending-count">0</h3>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon green-bg"><i class="fa-solid fa-indian-rupee-sign"></i></div>
-                            <div class="stat-info">
-                                <p class="label">Total Recovered</p>
-                                <h3 id="total-recovered-amount" style="color: #10b981;">₹0</h3>
-                            </div>
-                        </div>
+                        <button class="btn-add-udhaar" id="btn-add-udhaar">
+                            <i class="fa-solid fa-plus"></i> New Credit Record
+                        </button>
                     </div>
-                    
-                    <button class="btn-add-udhaar" id="btn-add-udhaar">
-                        <i class="fa-solid fa-plus"></i>
-                        <span>Add New Credit Record</span>
-                    </button>
-                </div>
 
-                <!-- Table Section -->
-                <div class="card table-card">
-                    <div class="card-header">
-                        <h3>Customer Credit Records</h3>
-                        <div class="search-box">
-                            <i class="fa-solid fa-search"></i>
-                            <input type="text" id="search-udhaar" placeholder="Search by customer name...">
+                    <!-- Table Section -->
+                    <div class="table-card">
+                        <div class="card-header">
+                            <h3>Active Credit Records</h3>
+                            <div class="search-box">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="text" id="search-udhaar" placeholder="Search by customer name...">
+                            </div>
                         </div>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="udhaar-table">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Due Date</th>
-                                    <th>Customer Name</th>
-                                    <th>Contact</th>
-                                    <th>Description</th>
-                                    <th>Amount (₹)</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="udhaar-table-body">
-                                <!-- JS will populate this -->
-                                <tr>
-                                    <td colspan="8" style="text-align:center; padding: 2rem;">No records found.</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <div class="table-responsive">
+                            <table class="udhaar-table">
+                                <thead>
+                                    <tr>
+                                        <th>Customer</th>
+                                        <th>Credit Amount</th>
+                                        <th>Pending</th>
+                                        <th>Due Date</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="udhaar-table-body">
+                                    <!-- Dynamic rows -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>

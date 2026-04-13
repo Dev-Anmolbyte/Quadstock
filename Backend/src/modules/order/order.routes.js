@@ -1,6 +1,7 @@
 import { Router } from "express";
-import { createOrder, getOrders } from "./order.controller.js";
-import { authMiddleware } from "../../middleware/auth.middleware.js";
+import { createOrder, getOrders, getMySales, getEmployeeSales } from "./order.controller.js";
+
+import { authMiddleware, authorizeRoles } from "../../middleware/auth.middleware.js";
 
 const router = Router();
 
@@ -11,4 +12,8 @@ router.route("/")
     .post(createOrder)
     .get(getOrders);
 
+router.get("/my-sales", getMySales);
+router.get("/employee/:id", authorizeRoles("owner"), getEmployeeSales);
+
 export default router;
+

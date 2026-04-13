@@ -24,24 +24,23 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Top Bar injected by sidebar.js -->
-
-
-            <!-- Complaint Content -->
-            <div class="complain-section">
-                <div class="complain-header">
-                    <div>
-                        <h1>Complaint Box</h1>
-                        <p style="color:var(--text-secondary); margin-top:0.5rem;">Manage and resolve staff complaints
-                        </p>
+            <div class="content-scrollable">
+                <!-- Complaint Content -->
+                <div class="complain-section">
+                    <div class="complain-header">
+                        <div>
+                            <h1>Complaint Box</h1>
+                            <p style="color:var(--text-secondary); margin-top:0.5rem;">Manage and resolve staff complaints
+                            </p>
+                        </div>
+                        <button id="btn-raise-complaint" class="btn-primary">
+                            <i class="fa-solid fa-plus"></i> Raise New Complaint
+                        </button>
                     </div>
-                    <button id="btn-raise-complaint" class="btn-primary">
-                        <i class="fa-solid fa-plus"></i> Raise New Complaint
-                    </button>
-                </div>
 
-                <div class="complaints-list" id="complaints-list">
-                    <!-- Loaded via JS -->
+                    <div class="complaints-list" id="complaints-list">
+                        <!-- Loaded via JS -->
+                    </div>
                 </div>
             </div>
         </main>

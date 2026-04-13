@@ -62,12 +62,35 @@ class OrderService {
     }
 
     async getOrders(storeId, query = {}) {
-        const { status, limit = 50 } = query;
+        const { status, limit = 50, employeeId } = query;
         const filter = { storeId };
         if (status) filter.status = status;
+        if (employeeId) filter.employeeId = employeeId;
 
         return await Order.find(filter).sort({ createdAt: -1 }).limit(parseInt(limit));
     }
+
+    async getEmployeeSalesSummary(employeeId, storeId, month) {
+        // month: "YYYY-MM"
+        const filter = {
+            employeeId,
+            storeId,
+            createdAt: {
+                $gte: new Date(`${month}-01`),
+                $lt: new Date(new Date(`${month}-01`).setMonth(new Date(`${month}-01`).getMonth() + 1))
+            }
+        };
+
+        const orders = await Order.find(filter);
+        const totalSales = orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+        
+        return {
+            count: orders.length,
+            totalSales,
+            month
+        };
+    }
 }
+
 
 export default new OrderService();

@@ -74,41 +74,14 @@ body {
 }
 
 
-/* Main Content */
-/* Main Content */
+/* Main Content Override */
 .main-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-    overflow-x: hidden;
-    position: relative;
-    padding: 1.5rem;
+    padding: 0 !important; /* Managed by sidebar.css */
 }
 
-/* Top Bar */
-.top-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+/* Page-specific title (below shared top bar) */
+.page-title-box {
     margin-bottom: 2rem;
-}
-
-.header-left h1 {
-    font-size: 1.75rem;
-    font-weight: 700;
-    margin-bottom: 0.25rem;
-}
-
-.subtitle {
-    color: var(--text-secondary);
-    font-size: 0.875rem;
-}
-
-.header-right {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
 }
 
 .theme-toggle-btn {
@@ -771,6 +744,29 @@ body {
     }
 }
 
+@media (max-width: 480px) {
+    .form-actions {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .right-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+    .right-actions button {
+        width: 100%;
+    }
+    .left-actions {
+        width: 100%;
+    }
+    .left-actions button {
+        width: 100%;
+    }
+    .summary-card {
+        padding: 0.5rem;
+    }
+}
+
 /* Image Upload Enhancements (Updated) */
 .image-upload-options {
     margin-top: 0.5rem;
@@ -1140,44 +1136,6 @@ input:checked+.slider:before {
 
 /* Mobile Layout - Dashboard Style */
 @media (max-width: 768px) {
-    .layout-container {
-        flex-direction: column;
-        height: 100vh;
-        overflow: hidden;
-    }
-
-    .main-content {
-        padding: 1rem;
-        height: 100dvh;
-        /* Use dynamic viewport height */
-        overflow-y: auto;
-        padding-bottom: 90px;
-        /* Extra padding for bottom sidebar */
-    }
-
-    /* Bottom Navigation Sidebar */
-    .sidebar {
-        width: 100% !important;
-        height: auto;
-        flex-direction: row;
-        align-items: center;
-        padding: 0.5rem 1rem;
-        overflow-y: hidden;
-        overflow-x: auto;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        z-index: 100;
-        background: var(--bg-white);
-        border-top: 1px solid var(--border-color);
-        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
-        justify-content: space-around;
-        border-radius: 0;
-        margin: 0;
-    }
-
-
-
     /* Summary Deck */
     .summary-deck {
         grid-template-columns: 1fr 1fr;
@@ -1320,14 +1278,7 @@ body.full-table-view .card {
     box-shadow: none;
 }
 
-/* Barcode Scanner UI */
-#barcode-reader {
-    background: #000;
-    border: 2px solid var(--border-color);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    position: relative;
-    max-width: 100%;
-}
+
 
 /* Success Flash Animation */
 @keyframes flash-success {
@@ -1349,39 +1300,5 @@ body.full-table-view .card {
     border-color: #22c55e !important;
 }
 
-#btn-scan-barcode.active-scanning {
-    color: white !important;
-    animation: pulse-red 1.5s infinite;
-}
 
-@keyframes pulse-red {
-    0% {
-        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
-    }
-
-    70% {
-        box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
-    }
-
-    100% {
-        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
-    }
-}
-
-/* Adjust html5-qrcode internal elements */
-#barcode-reader video {
-    border-radius: 6px;
-}
-
-#product-barcode {
-    transition: all 0.3s ease;
-    background: var(--bg-light);
-}
-
-#product-barcode:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 4px rgba(244, 124, 37, 0.15);
-    width: 220px !important;
-    /* Slightly expand on focus for better experience */
-    outline: none;
-}
+

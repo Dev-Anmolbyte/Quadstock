@@ -1,5 +1,5 @@
 import CONFIG from '../Shared/Utils/config.js';
-import apiRequest from '../Shared/Utils/api.js';
+import { apiRequest } from '../Shared/Utils/api.js';
 
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -29,8 +29,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let tempReplyImages = {}; // Temp storage for replies by id: []
 
     function getCurrentUserName() {
-        if (currentUser) return currentUser.ownerName || currentUser.shopName || 'Owner';
-        if (currentEmployee) return currentEmployee.name || 'Staff';
+        if (!user) return 'Admin';
+        if (userRole === 'owner') return user.ownerName || user.shopName || 'Owner';
+        if (userRole === 'staff') return user.name || 'Staff';
 
         return 'Admin';
     }
@@ -174,20 +175,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!listContainer) return;
         listContainer.innerHTML = '';
 
-        if (userRole === 'staff') {
-            listContainer.innerHTML = `
-                <div style="text-align:center; padding:3rem 1.5rem; background:var(--bg-white); border-radius:1.5rem; border:1px dashed var(--border-color); margin-top:1rem;">
-                    <div style="width:60px; height:60px; background:rgba(244, 124, 37, 0.1); color:var(--primary-color); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 1.5rem; font-size:1.5rem;">
-                        <i class="fa-solid fa-user-shield"></i>
-                    </div>
-                    <h3 style="margin-bottom:0.5rem; color:var(--text-primary);">Privacy Restricted</h3>
-                    <p style="color:var(--text-secondary); font-size:0.9rem; max-width:400px; margin:0 auto;">For security reasons, you cannot view existing threads. Please use the button above to submit a new complaint to the management.</p>
-                </div>
-            `;
-            return;
+        let sorted = [...complaints];
+        if (userRole !== 'owner' && userRole !== 'admin') {
+            sorted = sorted.filter(c => c.staffName === CURRENT_USER);
         }
-
-        const sorted = [...complaints].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        sorted = sorted.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
         if (sorted.length === 0) {
             listContainer.innerHTML = `<div style="text-align:center; padding:2rem; color:var(--text-secondary);">No complaints yet.</div>`;
@@ -209,22 +201,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>`;
             }
 
-            const repliesHtml = c.replies.map(r => `
-                <div class="reply-item ${r.author.toLowerCase().includes('admin') || r.author.toLowerCase().includes('owner') ? 'owner-reply' : ''}">
-                    <div class="reply-avatar">${r.author.charAt(0)}</div>
-                    <div class="reply-bubble">
-                        <span class="reply-author-name">${r.author} <span style="font-weight:400; opacity:0.7;">${formatTimeDisplay(r.timestamp)}</span></span>
-                        <div class="reply-text">${r.text}</div>
+            const repliesHtml = c.replies.map(r => {
+                const isMe = r.author === CURRENT_USER;
+                const replyClass = isMe ? 'reply-item self-reply' : 'reply-item';
+                return `
+                    <div class="${replyClass}">
+                        <div class="reply-avatar">${r.author.charAt(0)}</div>
+                        <div class="reply-bubble">
+                            <span class="reply-author-name">${isMe ? 'You' : r.author} <span style="font-weight:400; opacity:0.7;">${formatTimeDisplay(r.timestamp)}</span></span>
+                            <div class="reply-text">${r.text}</div>
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
 
             let actionAreaHtml = '';
             if (c.status === 'closed') {
                 actionAreaHtml = `
                     <div class="closed-overlay">
-                        <span><i class="fa-solid fa-lock"></i> Thread closed by ${c.closedBy || 'Admin'}</span>
-                        <button class="btn-action-outline success" onclick="updateComplaintStatus('${c._id}', 'open')"><i class="fa-solid fa-unlock"></i> Re-open</button>
+                        <span><i class="fa-solid fa-lock"></i> Complaint closed by ${c.closedBy || 'Admin'}</span>
+                        ${userRole === 'owner' ? `<button class="btn-action-outline success" onclick="updateComplaintStatus('${c._id}', 'open')"><i class="fa-solid fa-unlock"></i> Re-open</button>` : ''}
+                        ${userRole === 'owner' ? `<button class="btn-action-outline danger" onclick="deleteComplaintAction('${c._id}')" style="margin-left: 0.5rem;"><i class="fa-solid fa-trash"></i> Delete</button>` : ''}
                     </div>
                 `;
             } else {
@@ -236,15 +233,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="input-row">
                             <input type="text" class="main-input" id="reply-input-${c._id}" placeholder="Type your reply..." onkeyup="if(event.key === 'Enter') addReply('${c._id}')">
                             <button class="btn-send-reply" onclick="addReply('${c._id}')"><i class="fa-solid fa-paper-plane"></i></button>
-                            <button class="btn-action-outline danger" onclick="closeComplaint('${c._id}')"><i class="fa-solid fa-check"></i> Close</button>
+                            ${userRole === 'owner' ? `<button class="btn-action-outline danger" onclick="closeComplaint('${c._id}')"><i class="fa-solid fa-check"></i> Close</button>` : ''}
+                            ${userRole === 'owner' ? `<button class="btn-action-outline danger" onclick="deleteComplaintAction('${c._id}')" style="margin-left: 0.5rem;"><i class="fa-solid fa-trash"></i></button>` : ''}
                         </div>
                     </div>
                 `;
             }
 
-            const hasManyReplies = c.replies.length > 2;
+            const hasManyReplies = c.replies.length > 3;
             const chatListClass = hasManyReplies ? 'reply-list collapsed' : 'reply-list';
-            const showMoreBtn = hasManyReplies ? `<button class="show-more-replies" onclick="toggleChat(this)"><i class="fa-solid fa-angles-down"></i> Show all ${c.replies.length} messages</button>` : '';
+            const showMoreBtn = hasManyReplies ? `<button class="show-more-replies" onclick="toggleChat(this, ${c.replies.length})"><i class="fa-solid fa-angles-down"></i> Show all ${c.replies.length} messages</button>` : '';
 
             card.innerHTML = `
                 <div class="card-top-content">
@@ -277,14 +275,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    window.toggleChat = function (btn) {
+    window.toggleChat = function (btn, count) {
         const list = btn.previousElementSibling;
-        const isCollapsed = list.classList.toggle('collapsed');
-        const count = list.children.length;
-
-        if (isCollapsed) {
+        const isNowCollapsed = list.classList.toggle('collapsed');
+        if (isNowCollapsed) {
             btn.innerHTML = `<i class="fa-solid fa-angles-down"></i> Show all ${count} messages`;
-            list.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         } else {
             btn.innerHTML = `<i class="fa-solid fa-angles-up"></i> Show less`;
         }
@@ -313,6 +308,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    const confirmModal = document.getElementById('confirm-modal');
+    const confirmProceedBtn = document.getElementById('btn-confirm-proceed');
+    const confirmCancelBtn = document.getElementById('btn-confirm-cancel');
+    let actionTargetId = null;
+    let actionType = 'close'; // 'close' or 'delete' or 'reopen'
 
     window.updateComplaintStatus = async function (id, status) {
         try {
@@ -320,44 +320,107 @@ document.addEventListener('DOMContentLoaded', () => {
                 method: 'PATCH',
                 body: JSON.stringify({ status, closedBy: status === 'closed' ? CURRENT_USER : null })
             });
-            if (result.success) fetchComplaints();
+            if (result.success) {
+                fetchComplaints();
+                return true;
+            }
         } catch (err) {
             console.error("Status Update Error:", err);
+            return false;
+        }
+    };
+
+    window.closeComplaint = function (id) {
+        actionTargetId = id;
+        actionType = 'close';
+        if (!confirmModal) {
+            if (confirm('Close this complaint?')) window.updateComplaintStatus(id, 'closed');
+            return;
+        }
+        
+        const confirmTitle = confirmModal.querySelector('h3');
+        const confirmDesc = confirmModal.querySelector('p');
+        const confirmIcon = confirmModal.querySelector('.fa-circle-question');
+
+        confirmTitle.innerText = "Close Complaint?";
+        confirmDesc.innerText = "Are you sure you want to mark this complaint as closed? This will move it to the resolved section.";
+        confirmProceedBtn.innerText = "Yes, Close It";
+        confirmProceedBtn.style.background = "var(--accent)";
+        confirmProceedBtn.style.boxShadow = "0 10px 15px -3px rgba(22, 163, 74, 0.3)";
+        if (confirmIcon) {
+            confirmIcon.className = "fa-solid fa-circle-check";
+            confirmIcon.parentElement.style.color = "var(--accent)";
+        }
+
+        confirmModal.classList.add('active');
+    };
+
+    window.deleteComplaintAction = function (id) {
+        actionTargetId = id;
+        actionType = 'delete';
+        if (!confirmModal) {
+            if (confirm('Delete this complaint?')) performDelete(id);
+            return;
+        }
+
+        const confirmTitle = confirmModal.querySelector('h3');
+        const confirmDesc = confirmModal.querySelector('p');
+        const confirmIcon = confirmModal.querySelector('.fa-circle-question');
+
+        confirmTitle.innerText = "Delete Complaint?";
+        confirmDesc.innerText = "This will permanently remove the complaint and all its histories. This action cannot be undone.";
+        confirmProceedBtn.innerText = "Yes, Delete It";
+        confirmProceedBtn.style.background = "var(--danger)";
+        confirmProceedBtn.style.boxShadow = "0 10px 15px -3px rgba(239, 68, 68, 0.3)";
+        if (confirmIcon) {
+            confirmIcon.className = "fa-solid fa-trash-can";
+            confirmIcon.parentElement.style.color = "var(--danger)";
+        }
+
+        confirmModal.classList.add('active');
+    };
+
+    async function performDelete(id) {
+        try {
+            const result = await apiRequest(`/complaints/${id}`, {
+                method: 'DELETE'
+            });
+            if (result.success) {
+                fetchComplaints();
+            }
+        } catch (err) {
+            console.error("Delete Error:", err);
         }
     }
 
-
-    // --- Confirmation Modal Logic ---
-    const confirmModal = document.getElementById('confirm-modal');
-    const confirmProceedBtn = document.getElementById('btn-confirm-proceed');
-    const confirmCancelBtn = document.getElementById('btn-confirm-cancel');
-    let itemToClose = null;
-
-    window.closeComplaint = (id) => {
-        itemToClose = id;
-        if (confirmModal) confirmModal.classList.add('active');
-        else if (confirm('Close this complaint?')) {
-            updateComplaintStatus(id, 'closed');
-        }
-    };
+    if (confirmProceedBtn) {
+        confirmProceedBtn.onclick = async () => {
+            if (actionTargetId) {
+                if (actionType === 'close') {
+                    await window.updateComplaintStatus(actionTargetId, 'closed');
+                } else if (actionType === 'delete') {
+                    await performDelete(actionTargetId);
+                }
+            }
+            confirmModal.classList.remove('active');
+            actionTargetId = null;
+        };
+    }
 
     if (confirmCancelBtn) {
         confirmCancelBtn.onclick = () => {
             confirmModal.classList.remove('active');
-            itemToClose = null;
-        };
-    }
-
-    if (confirmProceedBtn) {
-        confirmProceedBtn.onclick = () => {
-            if (itemToClose) updateComplaintStatus(itemToClose, 'closed');
-            confirmModal.classList.remove('active');
-            itemToClose = null;
+            actionTargetId = null;
         };
     }
 
     if (confirmModal) {
-        confirmModal.onclick = (e) => { if (e.target === confirmModal) { confirmModal.classList.remove('active'); itemToClose = null; } };
+        confirmModal.onclick = (e) => { 
+            if (e.target === confirmModal) { 
+                confirmModal.classList.remove('active'); 
+                actionTargetId = null; 
+            } 
+        };
     }
 
     // --- Modal Logic for Raising Complaint ---
@@ -365,6 +428,19 @@ document.addEventListener('DOMContentLoaded', () => {
         raiseBtn.onclick = () => {
             modalOverlay.classList.add('active');
             staffNameInput.value = CURRENT_USER;
+            staffNameInput.readOnly = true; // Auto-fetch and lock the name
+
+            // Dynamic Role Handling
+            if (roleSelect) {
+                roleSelect.innerHTML = '';
+                const displayRole = userRole === 'owner' ? 'Owner' : 'Staff';
+                const opt = document.createElement('option');
+                opt.value = displayRole;
+                opt.textContent = displayRole;
+                roleSelect.appendChild(opt);
+                roleSelect.value = displayRole;
+            }
+
             subjectInput.value = '';
             descInput.value = '';
             uploadedImages = [];
@@ -380,9 +456,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const description = descInput.value.trim();
             if (subject && description) {
                 try {
-                    const response = await fetch(`${CONFIG.API_BASE_URL}/complaints/add`, {
+                    const result = await apiRequest('/complaints/', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             ownerId,
                             type: 'complaint',
@@ -393,7 +468,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             images: uploadedImages
                         })
                     });
-                    if (response.ok) {
+                    if (result.success) {
                         modalOverlay.classList.remove('active');
                         fetchComplaints();
                     }
@@ -409,5 +484,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     fetchComplaints(); // Initial load
-    setInterval(fetchComplaints, 15000); // Live refresh every 15s
 });

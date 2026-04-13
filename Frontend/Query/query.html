@@ -24,25 +24,24 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Top Bar injected by sidebar.js -->
-
-
-            <!-- Query Content -->
-            <div class="query-section">
-                <div class="query-header">
-                    <div>
-                        <h1>Query Box</h1>
-                        <p style="color:var(--text-secondary); margin-top:0.5rem;">Handle and track staff and customer
-                            queries
-                        </p>
+            <div class="content-scrollable">
+                <!-- Query Content -->
+                <div class="query-section">
+                    <div class="query-header">
+                        <div>
+                            <h1>Query Box</h1>
+                            <p style="color:var(--text-secondary); margin-top:0.5rem;">Handle and track staff and customer
+                                queries
+                            </p>
+                        </div>
+                        <button id="btn-raise-query" class="btn-primary">
+                            <i class="fa-solid fa-plus"></i> Raise New Query
+                        </button>
                     </div>
-                    <button id="btn-raise-query" class="btn-primary">
-                        <i class="fa-solid fa-plus"></i> Raise New Query
-                    </button>
-                </div>
 
-                <div class="queries-list" id="queries-list">
-                    <!-- Loaded via JS -->
+                    <div class="queries-list" id="queries-list">
+                        <!-- Loaded via JS -->
+                    </div>
                 </div>
             </div>
         </main>

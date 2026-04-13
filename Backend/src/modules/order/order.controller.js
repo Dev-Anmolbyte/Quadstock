@@ -30,7 +30,35 @@ const getOrders = asyncHandler(async (req, res) => {
     });
 });
 
+const getMySales = asyncHandler(async (req, res) => {
+    const { month } = req.query;
+    const currentMonth = month || new Date().toISOString().slice(0, 7);
+    
+    const summary = await OrderService.getEmployeeSalesSummary(req.user._id, req.user.storeId, currentMonth);
+    
+    return res.status(200).json({
+        success: true,
+        data: summary
+    });
+});
+
+const getEmployeeSales = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { month } = req.query;
+    const currentMonth = month || new Date().toISOString().slice(0, 7);
+    
+    const summary = await OrderService.getEmployeeSalesSummary(id, req.user.storeId, currentMonth);
+    
+    return res.status(200).json({
+        success: true,
+        data: summary
+    });
+});
+
 export {
     createOrder,
-    getOrders
+    getOrders,
+    getMySales,
+    getEmployeeSales
 };
+

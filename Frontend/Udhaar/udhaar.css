@@ -85,7 +85,7 @@ body {
 
 .main-content {
     background: transparent !important;
-    padding: 2rem 3rem;
+    padding: 0 !important;
     animation: fadeIn 1s ease-out;
 }
 
@@ -107,7 +107,7 @@ body {
 
 .summary-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
     gap: 2rem;
     width: 100%;
 }
@@ -237,6 +237,7 @@ body {
 .search-box {
     position: relative;
     width: 400px;
+    max-width: 100%;
 }
 
 .search-box input {
@@ -256,7 +257,7 @@ body {
     background: var(--card-bg);
     border-color: var(--primary);
     box-shadow: 0 0 0 5px var(--primary-light), 0 15px 30px -10px rgba(0,0,0,0.15);
-    width: 450px;
+    width: 100%;
     outline: none;
 }
 
@@ -276,9 +277,16 @@ body {
 }
 
 /* MODERN TABLE & ROWS */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
 .udhaar-table {
     width: 100%;
     border-collapse: collapse;
+    min-width: 800px;
 }
 
 .udhaar-table th {
@@ -694,13 +702,35 @@ body {
 @media screen and (max-width: 1200px) {
     .stats-row { grid-template-columns: 1fr; }
     .btn-add-udhaar { width: 100%; align-self: stretch; }
-    .main-content { padding: 1.5rem; }
 }
 
 @media screen and (max-width: 768px) {
-    .card-header { flex-direction: column; gap: 1.5rem; align-items: flex-start; }
+    .card-header { padding: 1.5rem; flex-direction: column; gap: 1.5rem; align-items: flex-start; }
     .search-box { width: 100%; }
     .search-box input:focus { width: 100%; }
     .summary-cards { grid-template-columns: 1fr; }
     .modal-content { padding: 1.5rem; border-radius: 28px; }
+    .modal-grid { grid-template-columns: 1fr; gap: 1rem; }
+}
+
+@media screen and (max-width: 480px) {
+    .stat-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1.5rem;
+    }
+    .modal-actions {
+        grid-template-columns: 1fr;
+    }
+    .btn-submit, .btn-cancel {
+        width: 100%;
+    }
+    .timeline-item {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    .timeline-line {
+        display: none;
+    }
 }

@@ -6,7 +6,7 @@ const replySchema = new Schema({
     timestamp: { type: Date, default: Date.now }
 });
 
-const complaintSchema = new Schema(
+const querySchema = new Schema(
     {
         storeId: {
             type: mongoose.Schema.Types.ObjectId,
@@ -16,12 +16,11 @@ const complaintSchema = new Schema(
         },
         staffName: { type: String, required: true },
         role: { type: String, required: true },
-        type: { type: String, enum: ['complaint'], default: 'complaint' },
         subject: { type: String, required: true },
         description: { type: String, required: true },
-        status: { type: String, enum: ['pending', 'in-progress', 'resolved', 'closed', 'open'], default: 'open' },
+        status: { type: String, enum: ['open', 'closed'], default: 'open' },
         replies: [replySchema],
-        images: [{ name: String, data: String }], // Store small preview data or URLs
+        images: [{ name: String, data: String }],
         closedBy: { type: String }
     },
     {
@@ -29,6 +28,6 @@ const complaintSchema = new Schema(
     }
 );
 
-complaintSchema.index({ storeId: 1, type: 1, status: 1 });
+querySchema.index({ storeId: 1, status: 1 });
 
-export const Complaint = mongoose.model("Complaint", complaintSchema);
+export const Query = mongoose.model("Query", querySchema);

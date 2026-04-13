@@ -23,69 +23,69 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Header Row -->
-            <div class="header-row">
-                <div class="header-left">
-                    <h1 class="page-title">Employees</h1>
-                    <p class="page-subtitle">Manage and track your store personnel</p>
-                </div>
-                <div class="header-actions">
-                    <div class="search-box">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" id="employee-search" placeholder="Search by name or ID...">
+            <div class="content-scrollable">
+                <!-- Header Row -->
+                <div class="header-row">
+                    <div class="header-left">
+                        <h1 class="page-title">Employees</h1>
+                        <p class="page-subtitle">Manage and track your store personnel</p>
                     </div>
-                    <button id="btn-add-employee" class="btn-add">
-                        <i class="fa-solid fa-plus"></i> Add Employee
-                    </button>
+                    <div class="header-actions">
+                        <div class="search-box">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="employee-search" placeholder="Search by name or ID...">
+                        </div>
+                        <button id="btn-add-employee" class="btn-add">
+                            <i class="fa-solid fa-plus"></i> Add Employee
+                        </button>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Stats Row -->
+                <!-- Stats Row -->
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-icon blue-bg">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="label">Total Employees</div>
+                            <h3 id="stat-total">0</h3>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green-bg">
+                            <i class="fa-solid fa-user-check"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="label">Present Today</div>
+                            <h3 id="stat-present">0</h3>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon red-bg">
+                            <i class="fa-solid fa-user-xmark"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="label">Absent / Leave</div>
+                            <h3 id="stat-absent">0</h3>
+                        </div>
+                    </div>
+                    <!-- On Break Card -->
+                    <div class="stat-card">
+                        <div class="stat-icon orange-bg">
+                            <i class="fa-solid fa-mug-hot"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="label">On Break</div>
+                            <h3 id="stat-break">0</h3>
+                        </div>
+                    </div>
+                </div>
 
-            <!-- Stats Row -->
-            <div class="stats-row">
-                <div class="stat-card">
-                    <div class="stat-icon blue-bg">
-                        <i class="fa-solid fa-users"></i>
-                    </div>
-                    <div class="stat-info">
-                        <div class="label">Total Employees</div>
-                        <h3 id="stat-total">0</h3>
-                    </div>
+                <!-- Employee Grid -->
+                <div id="employee-grid" class="employee-grid">
+                    <!-- Employee Cards Injected Here -->
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon green-bg">
-                        <i class="fa-solid fa-user-check"></i>
-                    </div>
-                    <div class="stat-info">
-                        <div class="label">Present Today</div>
-                        <h3 id="stat-present">0</h3>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon red-bg">
-                        <i class="fa-solid fa-user-xmark"></i>
-                    </div>
-                    <div class="stat-info">
-                        <div class="label">Absent / Leave</div>
-                        <h3 id="stat-absent">0</h3>
-                    </div>
-                </div>
-                <!-- On Break Card -->
-                <div class="stat-card">
-                    <div class="stat-icon orange-bg">
-                        <i class="fa-solid fa-mug-hot"></i>
-                    </div>
-                    <div class="stat-info">
-                        <div class="label">On Break</div>
-                        <h3 id="stat-break">0</h3>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Employee Grid -->
-            <div id="employee-grid" class="employee-grid">
-                <!-- Employee Cards Injected Here -->
             </div>
         </main>
     </div>
@@ -212,6 +212,10 @@
                     <h3>Sales</h3>
                 </div>
                 <div class="section-tab-header" data-tab="3">
+                    <i class="fa-solid fa-umbrella-beach"></i>
+                    <h3>Leaves</h3>
+                </div>
+                <div class="section-tab-header" data-tab="4">
                     <i class="fa-solid fa-rocket"></i>
                     <h3>Actions</h3>
                 </div>
@@ -369,7 +373,20 @@
                     </div>
                 </div>
 
-                <!-- Section 4: Actions (New) -->
+                <!-- Section 4: Leaves -->
+                <div class="detail-section-col">
+                    <div class="section-tab-header">
+                        <i class="fa-solid fa-umbrella-beach"></i>
+                        <h3>Leave Requests</h3>
+                    </div>
+                    <div class="section-body">
+                         <div id="leave-list-container" class="leave-list">
+                            <p class="empty-detail-msg">No leave requests found.</p>
+                         </div>
+                    </div>
+                </div>
+
+                <!-- Section 5: Actions -->
                 <div class="detail-section-col">
                     <div class="section-tab-header">
                         <i class="fa-solid fa-rocket"></i>

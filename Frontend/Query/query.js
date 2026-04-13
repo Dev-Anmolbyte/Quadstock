@@ -1,5 +1,5 @@
 import CONFIG from '../Shared/Utils/config.js';
-import apiRequest from '../Shared/Utils/api.js';
+import { apiRequest } from '../Shared/Utils/api.js';
 
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -31,8 +31,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let tempReplyImages = {}; // Temp storage for replies by id: []
 
     function getCurrentUserName() {
-        if (currentUser) return currentUser.ownerName || currentUser.shopName || 'Owner';
-        if (currentEmployee) return currentEmployee.name || 'Staff';
+        if (!user) return 'Admin';
+        if (userRole === 'owner') return user.ownerName || user.shopName || 'Owner';
+        if (userRole === 'staff') return user.name || 'Staff';
 
         return 'Admin';
     }
@@ -42,9 +43,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Dynamic Data Fetching ---
     async function fetchQueries() {
         try {
-            const result = await apiRequest('/complaints/');
+            const result = await apiRequest('/queries/');
             if (result.success) {
-                queries = result.data.filter(q => q.type === 'query');
+                // Remove the filter since all items from /queries/ are queries now
+                queries = result.data;
                 renderQueries();
             }
         } catch (err) {
@@ -170,18 +172,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderQueries() {
         if (!listContainer) return;
         listContainer.innerHTML = '';
-        if (userRole === 'staff') {
-            listContainer.innerHTML = `
-                <div style="text-align:center; padding:3rem 1.5rem; background:var(--bg-white); border-radius:1.5rem; border:1px dashed var(--border-color); margin-top:1rem;">
-                    <div style="width:60px; height:60px; background:rgba(244, 124, 37, 0.1); color:var(--primary-color); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 1.5rem; font-size:1.5rem;">
-                        <i class="fa-solid fa-user-shield"></i>
-                    </div>
-                    <h3 style="margin-bottom:0.5rem; color:var(--text-primary);">Privacy Restricted</h3>
-                    <p style="color:var(--text-secondary); font-size:0.9rem; max-width:400px; margin:0 auto;">For security reasons, you cannot view existing queries. Please use the button above to ask a new question to the management.</p>
-                </div>
-            `;
-            return;
-        }
         const sorted = [...queries].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         if (sorted.length === 0) {
             listContainer.innerHTML = `<div style="text-align:center; padding:2rem; color:var(--text-secondary);">No queries yet.</div>`;
@@ -201,22 +191,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>`;
             }
 
-            const repliesHtml = q.replies.map(r => `
-                <div class="reply-item ${r.author.toLowerCase().includes('admin') || r.author.toLowerCase().includes('owner') ? 'owner-reply' : ''}">
-                    <div class="reply-avatar">${r.author.charAt(0)}</div>
-                    <div class="reply-bubble">
-                        <span class="reply-author-name">${r.author} <span style="font-weight:400; opacity:0.7;">${formatTimeDisplay(r.timestamp)}</span></span>
-                        <div class="reply-text">${r.text}</div>
+            const repliesHtml = q.replies.map(r => {
+                const isMe = r.author === CURRENT_USER;
+                const replyClass = isMe ? 'reply-item self-reply' : 'reply-item';
+                return `
+                    <div class="${replyClass}">
+                        <div class="reply-avatar">${r.author.charAt(0)}</div>
+                        <div class="reply-bubble">
+                            <span class="reply-author-name">${isMe ? 'You' : r.author} <span style="font-weight:400; opacity:0.7;">${formatTimeDisplay(r.timestamp)}</span></span>
+                            <div class="reply-text">${r.text}</div>
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
 
             let actionAreaHtml = '';
             if (q.status === 'closed') {
                 actionAreaHtml = `
                     <div class="closed-overlay">
-                        <span><i class="fa-solid fa-lock"></i> Query marked as seen by ${q.closedBy || 'Admin'}</span>
-                        <button class="btn-action-outline success" onclick="updateQueryStatus('${q._id}', 'open')"><i class="fa-solid fa-unlock"></i> Re-open</button>
+                        <span><i class="fa-solid fa-lock"></i> Query closed by ${q.closedBy || 'Admin'}</span>
+                        ${userRole === 'owner' ? `<button class="btn-action-outline success" onclick="updateQueryStatus('${q._id}', 'open')"><i class="fa-solid fa-unlock"></i> Re-open</button>` : ''}
+                        ${userRole === 'owner' ? `<button class="btn-action-outline danger" onclick="deleteQuery('${q._id}')" style="margin-left: 0.5rem;"><i class="fa-solid fa-trash"></i> Delete</button>` : ''}
                     </div>
                 `;
             } else {
@@ -228,15 +223,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="input-row">
                             <input type="text" class="main-input" id="reply-input-${q._id}" placeholder="Type your answer..." onkeyup="if(event.key === 'Enter') addReply('${q._id}')">
                             <button class="btn-send-reply" onclick="addReply('${q._id}')"><i class="fa-solid fa-paper-plane"></i></button>
-                            <button class="btn-action-outline success" onclick="closeQuery('${q._id}')"><i class="fa-solid fa-check"></i> Mark Seen</button>
+                            ${userRole === 'owner' ? `<button class="btn-action-outline success" onclick="closeQuery('${q._id}')"><i class="fa-solid fa-check"></i> Mark Seen</button>` : ''}
+                            ${userRole === 'owner' ? `<button class="btn-action-outline danger" onclick="deleteQuery('${q._id}')" style="margin-left: 0.5rem;"><i class="fa-solid fa-trash"></i></button>` : ''}
                         </div>
                     </div>
                 `;
             }
 
-            const hasManyReplies = q.replies.length > 2;
+            const hasManyReplies = q.replies.length > 3;
             const chatListClass = hasManyReplies ? 'reply-list collapsed' : 'reply-list';
-            const showMoreBtn = hasManyReplies ? `<button class="show-more-replies" onclick="toggleChat(this)"><i class="fa-solid fa-angles-down"></i> Show all ${q.replies.length} messages</button>` : '';
+            const showMoreBtn = hasManyReplies ? `<button class="show-more-replies" onclick="toggleChat(this, ${q.replies.length})"><i class="fa-solid fa-angles-down"></i> Show all ${q.replies.length} messages</button>` : '';
 
             card.innerHTML = `
                 <div class="card-top-content">
@@ -269,13 +265,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    window.toggleChat = function (btn) {
+    window.toggleChat = function (btn, count) {
         const list = btn.previousElementSibling;
-        const isCollapsed = list.classList.toggle('collapsed');
-        const count = list.children.length;
-        if (isCollapsed) {
+        const isNowCollapsed = list.classList.toggle('collapsed');
+        if (isNowCollapsed) {
             btn.innerHTML = `<i class="fa-solid fa-angles-down"></i> Show all ${count} messages`;
-            list.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         } else {
             btn.innerHTML = `<i class="fa-solid fa-angles-up"></i> Show less`;
         }
@@ -289,7 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const text = input.value.trim();
         if (!text) return;
         try {
-            const result = await apiRequest(`/complaints/${id}/reply`, {
+            const result = await apiRequest(`/queries/${id}/reply`, {
                 method: 'POST',
                 body: JSON.stringify({ author: CURRENT_USER, text })
             });
@@ -305,7 +299,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.updateQueryStatus = async function (id, status) {
         try {
-            const result = await apiRequest(`/complaints/${id}`, {
+            const result = await apiRequest(`/queries/${id}`, {
                 method: 'PATCH',
                 body: JSON.stringify({ status, closedBy: status === 'closed' ? CURRENT_USER : null })
             });
@@ -315,28 +309,105 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-
     const confirmModal = document.getElementById('confirm-modal');
     const confirmProceedBtn = document.getElementById('btn-confirm-proceed');
     const confirmCancelBtn = document.getElementById('btn-confirm-cancel');
-    let itemToClose = null;
+    let actionTargetId = null;
+    let actionType = 'close';
 
     window.closeQuery = (id) => {
-        itemToClose = id;
-        if (confirmModal) confirmModal.classList.add('active');
-        else if (confirm('Mark this query as seen?')) {
+        actionTargetId = id;
+        actionType = 'close';
+        if (confirmModal) {
+            const confirmTitle = confirmModal.querySelector('h3');
+            const confirmDesc = confirmModal.querySelector('p');
+            const confirmIcon = confirmModal.querySelector('.fa-circle-question');
+
+            confirmTitle.innerText = "Mark as Seen?";
+            confirmDesc.innerText = "Are you sure you want to mark this query as seen? This will move it to the resolved section.";
+            confirmProceedBtn.innerText = "Yes, Mark Seen";
+            confirmProceedBtn.style.background = "var(--accent-success, #10b981)";
+            confirmProceedBtn.style.boxShadow = "0 10px 15px -3px rgba(16, 185, 129, 0.3)";
+            if (confirmIcon) {
+                confirmIcon.className = "fa-solid fa-circle-check";
+                confirmIcon.parentElement.style.color = "var(--accent-success, #10b981)";
+            }
+            confirmModal.classList.add('active');
+        } else if (confirm('Mark this query as seen?')) {
             updateQueryStatus(id, 'closed');
         }
     };
 
-    if (confirmCancelBtn) confirmCancelBtn.onclick = () => { confirmModal.classList.remove('active'); itemToClose = null; };
-    if (confirmProceedBtn) confirmProceedBtn.onclick = () => { if (itemToClose) updateQueryStatus(itemToClose, 'closed'); confirmModal.classList.remove('active'); itemToClose = null; };
-    if (confirmModal) confirmModal.onclick = (e) => { if (e.target === confirmModal) { confirmModal.classList.remove('active'); itemToClose = null; } };
+    window.deleteQuery = function (id) {
+        actionTargetId = id;
+        actionType = 'delete';
+        if (confirmModal) {
+            const confirmTitle = confirmModal.querySelector('h3');
+            const confirmDesc = confirmModal.querySelector('p');
+            const confirmIcon = confirmModal.querySelector('.fa-circle-question');
+
+            confirmTitle.innerText = "Delete Query?";
+            confirmDesc.innerText = "This will permanently remove the query and all its replies. This action cannot be undone.";
+            confirmProceedBtn.innerText = "Yes, Delete It";
+            confirmProceedBtn.style.background = "#ef4444";
+            confirmProceedBtn.style.boxShadow = "0 10px 15px -3px rgba(239, 68, 68, 0.3)";
+            if (confirmIcon) {
+                confirmIcon.className = "fa-solid fa-trash-can";
+                confirmIcon.parentElement.style.color = "#ef4444";
+            }
+            confirmModal.classList.add('active');
+        } else if (confirm('Delete this query?')) {
+            performDelete(id);
+        }
+    };
+
+    async function performDelete(id) {
+        try {
+            const result = await apiRequest(`/queries/${id}`, {
+                method: 'DELETE'
+            });
+            if (result.success) {
+                fetchQueries();
+            }
+        } catch (err) {
+            console.error("Delete Error:", err);
+        }
+    }
+
+    if (confirmProceedBtn) {
+        confirmProceedBtn.onclick = async () => {
+            if (actionTargetId) {
+                if (actionType === 'close') {
+                    await updateQueryStatus(actionTargetId, 'closed');
+                } else if (actionType === 'delete') {
+                    await performDelete(actionTargetId);
+                }
+            }
+            confirmModal.classList.remove('active');
+            actionTargetId = null;
+        };
+    }
+
+    if (confirmCancelBtn) confirmCancelBtn.onclick = () => { confirmModal.classList.remove('active'); actionTargetId = null; };
+    if (confirmModal) confirmModal.onclick = (e) => { if (e.target === confirmModal) { confirmModal.classList.remove('active'); actionTargetId = null; } };
 
     if (raiseBtn) {
         raiseBtn.onclick = () => {
             modalOverlay.classList.add('active');
             staffNameInput.value = CURRENT_USER;
+            staffNameInput.readOnly = true; // Auto-fetch and lock the name
+            
+            // Dynamic Role Handling
+            if (roleSelect) {
+                roleSelect.innerHTML = '';
+                const displayRole = userRole === 'owner' ? 'Owner' : 'Staff';
+                const opt = document.createElement('option');
+                opt.value = displayRole;
+                opt.textContent = displayRole;
+                roleSelect.appendChild(opt);
+                roleSelect.value = displayRole;
+            }
+
             subjectInput.value = '';
             descInput.value = '';
             uploadedImages = [];
@@ -351,12 +422,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const description = descInput.value.trim();
             if (subject && description) {
                 try {
-                    const result = await apiRequest('/complaints/', {
+                    const selectedRole = roleSelect ? roleSelect.value : (userRole === 'owner' ? 'Owner' : 'Staff');
+                    const result = await apiRequest('/queries/', {
                         method: 'POST',
                         body: JSON.stringify({
                             type: 'query',
                             staffName: CURRENT_USER,
-                            role: userRole,
+                            role: selectedRole,
                             subject,
                             description,
                             images: uploadedImages
@@ -376,5 +448,4 @@ document.addEventListener('DOMContentLoaded', () => {
     if (modalOverlay) modalOverlay.onclick = (e) => { if (e.target === modalOverlay) modalOverlay.classList.remove('active'); };
 
     fetchQueries(); // Initial load
-    setInterval(fetchQueries, 15000); // Live refresh every 15s
 });

@@ -67,16 +67,9 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: hidden;
     min-width: 0;
-}
-
-.main-content::-webkit-scrollbar { width: 5px; }
-.main-content::-webkit-scrollbar-track { background: transparent; }
-.main-content::-webkit-scrollbar-thumb {
-    background: var(--border-soft);
-    border-radius: 10px;
+    padding: 0 !important;
 }
 
 /* ============================================================
@@ -489,4 +482,12 @@ body {
 }
 @media (max-width: 768px) {
     .stats-row { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 480px) {
+    .stats-row { grid-template-columns: 1fr; }
+    .welcome-header h1 { font-size: 1.8rem; }
+    .stat-info h3 { font-size: 1.4rem; }
+    .action-card { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    .action-icon { position: absolute; right: 0; bottom: 0; transform: translate(20%, 20%); font-size: 5rem; }
 }

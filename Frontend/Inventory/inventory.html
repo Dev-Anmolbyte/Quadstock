@@ -16,7 +16,6 @@
     <link rel="stylesheet" href="inventory.css">
     <link rel="stylesheet" href="../Shared/Components/quad-modals.css">
 
-    <script src="../Shared/Vendor/html5-qrcode.min.js"></script>
 </head>
 
 <body>
@@ -28,116 +27,118 @@
         <main class="main-content">
             <!-- Top Bar injected by sidebar.js -->
 
-            <!-- 1. The Top Deck: Summary Cards -->
-            <div class="summary-deck">
-                <div class="summary-card">
-                    <div class="card-icon icon-blue">
-                        <i class="fa-solid fa-indian-rupee-sign"></i>
+            <div class="content-scrollable">
+                <!-- 1. The Top Deck: Summary Cards -->
+                <div class="summary-deck">
+                    <div class="summary-card">
+                        <div class="card-icon icon-blue">
+                            <i class="fa-solid fa-indian-rupee-sign"></i>
+                        </div>
+                        <div class="card-info">
+                            <h3>Total Inventory Value</h3>
+                            <p class="card-value" id="val-total-value">₹0.00</p>
+                            <span class="card-hint">Based on Cost Price</span>
+                        </div>
                     </div>
-                    <div class="card-info">
-                        <h3>Total Inventory Value</h3>
-                        <p class="card-value" id="val-total-value">₹0.00</p>
-                        <span class="card-hint">Based on Cost Price</span>
+                    <div class="summary-card">
+                        <div class="card-icon icon-orange">
+                            <i class="fa-solid fa-clock-rotate-left"></i>
+                        </div>
+                        <div class="card-info">
+                            <h3>Expiring Soon</h3>
+                            <p class="card-value" id="val-expiring-soon">0</p>
+                            <span class="card-hint">Within 30 days</span>
+                        </div>
                     </div>
-                </div>
-                <div class="summary-card">
-                    <div class="card-icon icon-orange">
-                        <i class="fa-solid fa-clock-rotate-left"></i>
+                    <div class="summary-card">
+                        <div class="card-icon icon-red">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                        <div class="card-info">
+                            <h3>Low Stock Alerts</h3>
+                            <p class="card-value" id="val-low-stock">0</p>
+                            <span class="card-hint">Below reorder point</span>
+                        </div>
                     </div>
-                    <div class="card-info">
-                        <h3>Expiring Soon</h3>
-                        <p class="card-value" id="val-expiring-soon">0</p>
-                        <span class="card-hint">Within 30 days</span>
-                    </div>
-                </div>
-                <div class="summary-card">
-                    <div class="card-icon icon-red">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
-                    </div>
-                    <div class="card-info">
-                        <h3>Low Stock Alerts</h3>
-                        <p class="card-value" id="val-low-stock">0</p>
-                        <span class="card-hint">Below reorder point</span>
-                    </div>
-                </div>
-                <div class="summary-card">
-                    <div class="card-icon icon-red">
-                        <i class="fa-solid fa-circle-xmark"></i>
-                    </div>
-                    <div class="card-info">
-                        <h3>Out of Stock</h3>
-                        <p class="card-value" id="val-out-of-stock">0</p>
-                        <span class="card-hint">Items with 0 quantity</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 2. The Control Bar: Search & Advanced Filters -->
-            <div class="control-bar-container">
-                <div class="control-bar-top">
-                    <div class="search-box global-search">
-                        <i class="fa-solid fa-search"></i>
-                        <input type="text" id="inventory-search"
-                            placeholder="Search by Product, Brand, or Batch/SKU...">
-                    </div>
-                    <div class="action-buttons">
-                        <button class="btn-secondary" id="toggle-view-btn" title="Toggle Full View">
-                            <i class="fa-solid fa-expand"></i>
-                        </button>
-                        <button class="btn-primary" id="add-product-btn">
-                            <i class="fa-solid fa-plus"></i> Add Product
-                        </button>
+                    <div class="summary-card">
+                        <div class="card-icon icon-red">
+                            <i class="fa-solid fa-circle-xmark"></i>
+                        </div>
+                        <div class="card-info">
+                            <h3>Out of Stock</h3>
+                            <p class="card-value" id="val-out-of-stock">0</p>
+                            <span class="card-hint">Items with 0 quantity</span>
+                        </div>
                     </div>
                 </div>
 
-                <div class="control-bar-filters">
-                    <select id="filter-category" class="filter-select">
-                        <option value="">All Categories</option>
-                        <!-- Populated via JS -->
-                    </select>
-                    <select id="filter-brand" class="filter-select">
-                        <option value="">All Brands</option>
-                        <!-- Populated via JS -->
-                    </select>
-                    <select id="filter-stock" class="filter-select">
-                        <option value="">All Stock Status</option>
-                        <option value="in-stock">In Stock</option>
-                        <option value="low-stock">Low Stock</option>
-                        <option value="out-of-stock">Out of Stock</option>
-                    </select>
-                    <select id="filter-expiry" class="filter-select">
-                        <option value="">All Expiry Status</option>
-                        <option value="good">Good</option>
-                        <option value="expiring-soon">Expiring Soon (30 Days)</option>
-                        <option value="expired">Expired</option>
-                    </select>
-                </div>
-            </div>
+                <!-- 2. The Control Bar: Search & Advanced Filters -->
+                <div class="control-bar-container">
+                    <div class="control-bar-top">
+                        <div class="search-box global-search">
+                            <i class="fa-solid fa-search"></i>
+                            <input type="text" id="inventory-search"
+                                placeholder="Search by Product, Brand, or Batch/SKU...">
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn-secondary" id="toggle-view-btn" title="Toggle Full View">
+                                <i class="fa-solid fa-expand"></i>
+                            </button>
+                            <button class="btn-primary" id="add-product-btn">
+                                <i class="fa-solid fa-plus"></i> Add Product
+                            </button>
+                        </div>
+                    </div>
 
-            <!-- Inventory Table -->
-            <div class="card table-card">
-                <div class="table-responsive">
-                    <table class="inventory-table">
-                        <thead>
-                            <tr>
-                                <th>Status</th>
-                                <th>Product Details</th>
-                                <th>Category / Brand</th>
-                                <th>Batch Info</th>
-                                <th>Stock</th>
-                                <th>Pricing</th>
-                                <th>Expiry</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="inventory-table-body">
-                            <!-- Rows will be populated by JS -->
-                        </tbody>
-                    </table>
+                    <div class="control-bar-filters">
+                        <select id="filter-category" class="filter-select">
+                            <option value="">All Categories</option>
+                            <!-- Populated via JS -->
+                        </select>
+                        <select id="filter-brand" class="filter-select">
+                            <option value="">All Brands</option>
+                            <!-- Populated via JS -->
+                        </select>
+                        <select id="filter-stock" class="filter-select">
+                            <option value="">All Stock Status</option>
+                            <option value="in-stock">In Stock</option>
+                            <option value="low-stock">Low Stock</option>
+                            <option value="out-of-stock">Out of Stock</option>
+                        </select>
+                        <select id="filter-expiry" class="filter-select">
+                            <option value="">All Expiry Status</option>
+                            <option value="good">Good</option>
+                            <option value="expiring-soon">Expiring Soon (30 Days)</option>
+                            <option value="expired">Expired</option>
+                        </select>
+                    </div>
                 </div>
-                <div id="empty-state" class="empty-state" style="display: none;">
-                    <i class="fa-solid fa-box-open"></i>
-                    <p>No products found matching your criteria.</p>
+
+                <!-- Inventory Table -->
+                <div class="card table-card">
+                    <div class="table-responsive">
+                        <table class="inventory-table">
+                            <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th>Product Details</th>
+                                    <th>Category / Brand</th>
+                                    <th>Batch Info</th>
+                                    <th>Stock</th>
+                                    <th>Pricing</th>
+                                    <th>Expiry</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventory-table-body">
+                                <!-- Rows will be populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="empty-state" class="empty-state" style="display: none;">
+                        <i class="fa-solid fa-box-open"></i>
+                        <p>No products found matching your criteria.</p>
+                    </div>
                 </div>
             </div>
         </main>
@@ -170,11 +171,7 @@
                                     <i class="fa-solid fa-scale-balanced"></i> Loose
                                 </label>
                             </div>
-                            <div id="barcode-wrapper" class="barcode-input-wrapper" style="display: flex; gap: 8px; align-items: center;">
-                                <i class="fa-solid fa-barcode" style="color: var(--primary);"></i>
-                                <input type="text" id="product-barcode" placeholder="Hardware Scan Here"
-                                    style="width: 180px; padding: 0.4rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem;">
-                            </div>
+
                         </div>
 
 
@@ -285,10 +282,7 @@
                                         <label>Batch / Lot Number <span class="required">*</span></label>
                                         <div class="input-with-action">
                                             <input type="text" id="batch-number" placeholder="BAT-001">
-                                            <button type="button" id="btn-scan-barcode" class="btn-icon"
-                                                title="Scan Barcode">
-                                                <i class="fa-solid fa-barcode"></i>
-                                            </button>
+
                                             <button type="button" id="btn-gen-batch" class="btn-icon"
                                                 title="Generate Batch #"><i
                                                     class="fa-solid fa-wand-magic-sparkles"></i></button>

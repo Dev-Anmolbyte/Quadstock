@@ -24,21 +24,34 @@ document.addEventListener('DOMContentLoaded', () => {
     const grid = document.getElementById('employee-grid');
     const searchInput = document.getElementById('employee-search');
 
-    async function fetchEmployees() {
+    async function fetchEmployees(showToast = false) {
         try {
             const response = await fetch(`${API_BASE}/employees`, { headers: HEADERS });
             const result = await response.json();
             
             if (result.success) {
                 ownerEmployees = result.data;
-                renderEmployees(ownerEmployees);
+                
+                // Re-apply search filter if currently active
+                if (searchInput && searchInput.value.trim() !== '') {
+                    const query = searchInput.value.toLowerCase();
+                    const filtered = ownerEmployees.filter(emp => 
+                        emp.name.toLowerCase().includes(query) || 
+                        emp.username.toLowerCase().includes(query) ||
+                        (emp.empId && emp.empId.toLowerCase().includes(query))
+                    );
+                    renderEmployees(filtered);
+                } else {
+                    renderEmployees(ownerEmployees);
+                }
+                
                 updateStats();
-            } else {
+            } else if (showToast) {
                 QuadModals.showToast(result.message || "Failed to fetch employees", "error");
             }
         } catch (error) {
             console.error("Fetch error:", error);
-            QuadModals.showToast("Network error while loading employees", "error");
+            if (showToast) QuadModals.showToast("Network error while loading employees", "error");
         }
     }
 
@@ -267,18 +280,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- 6. Profile Detail Logic ---
+    // Initialize staff_details module
+    if (typeof initStaffDetails === 'function') {
+        initStaffDetails(API_BASE, HEADERS, userRole);
+    }
+
     window.openStaffDetail = (id) => {
         const emp = ownerEmployees.find(e => e._id === id);
         if (!emp) return;
         
-        // Pass data to staff_details.js (assuming it has a refresh function)
         if (typeof showStaffDetails === 'function') {
             showStaffDetails(emp);
         } else {
-            QuadModals.showToast("Full profile feature coming soon!", "info");
+            QuadModals.showToast("Profile details module not loaded", "error");
         }
     };
 
+    window.refreshEmployeeList = () => fetchEmployees(false);
+
     // Init
-    fetchEmployees();
+    fetchEmployees(true); // Initial fetch with toasts enabled
+
+    // Start Real-time Data Sync (Background Polling)
+    setInterval(() => fetchEmployees(false), 5000);
 });
+

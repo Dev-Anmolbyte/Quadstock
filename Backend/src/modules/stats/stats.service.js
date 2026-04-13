@@ -7,6 +7,7 @@ import { Store } from "../store/store.model.js";
 import { Order } from "../order/order.model.js";
 import { withStore } from "../../utils/storeHelper.js";
 import { StoreStats } from "./storeStats.model.js";
+import { Employee } from "../employee/employee.model.js";
 
 class StatsService {
     async updateMonthlyStats(storeId, type, amount, dateStr) {
@@ -30,7 +31,7 @@ class StatsService {
         return await StoreStats.findOneAndUpdate(
             { storeId, month, year },
             updateData,
-            { upsert: true, new: true }
+            { upsert: true, returnDocument: 'after' }
         );
     }
     async getPublicStats() {
@@ -180,7 +181,7 @@ class StatsService {
         const trends = { labels, revenueData, creditData };
 
         // 4. User (Staff) Stats
-        const totalUsers = await User.countDocuments({ ...filter, role: 'staff' });
+        const totalUsers = await Employee.countDocuments(filter);
 
         // 5. Ranking calculations
         const topProducts = inventory
@@ -256,7 +257,12 @@ class StatsService {
                 daysPast: Math.ceil((now - item.expiryDate) / (1000 * 60 * 60 * 24))
             })),
             outOfStockList,
-            bestSellers: topProducts // Placeholder for real sales data later
+            bestSellers: topProducts,
+            settings: {
+                notifLowStock: store?.notifLowStock ?? true,
+                notifUdhaarOverdue: store?.notifUdhaarOverdue ?? true,
+                notifPaymentReminders: store?.notifPaymentReminders ?? false
+            }
         };
     }
 }

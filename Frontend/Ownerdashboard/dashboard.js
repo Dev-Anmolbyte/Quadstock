@@ -86,6 +86,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // 4. Update Tables (Capped at 6 items by backend)
                 updateDashboardTables(d);
+
+                // 5. Handle Notification Settings
+                if (d.settings) {
+                    const lowStockBadge = document.querySelector('#dash-low-stock').closest('.stat-card').querySelector('.badge');
+                    if (lowStockBadge) lowStockBadge.style.display = (d.settings.notifLowStock && d.lowStockCount > 0) ? 'block' : 'none';
+
+                    const outOfStockBadge = document.querySelector('#dash-out-of-stock').closest('.stat-card').querySelector('.badge');
+                    if (outOfStockBadge) outOfStockBadge.style.display = (d.outOfStockCount > 0) ? 'block' : 'none'; // Always show out of stock as critical
+                }
             }
         } catch (err) {
             console.error("Dashboard Refresh Error:", err);

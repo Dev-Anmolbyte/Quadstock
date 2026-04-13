@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const profitVal = document.getElementById('profit-val');
     const expiryHint = document.getElementById('expiry-hint');
 
-    const inputBarcode = document.getElementById('product-barcode');
+
     const divGroceryDates = document.getElementById('grocery-dates');
 
     const divClothesAttributes = document.getElementById('clothes-attributes');
@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const inputTypeRadios = document.querySelectorAll('input[name="product-type-radio"]');
     const packedStockFields = document.getElementById('packed-stock-fields');
     const looseStockFields = document.getElementById('loose-stock-fields');
-    const barcodeWrapper = document.getElementById('barcode-wrapper');
+
     const inputLooseQty = document.getElementById('loose-stock-quantity');
     const inputPricePerUnit = document.getElementById('price-per-unit');
     const inputLooseUnit = document.getElementById('loose-product-unit');
@@ -288,10 +288,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     safeListener(productForm, 'submit', handleFormSubmit);
     safeListener(btnGenBatch, 'click', () => { if (inputBatch) inputBatch.value = generateBatchNumber(); });
 
-    // Handle Hardware Barcode Scan
-    safeListener(inputBarcode, 'change', (e) => {
-        handleScan(e.target.value.trim());
-    });
+
 
 
     // Split Batch
@@ -342,7 +339,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (type === 'loose') {
             packedStockFields.style.display = 'none';
             looseStockFields.style.display = 'block';
-            barcodeWrapper.style.display = 'none';
+
             divGroceryDates.style.display = 'none';
             
             // Remove required from packed fields
@@ -356,7 +353,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
             packedStockFields.style.display = 'block';
             looseStockFields.style.display = 'none';
-            barcodeWrapper.style.display = 'flex';
+
             
             // Packed can be Kirana or Clothes - check inputType
             const categoryType = inputType.value;
@@ -504,40 +501,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         const yyyy = date.getFullYear();
         const mm = String(date.getMonth() + 1).padStart(2, '0');
         const dd = String(date.getDate()).padStart(2, '0');
-        const random = Math.floor(1000 + Math.random() * 9000);
-        return `BAT-${yyyy}${mm}${dd}-${random}`;
+        
+        // Use last 6 digits of current timestamp for ultra-uniqueness 
+        const suffix = Date.now().toString().slice(-6);
+        return `BAT-${yyyy}${mm}${dd}-${suffix}`;
     }
 
-    function handleScan(scannedCode) {
-        if (!scannedCode) return;
 
-        // 1. Get Current Owner Context
-        const ownerId = (currentUser && currentUser.ownerId) || (currentEmployee && currentEmployee.ownerId);
-
-        if (!ownerId) {
-            QuadModals.alert("Configuration Error", "Owner ID not found. Please log in again.", "error");
-            return;
-        }
-
-        // Multi-Tenant Aware Matching: 
-        // 1. Precise Match (Batch Number) - inventory is already filtered by ownerId
-        let match = inventory.find(p => p.batchNumber === scannedCode);
-
-        // 2. Barcode Match (Fallback to latest batch update for this barcode)
-        if (!match) {
-            match = [...inventory].reverse().find(p => p.barcode === scannedCode && p.productType !== 'loose');
-        }
-
-        if (match) {
-            autoFillForm(match);
-            QuadModals.showToast("Product Found: " + match.name + (match.batchNumber === scannedCode ? " (Exact Batch)" : ""), "success");
-        } else {
-            QuadModals.showToast("New Item Detected in this Shop", "info");
-            // We keep the barcode in the field so it save with the new product
-            inputBarcode.value = scannedCode;
-            inputBatch.value = ''; // Reset batch for new entry
-        }
-    }
 
     function autoFillForm(product) {
         if (inputName) inputName.value = product.name || '';
@@ -754,7 +724,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 document.querySelector('.image-controls').style.display = 'flex';
             }
 
-            inputBarcode.value = item.barcode || '';
+
             inputBatch.value = item.batchNumber || '';
             inputQty.value = Math.max(0, item.quantity || 0);
             inputUnit.value = item.unit || 'pcs';
@@ -787,7 +757,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             previewInterface.style.display = 'none';
             imgPreview.src = '';
             document.querySelector('.image-controls').style.display = 'flex';
-            inputBarcode.value = '';
+
             inputBatch.value = generateBatchNumber();
             marginVal.textContent = '-';
             expiryHint.textContent = 'Select date to see alert status';
@@ -894,7 +864,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             description: inputDesc.value,
             image: imgPreview.src, 
-            barcode: isLoose ? null : inputBarcode.value,
+            barcode: null,
             batchNumber: isLoose ? null : inputBatch.value,
             productType: isLoose ? 'loose' : 'packed',
 
@@ -1464,99 +1434,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 
-    // --- 11. Barcode Scanner (Improved) ---
-    const btnScan = document.getElementById('btn-scan-barcode');
-    const scannerContainer = document.getElementById('barcode-reader');
-    let html5QrCode = null;
 
-    if (btnScan) {
-        btnScan.addEventListener('click', async () => {
-            if (!html5QrCode) {
-                // Ensure photo camera is stopped if running
-                if (cameraStream) stopCamera();
-
-                scannerContainer.style.display = 'block';
-                html5QrCode = new Html5Qrcode("barcode-reader");
-
-                // Responsive QR Box for 1D/2D Barcodes
-                const qrboxFunction = (viewfinderWidth, viewfinderHeight) => {
-                    let minEdgePercentage = 0.7; // 70%
-                    let minEdgeSize = Math.min(viewfinderWidth, viewfinderHeight);
-                    let qrboxSize = Math.floor(minEdgeSize * minEdgePercentage);
-                    return {
-                        width: Math.max(250, qrboxSize),
-                        height: Math.max(150, Math.floor(qrboxSize / 1.5))
-                    };
-                };
-
-                const config = {
-                    fps: 10,
-                    qrbox: qrboxFunction,
-                    aspectRatio: 1.0
-                };
-
-                btnScan.innerHTML = '<i class="fa-solid fa-xmark"></i>';
-                btnScan.classList.add('active-scanning');
-                btnScan.style.background = 'var(--c-red-text)';
-
-                html5QrCode.start(
-                    { facingMode: "environment" },
-                    config,
-                    (decodedText) => {
-                        // Success
-                        if (inputBarcode) inputBarcode.value = decodedText;
-                        handleScan(decodedText);
-                        stopScanner();
-                    },
-                    (errorMessage) => {
-                        // Parse error, usually can be ignored
-                    }
-                ).catch(err => {
-                    console.error("Scanner Error:", err);
-                    scannerContainer.style.display = 'none';
-                    if (window.QuadModals) {
-                        QuadModals.alert("Scanner Error", "Could not start camera. Please ensure permissions are granted.", "error");
-                    } else {
-                        alert("Camera Error: Please ensure permissions are granted.");
-                    }
-                    resetScannerUI();
-                    html5QrCode = null;
-                });
-            } else {
-                stopScanner();
-            }
-        });
-    }
-
-    function stopScanner() {
-        if (html5QrCode) {
-            html5QrCode.stop().then(() => {
-                html5QrCode = null;
-                scannerContainer.style.display = 'none';
-                resetScannerUI();
-            }).catch(err => {
-                console.error("Error stopping scanner:", err);
-                // Force cleanup if stop fails
-                html5QrCode = null;
-                scannerContainer.style.display = 'none';
-                resetScannerUI();
-            });
-        }
-    }
-
-    function resetScannerUI() {
-        if (btnScan) {
-            btnScan.innerHTML = '<i class="fa-solid fa-barcode"></i>';
-            btnScan.classList.remove('active-scanning');
-            btnScan.style.background = '';
-        }
-    }
 
     // Stop scanner/camera if modal is closed
     const modalCloseElements = document.querySelectorAll('.close-modal, .close-modal-btn');
     modalCloseElements.forEach(el => {
         el.addEventListener('click', () => {
-            stopScanner();
             stopCamera();
         });
     });
@@ -1565,7 +1448,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (modal) {
         modal.addEventListener('transitionend', () => {
             if (!modal.classList.contains('show')) {
-                stopScanner();
                 stopCamera();
             }
         });

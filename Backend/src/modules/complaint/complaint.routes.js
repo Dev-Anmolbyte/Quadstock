@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { addComplaint, getComplaints, updateStatus, addReply, deleteComplaint } from "./complaint.controller.js";
-import { authMiddleware } from "../../middleware/auth.middleware.js";
+import { authMiddleware, authorizeRoles } from "../../middleware/auth.middleware.js";
 
 const complaintRouter = Router();
 
@@ -12,7 +12,7 @@ complaintRouter.route("/")
     .get(getComplaints);
 
 complaintRouter.route("/:id")
-    .patch(updateStatus)
+    .patch(authorizeRoles("owner"), updateStatus)
     .delete(deleteComplaint);
 
 complaintRouter.post("/:id/reply", addReply);

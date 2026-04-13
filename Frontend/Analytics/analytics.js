@@ -308,17 +308,53 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // --- Chart Type Switching ---
+    // --- Chart Type Switching ---
     window.switchChartType = function (chartId, newType, btn) {
         if (!mainTrendsChartInstance) return;
         
-        const currentData = mainTrendsChartInstance.data;
+        const currentData = JSON.parse(JSON.stringify(mainTrendsChartInstance.data));
         mainTrendsChartInstance.destroy();
         
-        const ctx = document.getElementById(chartId).getContext('2d');
+        const canvas = document.getElementById(chartId);
+        const ctx = canvas.getContext('2d');
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+        // Re-create gradients for the line type if needed
+        if (newType === 'line') {
+            const revGrad = ctx.createLinearGradient(0, 0, 0, 350);
+            revGrad.addColorStop(0, 'rgba(16, 185, 129, 0.5)');
+            revGrad.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+
+            const credGrad = ctx.createLinearGradient(0, 0, 0, 350);
+            credGrad.addColorStop(0, 'rgba(244, 63, 94, 0.5)');
+            credGrad.addColorStop(1, 'rgba(244, 63, 94, 0.0)');
+
+            currentData.datasets[0].backgroundColor = revGrad;
+            currentData.datasets[1].backgroundColor = credGrad;
+            currentData.datasets[0].fill = true;
+            currentData.datasets[1].fill = true;
+        } else {
+            currentData.datasets[0].backgroundColor = '#10b981';
+            currentData.datasets[1].backgroundColor = '#f43f5e';
+            currentData.datasets[0].fill = false;
+            currentData.datasets[1].fill = false;
+        }
+
         mainTrendsChartInstance = new Chart(ctx, {
             type: newType,
             data: currentData,
-            options: mainTrendsChartInstance.options
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { 
+                        beginAtZero: true,
+                        grid: { color: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' },
+                        ticks: { callback: v => formatter.format(v) }
+                    },
+                    x: { grid: { display: false } }
+                }
+            }
         });
 
         if (btn) {

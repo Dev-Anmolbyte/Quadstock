@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log(`[Settings] User role: ${userRole}`);
 
     // --- Define Global Functions ---
+    let initialState = {};
 
     window.loadSettings = async function () {
         console.log("[Settings] Loading store and profile data...");
@@ -53,6 +54,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (document.getElementById('date-format')) document.getElementById('date-format').value = store.dateFormat || 'dd-mm-yyyy';
                 if (document.getElementById('time-format')) document.getElementById('time-format').value = store.timeFormat || '12';
 
+                // Save initial state for "nothing changed" detection
+                initialState = {
+                    shopName: document.getElementById('shop-name')?.value,
+                    ownerName: document.getElementById('owner-name')?.value,
+                    contactInfo: document.getElementById('contact-info')?.value,
+                    lowStock: parseInt(document.getElementById('low-stock-limit')?.value),
+                    tax: parseFloat(document.getElementById('default-tax')?.value),
+                    highStock: parseInt(document.getElementById('high-stock-limit')?.value),
+                    healthyExpiry: parseInt(document.getElementById('healthy-expiry-limit')?.value),
+                    notifLowStock: document.getElementById('notif-lowstock')?.checked,
+                    notifUdhaar: document.getElementById('notif-udhaar')?.checked,
+                    notifReminders: document.getElementById('notif-reminders')?.checked,
+                    language: document.getElementById('app-language')?.value,
+                    dateFormat: document.getElementById('date-format')?.value,
+                    timeFormat: document.getElementById('time-format')?.value,
+                };
+
             } else {
                 console.error("[Settings] DB data indicated failure:", dbData);
             }
@@ -67,6 +85,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const shopName = document.getElementById('shop-name').value;
         const ownerName = document.getElementById('owner-name').value;
         const contact = document.getElementById('contact-info').value;
+
+        if (shopName === initialState.shopName && ownerName === initialState.ownerName && contact === initialState.contactInfo) {
+            showModal('info', 'No Changes', 'Profile settings are already up to date.');
+            return;
+        }
 
         try {
             // 1. Update User Profile (Works for both Owner and Staff)
@@ -95,6 +118,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     brandTexts.forEach(el => el.textContent = shopName);
                 }
                 
+                initialState.shopName = shopName;
+                initialState.ownerName = ownerName;
+                initialState.contactInfo = contact;
+                
                 showModal('success', 'Profile Saved', 'Credentials and shop details updated.');
             }
         } catch (err) {
@@ -112,12 +139,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const lowStock = parseInt(document.getElementById('low-stock-limit').value);
         const tax = parseFloat(document.getElementById('default-tax').value);
 
+        if (lowStock === initialState.lowStock && tax === initialState.tax) {
+            showModal('info', 'No Changes', 'Business preferences are already up to date.');
+            return;
+        }
+
         try {
             const result = await apiRequest('/stores/update', {
                 method: 'PUT',
                 body: JSON.stringify({ lowStockThreshold: lowStock, defaultTax: tax })
             });
             if (result.success) {
+                initialState.lowStock = lowStock;
+                initialState.tax = tax;
                 showModal('success', 'Preferences Saved', 'Business rules updated.');
             }
         } catch (err) {
@@ -130,6 +164,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const notifLowStock = document.getElementById('notif-lowstock').checked;
         const notifUdhaar = document.getElementById('notif-udhaar').checked;
         const notifReminders = document.getElementById('notif-reminders').checked;
+
+        if (notifLowStock === initialState.notifLowStock && notifUdhaar === initialState.notifUdhaar && notifReminders === initialState.notifReminders) {
+            showModal('info', 'No Changes', 'Notification preferences are already up to date.');
+            return;
+        }
 
         try {
             // Usually global notifications are store-wide, but we allow modification if owner
@@ -147,6 +186,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 })
             });
             if (result.success) {
+                initialState.notifLowStock = notifLowStock;
+                initialState.notifUdhaar = notifUdhaar;
+                initialState.notifReminders = notifReminders;
                 showModal('success', 'Saved', 'Notifications synced.');
             }
         } catch (err) {
@@ -164,12 +206,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const dateFormat = document.getElementById('date-format').value;
         const timeFormat = document.getElementById('time-format').value;
 
+        if (language === initialState.language && dateFormat === initialState.dateFormat && timeFormat === initialState.timeFormat) {
+            showModal('info', 'No Changes', 'Language & Region settings are already up to date.');
+            return;
+        }
+
         try {
             const result = await apiRequest('/stores/update', {
                 method: 'PUT',
                 body: JSON.stringify({ language, dateFormat, timeFormat })
             });
             if (result.success) {
+                initialState.language = language;
+                initialState.dateFormat = dateFormat;
+                initialState.timeFormat = timeFormat;
                 showModal('success', 'Saved', 'Region & Localization updated.');
                 // Optional: Refresh page to apply formatting everywhere
                 setTimeout(() => window.location.reload(), 1500);
@@ -188,6 +238,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const highStock = parseInt(document.getElementById('high-stock-limit').value);
         const healthyExpiry = parseInt(document.getElementById('healthy-expiry-limit').value);
         
+        if (highStock === initialState.highStock && healthyExpiry === initialState.healthyExpiry) {
+            showModal('info', 'No Changes', 'Smart Expiry settings are already up to date.');
+            return;
+        }
+
         try {
             const result = await apiRequest('/stores/update', {
                 method: 'PUT',
@@ -198,6 +253,8 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (result.success) {
+                initialState.highStock = highStock;
+                initialState.healthyExpiry = healthyExpiry;
                 showModal('success', 'Synced', 'Store thresholds updated.');
             }
         } catch (err) {
@@ -239,23 +296,40 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    window.exportData = function () {
-        const data = {
-            backupDate: new Date().toISOString(),
-            user: user,
-            shop: document.getElementById('shop-name')?.value || 'QuadStock'
-        };
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
-        const dl = document.createElement('a');
-        dl.setAttribute("href", dataStr);
-        dl.setAttribute("download", `qs_backup.json`);
-        dl.click();
+    window.exportData = async function () {
+        showModal('info', 'Generating Backup', 'Please wait while we gather your shop data...');
+        try {
+            const result = await apiRequest('/stores/export-data', { method: 'GET' });
+            if (result.success) {
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(result.data, null, 2));
+                const dl = document.createElement('a');
+                dl.setAttribute("href", dataStr);
+                const date = new Date().toISOString().split('T')[0];
+                const shopName = document.getElementById('shop-name')?.value || 'QuadStock';
+                dl.setAttribute("download", `QuadStock_Backup_${shopName.replace(/\s+/g, '_')}_${date}.json`);
+                dl.click();
+                showModal('success', 'Backup Ready', 'Your full data backup has been downloaded.');
+            }
+        } catch (err) {
+            showModal('error', 'Export Failed', 'Could not generate backup file.');
+        }
     };
 
     window.clearData = function () {
-        showModal('warning', 'Reset Data', 'CRITICAL: Clear all local storage and logout?', () => {
-             localStorage.clear();
-             window.location.href = '../landing/landing.html';
+        showModal('warning', 'Master Reset', 'CRITICAL: This will PERMANENTLY DELETE all products, sales, and employee data from the database. This cannot be undone. Are you absolutely sure?', async () => {
+             showModal('info', 'Resetting', 'Wiping database records for this store...');
+             try {
+                 const result = await apiRequest('/stores/reset-data', { method: 'DELETE' });
+                 if (result.success) {
+                     localStorage.clear();
+                     sessionStorage.clear();
+                     showModal('success', 'Wipe Complete', 'All store transactional data has been removed. You will now be logged out.', () => {
+                         window.location.href = '../landing/landing.html';
+                     });
+                 }
+             } catch (err) {
+                 showModal('error', 'Reset Failed', err.message);
+             }
         });
     };
 
@@ -263,10 +337,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleRoleAccess() {
         if (userRole === 'staff') {
             const ownerOnlySections = ['data-mgmt-section', 'region-section']; 
-            // In settings.html we should add id="region-section" if we want to hide it
             
             // Explicitly hide elements if they exist
-            document.getElementById('data-mgmt-section')?.style.setProperty('display', 'none');
+            ownerOnlySections.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.setProperty('display', 'none');
+            });
             
             // Disable inputs for business rules
             const toDisable = ['low-stock-limit', 'default-tax', 'shop-name', 'high-stock-limit', 'healthy-expiry-limit'];
@@ -298,7 +374,8 @@ document.addEventListener('DOMContentLoaded', () => {
         let iconClass = 'fa-circle-check';
         let colorClass = 'success';
         if (type === 'error') { iconClass = 'fa-circle-xmark'; colorClass = 'error'; }
-        if (type === 'warning') { iconClass = 'fa-triangle-exclamation'; colorClass = 'warning'; }
+        else if (type === 'warning') { iconClass = 'fa-triangle-exclamation'; colorClass = 'warning'; }
+        else if (type === 'info') { iconClass = 'fa-circle-info'; colorClass = 'info'; }
 
         iconEl.className = `modal-icon ${colorClass}`;
         iconEl.innerHTML = `<i class="fa-solid ${iconClass}"></i>`;

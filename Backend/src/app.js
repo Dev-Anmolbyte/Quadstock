@@ -13,10 +13,15 @@ import productRouter from './modules/product/product.routes.js';
 import udhaarRouter from './modules/udhaar/udhaar.routes.js';
 import statsRouter from './modules/stats/stats.routes.js';
 import complaintRouter from './modules/complaint/complaint.routes.js';
+import queryRouter from './modules/query/query.routes.js';
 import categoryRouter from './modules/category/category.routes.js';
 import employeeRouter from './modules/employee/employee.routes.js';
 import pageRouter from './modules/page/page.routes.js';
 import orderRouter from './modules/order/order.routes.js';
+import attendanceRouter from './modules/attendance/attendance.routes.js';
+import leaveRouter from './modules/leave/leave.routes.js';
+import payslipRouter from './modules/payslip/payslip.routes.js';
+
 import { errorHandler } from './middleware/error.middleware.js';
 
 // Environment Validation
@@ -50,10 +55,15 @@ app.use("/api/products", productRouter);
 app.use("/api/udhaar", udhaarRouter);
 app.use("/api/stats", statsRouter);
 app.use("/api/complaints", complaintRouter);
+app.use("/api/queries", queryRouter);
 app.use("/api/categories", categoryRouter);
 app.use("/api/employees", employeeRouter);
 app.use("/api/pages", pageRouter);
 app.use("/api/sales", orderRouter);
+app.use("/api/attendance", attendanceRouter);
+app.use("/api/leaves", leaveRouter);
+app.use("/api/payslips", payslipRouter);
+
 
 app.get("/", (req, res) => {
     res.status(200).send("API is running...");
