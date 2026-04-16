@@ -301,7 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Init
     fetchEmployees(true); // Initial fetch with toasts enabled
 
-    // Start Real-time Data Sync (Background Polling)
-    setInterval(() => fetchEmployees(false), 5000);
+    // Start Real-time Data Sync (Background Polling every 5 minutes)
+    setInterval(() => fetchEmployees(false), 300000); 
 });
 

@@ -94,7 +94,7 @@ class EmployeeService {
 
         const allowedUpdates = [
             "name", "phoneNumber", "aadhaar", "address", 
-            "emergencyContact", "salary", "status", "photo"
+            "emergencyContact", "salary", "status", "photo", "role"
         ];
         
         Object.keys(updateData).forEach((key) => {

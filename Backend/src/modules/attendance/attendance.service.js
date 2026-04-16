@@ -5,26 +5,58 @@ import mongoose from "mongoose";
 class AttendanceService {
     async punchIn(employeeId, storeId) {
         const today = new Date().toISOString().split('T')[0];
+        console.log(`[Attendance] Punch-in attempt for Emp: ${employeeId}, Store: ${storeId}, Date: ${today}`);
+        
+        if (!storeId) {
+            console.error("[Attendance] Missing storeId in req.user");
+            throw new ApiError(400, "Store context missing. Please re-login.");
+        }
+
         let record = await Attendance.findOne({ employeeId, storeId, date: today });
+        
+        // --- NEW: Strict Daily Shift Limit ---
+        if (record) {
+            const hasCompletedShift = record.sessions.some(s => s.out && !s.isBreak);
+            if (hasCompletedShift) {
+                console.warn(`[Attendance] Blocked punch-in for Emp: ${employeeId}. Shift already finished today.`);
+                throw new ApiError(403, "You have already completed your shift for today. You can start a new shift after 12:00 AM.");
+            }
+        }
 
         if (!record) {
-            record = await Attendance.create({
-                employeeId,
-                storeId,
-                date: today,
-                sessions: [{ in: new Date(), isBreak: false }]
-            });
+            console.log("[Attendance] No record for today. Creating new...");
+            try {
+                record = await Attendance.create({
+                    employeeId,
+                    storeId,
+                    date: today,
+                    sessions: [{ in: new Date(), isBreak: false }]
+                });
+            } catch (err) {
+                console.error("[Attendance] Create failed:", err.message);
+                throw new ApiError(500, "Database error while starting shift");
+            }
         } else {
+            console.log("[Attendance] Record exists. Adding session...");
             const lastSession = record.sessions[record.sessions.length - 1];
             if (lastSession && !lastSession.out) {
+                console.warn("[Attendance] User already has an active session.");
                 throw new ApiError(400, "Already punched in or on break. Close existing session first.");
             }
             record.sessions.push({ in: new Date(), isBreak: false });
-            await record.save();
+            try {
+                await record.save();
+            } catch (err) {
+                console.error("[Attendance] Save failed:", err.message);
+                throw new ApiError(500, "Database error while updating shift");
+            }
         }
+
+
 
         return record;
     }
+
 
     async punchOut(employeeId, storeId, isBreak = false) {
         const today = new Date().toISOString().split('T')[0];

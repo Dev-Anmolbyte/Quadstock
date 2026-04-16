@@ -42,16 +42,18 @@ const attendanceSchema = new Schema(
 );
 
 // Pre-save hook to calculate total minutes
-attendanceSchema.pre("save", function (next) {
+attendanceSchema.pre("save", function () {
     let total = 0;
-    this.sessions.forEach(session => {
-        if (session.in && session.out && !session.isBreak) {
-            const diffInMs = new Date(session.out) - new Date(session.in);
-            total += Math.floor(diffInMs / (1000 * 60));
-        }
-    });
+    if (this.sessions && Array.isArray(this.sessions)) {
+        this.sessions.forEach(session => {
+            if (session.in && session.out && !session.isBreak) {
+                const diffInMs = new Date(session.out) - new Date(session.in);
+                total += Math.floor(diffInMs / (1000 * 60));
+            }
+        });
+    }
     this.totalMinutes = total;
-    next();
 });
+
 
 export const Attendance = mongoose.model("Attendance", attendanceSchema);

@@ -5,8 +5,10 @@ import { ApiError } from "../../utils/ApiError.js";
 const punchIn = asyncHandler(async (req, res) => {
     // req.user contains the logged in employee/owner info from authMiddleware
     const record = await attendanceService.punchIn(req.user._id, req.user.storeId);
+    console.log(`[Attendance] Punch-in SUCCESS for Emp: ${req.user._id}`);
     
     return res.status(200).json({
+
         success: true,
         data: record,
         message: "Punched in successfully"

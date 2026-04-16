@@ -75,6 +75,13 @@ function initStaffDetails(apiBase, headers, userRole) {
         renderAttendance();
         renderSales();
         renderLeaves();
+
+        // Update Action Section state
+        if (roleSelect) roleSelect.value = employee.role;
+        if (btnBlock) {
+            const isBlocked = employee.status === 'offline';
+            btnBlock.querySelector('span').textContent = isBlocked ? 'Unblock Access' : 'Block Access';
+        }
     };
 
     // --- Action Buttons ---
@@ -82,7 +89,9 @@ function initStaffDetails(apiBase, headers, userRole) {
     const roleSelect = document.getElementById('modal-role-select');
     const btnBlock = document.getElementById('btn-block-employee-modal');
     const btnDelete = document.getElementById('btn-delete-employee-modal');
-    const btnActionPayslip = document.querySelector('.action-card #btn-generate-payslip');
+    const btnActionPayslip = document.getElementById('btn-generate-payslip-action');
+    const btnProfilePayslip = document.getElementById('btn-generate-payslip');
+    const btnManageLeave = document.getElementById('btn-manage-leave');
 
     if (btnUpdateRole) {
         btnUpdateRole.onclick = async () => {
@@ -143,29 +152,40 @@ function initStaffDetails(apiBase, headers, userRole) {
     }
 
     if (btnActionPayslip) {
-        btnActionPayslip.onclick = async () => {
-            const month = new Date().toISOString().slice(0, 7);
-            try {
-                const res = await fetch(`${API_CONFIG.base}/payslips/generate`, {
-                    method: 'POST',
-                    headers: API_CONFIG.headers,
-                    body: JSON.stringify({
-                        employeeId: CURRENT_EMP._id,
-                        month,
-                        basicSalary: CURRENT_EMP.salary,
-                        allowances: 0,
-                        deductions: 0
-                    })
-                });
-                const result = await res.json();
-                if (result.success) {
-                    QuadModals.showToast("Payslip generated in DB", "success");
-                    // Optionally trigger download of a generated PDF/Text here
-                } else {
-                    QuadModals.showToast(result.message, "error");
-                }
-            } catch (err) { console.error(err); }
-        };
+        btnActionPayslip.onclick = () => generatePayslipAction();
+    }
+    if (btnProfilePayslip) {
+        btnProfilePayslip.onclick = () => generatePayslipAction();
+    }
+
+    async function generatePayslipAction() {
+        const month = new Date().toISOString().slice(0, 7);
+        try {
+            const res = await fetch(`${API_CONFIG.base}/payslips/generate`, {
+                method: 'POST',
+                headers: API_CONFIG.headers,
+                body: JSON.stringify({
+                    employeeId: CURRENT_EMP._id,
+                    month,
+                    basicSalary: CURRENT_EMP.salary,
+                    allowances: 0,
+                    deductions: 0
+                })
+            });
+            const result = await res.json();
+            if (result.success) {
+                QuadModals.showToast("Payslip generated successfully!", "success");
+            } else {
+                QuadModals.showToast(result.message || "Generation failed", "error");
+            }
+        } catch (err) {
+            console.error(err);
+            QuadModals.showToast("Network error during payslip generation", "error");
+        }
+    }
+
+    if (btnManageLeave) {
+        btnManageLeave.onclick = () => switchTab(3); // Leaves Tab
     }
 
     // Save Logic
