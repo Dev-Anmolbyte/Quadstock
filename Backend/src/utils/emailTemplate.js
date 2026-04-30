@@ -1,14 +1,23 @@
 /**
  * Generates a beautiful HTML email template for OTP verification.
  */
-export const otpEmailTemplate = (ownerName, storeName, otp) => {
-    return `
+export const otpEmailTemplate = (ownerName, storeName, otp, type = 'activation') => {
+  const isReset = type === 'password_reset';
+
+  const title = isReset ? 'Reset Your Password' : 'Verify Your QuadStock Account';
+  const mainHeading = isReset ? `Welcome back to ${storeName}` : 'Welcome to QuadStock';
+  const subText = isReset
+    ? 'We received a request to reset your password. Please use the verification code below to proceed.'
+    : `Welcome to <strong>${storeName}</strong>! To activate your account, please use the verification code below.`;
+  const otpLabel = isReset ? 'Your Reset Code' : 'Your Verification Code';
+
+  return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Verify Your QuadStock Account</title>
+  <title>${title}</title>
 </head>
 <body style="margin:0; padding:0; background-color:#f0f4f8; font-family: 'Segoe UI', Arial, sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0f4f8; padding: 40px 0;">
@@ -28,8 +37,9 @@ export const otpEmailTemplate = (ownerName, storeName, otp) => {
           <tr>
             <td style="padding: 40px 40px 32px;">
               <p style="margin:0 0 16px; color:#374151; font-size:16px;">Hello, <strong>${ownerName}</strong> 👋</p>
+              <h2 style="margin:0 0 12px; color:#1e3a5f; font-size:22px; font-weight:700;">${mainHeading}</h2>
               <p style="margin:0 0 24px; color:#6b7280; font-size:15px; line-height:1.6;">
-                Welcome to <strong style="color:#1e3a5f;">${storeName}</strong>! To activate your account, please use the verification code below.
+                ${subText}
               </p>
 
               <!-- OTP Box -->
@@ -37,7 +47,7 @@ export const otpEmailTemplate = (ownerName, storeName, otp) => {
                 <tr>
                   <td align="center">
                     <div style="background: #f0f7ff; border: 2px dashed #2563eb; border-radius: 12px; padding: 28px 20px; display:inline-block; width: 100%; box-sizing:border-box;">
-                      <p style="margin:0 0 8px; color:#6b7280; font-size:12px; text-transform:uppercase; letter-spacing:2px; font-weight:600;">Your Verification Code</p>
+                      <p style="margin:0 0 8px; color:#6b7280; font-size:12px; text-transform:uppercase; letter-spacing:2px; font-weight:600;">${otpLabel}</p>
                       <p style="margin:0; color:#1e3a5f; font-size:48px; font-weight:800; letter-spacing:12px; font-family: 'Courier New', monospace;">${otp}</p>
                     </div>
                   </td>

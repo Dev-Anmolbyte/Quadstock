@@ -94,12 +94,14 @@
 }
 
 .quad-dialog {
-    background: var(--bg-white);
+    background: var(--bg-card);
+    color: var(--text-main);
     width: 90%;
-    max-width: 450px;
-    padding: 2rem;
+    max-width: 500px;
+    padding: 2.5rem;
     border-radius: 20px;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--border-color);
     transform: scale(0.9);
     transition: transform 0.3s ease;
 }
@@ -131,30 +133,31 @@
 }
 
 .quad-dialog-icon.input {
-    background: var(--primary-light);
+    background: rgba(251, 146, 60, 0.1);
     color: var(--primary);
 }
 
 .quad-dialog h3 {
-    font-size: 1.25rem;
-    font-weight: 800;
-    color: var(--text-dark);
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: var(--text-main);
 }
 
 .quad-dialog p {
     color: var(--text-muted);
-    font-size: 1rem;
-    line-height: 1.5;
-    margin-bottom: 1.5rem;
+    font-size: 1.15rem;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+    font-weight: 500;
 }
 
 .quad-dialog-input {
     width: 100%;
     padding: 0.75rem 1rem;
     border-radius: 12px;
-    border: 1px solid var(--border);
-    background: var(--bg-light);
-    color: var(--text-dark);
+    border: 1px solid var(--border-color);
+    background: var(--bg-soft);
+    color: var(--text-main);
     font-size: 1rem;
     margin-bottom: 1.5rem;
 }
@@ -162,7 +165,7 @@
 .quad-dialog-input:focus {
     outline: none;
     border-color: var(--primary);
-    box-shadow: 0 0 0 2px var(--primary-light);
+    box-shadow: 0 0 0 2px rgba(251, 146, 60, 0.2);
 }
 
 .quad-dialog-actions {
@@ -172,18 +175,21 @@
 }
 
 .quad-btn {
-    padding: 0.75rem 1.5rem;
-    border-radius: 10px;
-    font-weight: 700;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    font-weight: 800;
     cursor: pointer;
     border: 1px solid transparent;
     transition: all 0.2s;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .quad-btn-cancel {
-    background: var(--bg-light);
-    color: var(--text-muted);
-    border-color: var(--border);
+    background: var(--bg-soft);
+    color: var(--text-secondary);
+    border-color: var(--border-color);
 }
 
 .quad-btn-confirm {

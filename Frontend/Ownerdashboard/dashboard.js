@@ -83,6 +83,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 animateValue('dash-total-udhaar', 0, d.totalUdhaarPending || 0, duration, true);
                 animateValue('dash-staff-count', 0, d.totalUsers || 0, duration, false);
                 animateValue('dash-expiring-alert', 0, d.expiringSoonCount || 0, duration, false);
+                
+                // 1.5 Calculate Weekly Sales (Direct from backend)
+                if (d.weeklyRevenue !== undefined) {
+                    animateValue('weekly-sales-val', 0, d.weeklyRevenue, duration, true);
+                }
+
+
 
                 // 4. Update Tables (Capped at 6 items by backend)
                 updateDashboardTables(d);
@@ -92,8 +99,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     const lowStockBadge = document.querySelector('#dash-low-stock').closest('.stat-card').querySelector('.badge');
                     if (lowStockBadge) lowStockBadge.style.display = (d.settings.notifLowStock && d.lowStockCount > 0) ? 'block' : 'none';
 
+                    const udhaarBadge = document.querySelector('#dash-total-udhaar').closest('.stat-card').querySelector('.badge');
+                    if (udhaarBadge) udhaarBadge.style.display = (d.settings.notifUdhaarOverdue && d.totalUdhaarPending > 0) ? 'block' : 'none';
+
+                    const expiryBadge = document.querySelector('#dash-expiring-alert').closest('.stat-card').querySelector('.badge');
+                    if (expiryBadge) expiryBadge.style.display = (d.expiringSoonCount > 0) ? 'block' : 'none';
+
                     const outOfStockBadge = document.querySelector('#dash-out-of-stock').closest('.stat-card').querySelector('.badge');
-                    if (outOfStockBadge) outOfStockBadge.style.display = (d.outOfStockCount > 0) ? 'block' : 'none'; // Always show out of stock as critical
+                    if (outOfStockBadge) outOfStockBadge.style.display = (d.outOfStockCount > 0) ? 'block' : 'none';
+
                 }
             }
         } catch (err) {

@@ -1,4 +1,5 @@
 import { Attendance } from "./attendance.model.js";
+import { Employee } from "../employee/employee.model.js";
 import { ApiError } from "../../utils/ApiError.js";
 import mongoose from "mongoose";
 
@@ -54,8 +55,47 @@ class AttendanceService {
 
 
 
+        // --- NEW: Auto-close open shifts from previous days ---
+        await this.autoEndOldShifts(employeeId, storeId);
+
         return record;
     }
+
+    /**
+     * Finds any open shifts for this employee in the past and closes them at 23:59:59
+     */
+    async autoEndOldShifts(employeeId, storeId) {
+        const today = new Date().toISOString().split('T')[0];
+        
+        // Find all attendance records for this employee/store that are NOT today and have an open session
+        const openRecords = await Attendance.find({
+            employeeId,
+            storeId,
+            date: { $ne: today },
+            "sessions.out": { $exists: false }
+        });
+
+        if (openRecords.length > 0) {
+            console.log(`[Attendance] Auto-closing ${openRecords.length} old shifts for Emp: ${employeeId}`);
+            for (let record of openRecords) {
+                let changed = false;
+                record.sessions.forEach(session => {
+                    if (!session.out) {
+                        // Set out time to 23:59:59 of that record's date
+                        const endOfDay = new Date(record.date + "T23:59:59Z");
+                        session.out = endOfDay;
+                        changed = true;
+                    }
+                });
+                if (changed) {
+                    await record.save();
+                    // Also update the employee status to offline
+                    await Employee.findByIdAndUpdate(employeeId, { $set: { status: 'offline' } });
+                }
+            }
+        }
+    }
+
 
 
     async punchOut(employeeId, storeId, isBreak = false) {
@@ -78,7 +118,39 @@ class AttendanceService {
         return record;
     }
 
+    /**
+     * Finds any open shifts in the past for a whole store and closes them
+     */
+    async autoEndAllOldShifts(storeId) {
+        const today = new Date().toISOString().split('T')[0];
+        const openRecords = await Attendance.find({
+            storeId,
+            date: { $ne: today },
+            "sessions.out": { $exists: false }
+        });
+
+        if (openRecords.length > 0) {
+            console.log(`[Attendance] Auto-closing ${openRecords.length} old shifts for Store: ${storeId}`);
+            for (let record of openRecords) {
+                let changed = false;
+                record.sessions.forEach(session => {
+                    if (!session.out) {
+                        const endOfDay = new Date(record.date + "T23:59:59Z");
+                        session.out = endOfDay;
+                        changed = true;
+                    }
+                });
+                if (changed) {
+                    await record.save();
+                    // Also update the employee status to offline
+                    await Employee.findByIdAndUpdate(record.employeeId, { $set: { status: 'offline' } });
+                }
+            }
+        }
+    }
+
     async getMyAttendance(employeeId, storeId, month) {
+        await this.autoEndOldShifts(employeeId, storeId);
         // month format: "YYYY-MM"
         const filter = {
             employeeId,
@@ -89,6 +161,7 @@ class AttendanceService {
     }
 
     async getEmployeeAttendance(employeeId, storeId, month) {
+        await this.autoEndOldShifts(employeeId, storeId);
         const filter = {
             employeeId,
             storeId,
@@ -98,8 +171,10 @@ class AttendanceService {
     }
 
     async getDailyReport(storeId, date) {
+        await this.autoEndAllOldShifts(storeId);
         return await Attendance.find({ storeId, date }).populate('employeeId', 'name photo designation');
     }
+
 }
 
 export default new AttendanceService();

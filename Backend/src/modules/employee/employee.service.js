@@ -4,8 +4,26 @@ import { uploadOnCloudinary } from "../../utils/cloudinary.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { withStore } from "../../utils/storeHelper.js";
 
+import { Store } from "../store/store.model.js";
+import attendanceService from "../attendance/attendance.service.js";
+
 class EmployeeService {
     async addEmployee(employeeData, storeId, ownerId, file) {
+        const store = await Store.findById(storeId);
+        if (!store) throw new ApiError(404, "Store not found");
+
+        // Subscription Limit Check
+        const employeeCount = await Employee.countDocuments({ storeId });
+        const limits = {
+            "free": 1,
+            "pro": 5, 
+            "enterprise": 1000000 // Unlimited
+        };
+
+        if (employeeCount >= limits[store.subscriptionPlan]) {
+            throw new ApiError(403, `Staff limit reached for ${store.subscriptionPlan} plan. Upgrade to add more employees.`);
+        }
+
         const { name, email, password, role, phoneNumber, aadhaar, address, emergencyContact, salary } = employeeData;
 
         // Check if employee already exists by email in BOTH collections
@@ -62,6 +80,9 @@ class EmployeeService {
     }
 
     async getEmployees(storeId, query = {}) {
+        // --- NEW: Sync statuses before fetching ---
+        await attendanceService.autoEndAllOldShifts(storeId);
+
         const { page = 1, limit = 10 } = query;
         const skip = (page - 1) * limit;
         const filter = withStore({ role: { $ne: 'owner' } }, { storeId });

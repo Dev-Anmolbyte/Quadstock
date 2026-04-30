@@ -150,6 +150,8 @@ document.addEventListener('DOMContentLoaded', () => {
             let badgeColor = daysLeft <= 0 ? 'red' : (daysLeft <= 7 ? 'orange' : (daysLeft <= healthyExpiryThreshold ? 'yellow' : 'blue'));
 
             const isChecked = selectedItems.has(item._id) ? 'checked' : '';
+            const stockQty = item.quantity || item.stockQuantity || 0;
+            const imgSrc = item.image || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=200';
 
             // discount info
             let discountHtml = item.discount > 0 
@@ -157,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 : '';
 
             // high stock info
-            let highStockBadge = item.quantity >= highStockThreshold 
+            let highStockBadge = stockQty >= highStockThreshold 
                 ? `<span class="days-badge blue" style="margin-left:0;"><i class="fa-solid fa-arrow-trend-up"></i> Bulk</span>`
                 : '';
 
@@ -169,27 +171,44 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="item-check-wrapper">
                     <input type="checkbox" class="item-check" data-id="${item._id}" ${isChecked}>
                 </div>
+                <div class="item-image-wrapper">
+                    <img src="${imgSrc}" alt="${item.name}" onerror="this.src='https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=200'">
+                </div>
                 <div class="item-content">
                     <div class="item-main">
+                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.2rem;">
+                            <span class="item-brand">${item.brand || 'No Brand'}</span>
+                            <span class="days-badge ${item.productType === 'loose' ? 'blue' : 'green'}" style="padding: 2px 8px; font-size: 0.6rem; border-radius: 6px; box-shadow: none;">
+                                ${item.productType === 'loose' ? 'LOOSE' : 'PACKED'}
+                            </span>
+                        </div>
                         <h4>${item.name}</h4>
                         <div class="item-meta">
-                            <span><i class="fa-solid fa-tag"></i> ${item.batchNumber || 'Batch-001'}</span>
-                            <span><i class="fa-solid fa-box"></i> ${item.quantity} ${item.unit || 'pcs'}</span>
+                            <span><i class="fa-solid fa-hashtag"></i> ${item.batchNumber || 'Batch-001'}</span>
+                            <span><i class="fa-solid fa-box"></i> ${stockQty} ${item.unit || 'pcs'}</span>
+                            <span class="item-category-tag"><i class="fa-solid fa-folder"></i> ${item.category || 'General'}</span>
                         </div>
                     </div>
                     <div class="item-expiry-info">
-                        <span>EXPIRY DATE</span>
-                        <strong>${item.expiryDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</strong>
+                        <div class="expiry-date-box">
+                            <span>EXPIRY DATE</span>
+                            <strong>${item.expiryDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</strong>
+                        </div>
+                        <div class="mfd-date-box">
+                            <span>MFD: ${item.mfd ? new Date(item.mfd).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : 'N/A'}</span>
+                        </div>
                     </div>
                     <div class="status-section">
-                        <div style="display:flex; gap:0.5rem; justify-content:flex-end;">
+                        <div style="display:flex; gap:0.5rem; justify-content:flex-end; flex-wrap: wrap;">
                            ${discountHtml}
                            ${highStockBadge}
                            <div class="days-badge ${badgeColor}">${dayText}</div>
                         </div>
-                        <a class="history-link" onclick="viewHistory('${item._id}')">
-                            <i class="fa-solid fa-clock-rotate-left"></i> History Log
-                        </a>
+                        <div class="action-links">
+                            <a class="history-link" onclick="viewHistory('${item._id}')">
+                                <i class="fa-solid fa-clock-rotate-left"></i> History
+                            </a>
+                        </div>
                     </div>
                 </div>
             `;
@@ -256,6 +275,24 @@ document.addEventListener('DOMContentLoaded', () => {
         const sortSelect = document.getElementById('sort-select');
         if (sortSelect) {
             sortSelect.addEventListener('change', renderTimeline);
+        }
+
+        // Select All Logic
+        const selectAllChk = document.getElementById('select-all');
+        if (selectAllChk) {
+            selectAllChk.addEventListener('change', (e) => {
+                const isChecked = e.target.checked;
+                const visibleChecks = document.querySelectorAll('.item-check');
+                
+                selectedItems.clear();
+                visibleChecks.forEach(chk => {
+                    if (chk.id === 'select-all') return;
+                    chk.checked = isChecked;
+                    if (isChecked) selectedItems.add(chk.dataset.id);
+                });
+                
+                updateBulkActions();
+            });
         }
         
         // High Stock Settings Modal
@@ -358,10 +395,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     <input type="number" id="discount-value" value="0" min="0" placeholder="0.00">
                 </div>
             </div>
-            <div class="form-group">
-                <label for="discount-reason"><i class="fa-solid fa-comment-dots"></i> Reason</label>
+            <div style="margin-bottom: 20px;">
+                <label for="discount-reason" style="display: block; font-size: 0.9rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem;"><i class="fa-solid fa-comment-dots"></i> Selection Reason</label>
                 <div class="input-wrapper">
-                    <input type="text" id="discount-reason" placeholder="e.g. Near expiry sale">
+                    <select id="discount-reason" style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-main); font-weight: 600;">
+                        <option value="Near Expiry Sale">Near Expiry Sale</option>
+                        <option value="Huge Stock Clearance">Huge Stock Clearance</option>
+                        <option value="Bulk Purchase Offer">Bulk Purchase Offer</option>
+                        <option value="Seasonal Discount">Seasonal Discount</option>
+                        <option value="Damaged Packaging Sale">Damaged Packaging Sale</option>
+                        <option value="Special Promotion">Special Promotion</option>
+                    </select>
                 </div>
             </div>
         `;

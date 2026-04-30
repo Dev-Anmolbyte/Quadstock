@@ -155,4 +155,170 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // --- 6. Pricing Toggle Logic ---
+    const pricingBtns = document.querySelectorAll('.pricing-toggle-btn');
+    const pricePro = document.getElementById('price-pro');
+    const priceEnterprise = document.getElementById('price-enterprise');
+    const periodPro = document.getElementById('period-pro');
+    const periodEnterprise = document.getElementById('period-enterprise');
+
+    window.currentCycle = 'monthly'; // Global for button access
+
+    const pricingData = {
+        monthly: {
+            pro: '499',
+            enterprise: '1,199',
+            period: '/month'
+        },
+        quarter: {
+            pro: '1,349',
+            enterprise: '3,249',
+            period: '/quarter'
+        },
+        half: {
+            pro: '2,399',
+            enterprise: '5,759',
+            period: '/6 months'
+        },
+        yearly: {
+            pro: '4,199',
+            enterprise: '9,999',
+            period: '/year'
+        }
+    };
+
+    pricingBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Update UI State
+            pricingBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const cycle = btn.getAttribute('data-cycle');
+            window.currentCycle = cycle;
+            const data = pricingData[cycle];
+
+            if (data) {
+                // Animate price change
+                animatePriceChange(pricePro, data.pro);
+                animatePriceChange(priceEnterprise, data.enterprise);
+                
+                periodPro.textContent = data.period;
+                periodEnterprise.textContent = data.period;
+            }
+        });
+    });
+
+    function animatePriceChange(el, newPrice) {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(10px)';
+        
+        setTimeout(() => {
+            el.textContent = newPrice;
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+        }, 200);
+    }
+
+    // --- 7. Razorpay Integration ---
+    window.handleSubscription = async (plan, cycle) => {
+        console.log(`[Subscription] Initiating ${plan} plan for ${cycle} cycle...`);
+        
+        const btn = event.currentTarget;
+        const originalHtml = btn.innerHTML;
+        
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            alert("Please login as an owner to subscribe to a plan.");
+            window.location.href = "../Authentication/owner_login.html";
+            return;
+        }
+
+        try {
+            // Add Loading State
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
+            btn.disabled = true;
+
+            // 1. Create Order on Backend
+            const orderRes = await apiRequest('/subscriptions/create-order', {
+                method: 'POST',
+                body: JSON.stringify({ plan, cycle })
+            });
+
+            if (!orderRes.success) throw new Error(orderRes.message);
+
+            const order = orderRes.data;
+
+            // --- NEW: Handle Upgrade Confirmation ---
+            if (order.discountApplied > 0) {
+                const confirmed = confirm(`Plan Upgrade detected!\n\nWe've deducted ₹${order.discountApplied.toLocaleString()} from your current plan's remaining days.\n\nYou only pay: ₹${order.adjustedAmount.toLocaleString()}\n\nProceed to payment?`);
+                if (!confirmed) {
+                    btn.innerHTML = originalHtml;
+                    btn.disabled = false;
+                    return;
+                }
+            }
+
+            // 2. Open Razorpay Modal
+            const options = {
+                key: "rzp_test_Sgou2ajCjV28E6", 
+                amount: order.amount, // amount in paise from backend
+                currency: "INR",
+                name: "QuadStock",
+                description: `${plan.toUpperCase()} Plan - ${cycle.toUpperCase()}`,
+                order_id: order.id,
+                handler: async function (response) {
+                    // 3. Verify Payment on Backend
+                    try {
+                        const verifyRes = await apiRequest('/subscriptions/verify-payment', {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature,
+                                plan,
+                                cycle
+                            })
+                        });
+
+                        if (verifyRes.success) {
+                            // Update Local Session with new Plan
+                            const user = JSON.parse(sessionStorage.getItem('currentUser'));
+                            if (user && user.storeId) {
+                                user.storeId.subscriptionPlan = plan;
+                                user.storeId.subscriptionStatus = 'active';
+                                sessionStorage.setItem('currentUser', JSON.stringify(user));
+                            }
+                            
+                            alert("Congratulations! Your subscription has been upgraded successfully.");
+                            window.location.href = "../Ownerdashboard/dashboard.html";
+                        } else {
+                            alert("Payment verification failed. Please contact support.");
+                        }
+                    } catch (err) {
+                        alert("Error verifying payment: " + err.message);
+                    }
+                },
+                prefill: {
+                    name: JSON.parse(sessionStorage.getItem('currentUser'))?.name || "",
+                    email: JSON.parse(sessionStorage.getItem('currentUser'))?.email || ""
+                },
+                theme: {
+                    color: "#FF7E36"
+                }
+            };
+
+            const rzp = new Razorpay(options);
+            rzp.open();
+
+        } catch (err) {
+            console.error("[Subscription Error]", err);
+            alert("Failed to initiate payment: " + err.message);
+        } finally {
+            if (btn) {
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            }
+        }
+    };
+
 });

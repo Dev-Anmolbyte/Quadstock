@@ -9,6 +9,21 @@ import { withStore } from "../../utils/storeHelper.js";
 
 class ProductService {
     async createProduct(productData, storeId, file) {
+        const store = await Store.findById(storeId);
+        if (!store) throw new ApiError(404, "Store not found");
+
+        // Subscription Limit Check
+        const productCount = await Product.countDocuments({ storeId });
+        const limits = {
+            "free": 100,
+            "pro": 1000000, // Unlimited
+            "enterprise": 1000000 // Unlimited
+        };
+
+        if (productCount >= limits[store.subscriptionPlan]) {
+            throw new ApiError(403, `Monthly limit reached for ${store.subscriptionPlan} plan. Upgrade to add more products.`);
+        }
+
         const { name, categoryId, categoryName, ...rest } = productData;
 
         let finalCategoryId = categoryId;
@@ -191,7 +206,11 @@ class ProductService {
 
     async applyDiscount(ids, storeId, { discount, discountType, reason }, user) {
         const updateData = {
-            $set: { discount, discountType },
+            $set: { 
+                discount, 
+                discountType,
+                discountReason: reason || "Smart Expiry Adjustment"
+            },
             $push: {
                 discountHistory: {
                     amount: discount,

@@ -27,6 +27,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (result.success) {
                 inventory = result.data || [];
+                
+                // Migration (Safe Extension)
+                inventory.forEach(p => {
+                    if (!p.productType) {
+                        p.productType = "packed";
+                    }
+                });
+
                 renderTable();
                 calculateDashboardStats();
             } else {
@@ -45,7 +53,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         category: '',
         brand: '',
         stock: '',
-        expiry: ''
+        expiry: '',
+        productType: ''
     };
 
     const DEFAULT_CATEGORIES = {
@@ -77,6 +86,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const filterBrand = document.getElementById('filter-brand');
     const filterStock = document.getElementById('filter-stock');
     const filterExpiry = document.getElementById('filter-expiry');
+    const filterProductType = document.getElementById('filter-product-type');
 
     const btnAddProduct = document.getElementById('add-product-btn');
 
@@ -85,7 +95,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const productForm = document.getElementById('product-form');
     const btnCloseModal = document.querySelectorAll('.close-modal, .close-modal-btn');
     const btnGenBatch = document.getElementById('btn-gen-batch');
-    const btnSplitBatch = document.getElementById('btn-split-batch');
 
     const inputType = document.getElementById('product-type');
     const inputCategory = document.getElementById('product-category');
@@ -140,6 +149,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const sectionStock = document.getElementById('section-stock');
     const sectionPricing = document.getElementById('section-pricing');
+    const volumeWeightSection = document.getElementById('volume-weight-section');
+    const labelReorderPoint = document.getElementById('label-reorder-point');
 
     // --- New DOM Elements for Packed/Loose ---
     const inputTypeRadios = document.querySelectorAll('input[name="product-type-radio"]');
@@ -153,7 +164,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (inputPP) inputPP.addEventListener('input', calculateMargin);
     if (inputCP) inputCP.addEventListener('input', calculateMargin);
     if (inputSP) inputSP.addEventListener('input', calculateMargin);
-    if (inputPricePerUnit) inputPricePerUnit.addEventListener('input', calculateMargin);
+    if (inputPricePerUnit) {
+        inputPricePerUnit.addEventListener('input', () => {
+            inputSP.value = inputPricePerUnit.value;
+            calculateMargin();
+        });
+    }
 
 
 
@@ -262,6 +278,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     safeListener(filterBrand, 'change', (e) => { filters.brand = e.target.value; renderTable(); });
     safeListener(filterStock, 'change', (e) => { filters.stock = e.target.value; renderTable(); });
     safeListener(filterExpiry, 'change', (e) => { filters.expiry = e.target.value; renderTable(); });
+    safeListener(filterProductType, 'change', (e) => { filters.productType = e.target.value; renderTable(); });
 
     // View Toggle
     const btnToggleView = document.getElementById('toggle-view-btn');
@@ -291,40 +308,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 
-    // Split Batch
-    safeListener(btnSplitBatch, 'click', () => {
-        if (productForm && productForm.checkValidity()) {
-            saveProduct(false);
-
-            // Essential: Reset editing state so next save creates new item
-            isEditing = false;
-            currentEditId = null;
-
-            // Clear Batch & Qty fields
-            if (inputBatch) inputBatch.value = generateBatchNumber();
-            if (inputQty) inputQty.value = '';
-
-            // Reset fields based on type
-            if (inputType && inputType.value === 'Clothes') {
-                if (inputSize) inputSize.value = '';
-                if (inputColor) inputColor.value = '';
-            } else {
-                if (inputExp) inputExp.value = '';
-                if (inputMfd) inputMfd.value = '';
-                if (expiryHint) {
-                    expiryHint.textContent = 'Select date to see alert status';
-                    expiryHint.style.color = 'var(--text-secondary)';
-                }
-            }
-
-            // UI Feedback
-            const originalText = btnSplitBatch.innerHTML;
-            btnSplitBatch.innerHTML = '<i class="fa-solid fa-check"></i> Added! Next...';
-            setTimeout(() => { btnSplitBatch.innerHTML = originalText; }, 1000);
-        } else if (productForm) {
-            productForm.reportValidity();
-        }
-    });
 
     // Product Type Toggle
     inputTypeRadios.forEach(radio => {
@@ -339,20 +322,31 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (type === 'loose') {
             packedStockFields.style.display = 'none';
             looseStockFields.style.display = 'block';
+            sectionPricing.style.display = 'block';
+            if (volumeWeightSection) volumeWeightSection.style.display = 'none';
 
-            divGroceryDates.style.display = 'none';
+            const categoryType = inputType.value;
+            toggleAttributes(categoryType);
             
             // Remove required from packed fields
-            inputBatch.removeAttribute('required');
             inputQty.removeAttribute('required');
             inputExp.removeAttribute('required');
+            if (inputCP) inputCP.removeAttribute('required');
+            if (inputSP) inputSP.removeAttribute('required');
             
             // Add required to loose fields
             inputLooseQty.setAttribute('required', 'true');
             inputPricePerUnit.setAttribute('required', 'true');
+            if (categoryType !== 'Clothes') {
+                inputExp.setAttribute('required', 'true');
+            }
+            
+            if (labelReorderPoint) labelReorderPoint.innerHTML = `Low Stock Alert Level (in ${inputLooseUnit.value || 'kg'})`;
         } else {
             packedStockFields.style.display = 'block';
             looseStockFields.style.display = 'none';
+            sectionPricing.style.display = 'block';
+            if (volumeWeightSection) volumeWeightSection.style.display = 'flex';
 
             
             // Packed can be Kirana or Clothes - check inputType
@@ -360,8 +354,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             toggleAttributes(categoryType);
             
             // Add required back to packed fields
-            inputBatch.setAttribute('required', 'true');
             inputQty.setAttribute('required', 'true');
+            if (inputCP) inputCP.setAttribute('required', 'true');
+            if (inputSP) inputSP.setAttribute('required', 'true');
+            
             if (categoryType !== 'Clothes') {
                 inputExp.setAttribute('required', 'true');
             }
@@ -369,6 +365,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Remove required from loose fields
             inputLooseQty.removeAttribute('required');
             inputPricePerUnit.removeAttribute('required');
+            
+            if (labelReorderPoint) labelReorderPoint.innerHTML = `Low Stock Alert Level`;
         }
         calculateMargin();
     }
@@ -394,6 +392,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         populateSubCategories(type);
         toggleAttributes(type);
         if (inputCategory) inputCategory.value = ''; // Clear previous sub-category
+    });
+
+    safeListener(inputLooseUnit, 'change', (e) => {
+        if (labelReorderPoint && looseStockFields.style.display !== 'none') {
+            labelReorderPoint.innerHTML = `Low Stock Alert Level (in ${e.target.value})`;
+        }
     });
 
     // Margin Calculator (Listeners already attached above)
@@ -697,7 +701,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             isEditing = true;
             currentEditId = item.id;
             modalTitle.textContent = 'Edit Product';
-            btnSplitBatch.style.display = 'block';
 
             inputName.value = item.name;
             inputBrand.value = item.brand || '';
@@ -751,7 +754,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             isEditing = false;
             currentEditId = null;
             modalTitle.textContent = 'Add New Product';
-            btnSplitBatch.style.display = 'block';
             productForm.reset();
             stopCamera();
             previewInterface.style.display = 'none';
@@ -865,7 +867,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             description: inputDesc.value,
             image: imgPreview.src, 
             barcode: null,
-            batchNumber: isLoose ? null : inputBatch.value,
+            batchNumber: inputBatch.value,
             productType: isLoose ? 'loose' : 'packed',
 
             quantity: isLoose ? 0 : (parseInt(inputQty.value) || 0),
@@ -873,8 +875,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             pricePerUnit: isLoose ? (parseFloat(inputPricePerUnit.value) || 0) : 0,
             stockQuantity: isLoose ? (parseFloat(inputLooseQty.value) || 0) : 0,
 
-            mfd: (isLoose || currentType === 'Clothes') ? null : inputMfd.value,
-            exp: (isLoose || currentType === 'Clothes') ? null : inputExp.value,
+            mfd: (currentType === 'Clothes') ? null : inputMfd.value,
+            exp: (currentType === 'Clothes') ? null : inputExp.value,
             size: currentType === 'Clothes' ? inputSize.value : null,
             color: currentType === 'Clothes' ? inputColor.value : null,
             weight: (currentType === 'Kirana' && !isLoose) ? inputWeight.value : null,
@@ -1005,7 +1007,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 lowStockCount++;
             }
 
-            if (item.exp && !isLoose) {
+            if (item.exp) {
                 const expDate = new Date(item.exp);
                 const diffTime = expDate - today;
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -1090,7 +1092,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (filters.stock === 'in-stock') matchStock = qty > (item.reorderPoint || 10);
 
             let matchExp = true;
-            if (filters.expiry && item.exp && item.productType !== 'loose') {
+            if (filters.expiry && item.exp) {
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
                 const expDate = new Date(item.exp);
@@ -1099,11 +1101,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (filters.expiry === 'expired') matchExp = diffDays < 0;
                 if (filters.expiry === 'expiring-soon') matchExp = diffDays >= 0 && diffDays <= 30;
                 if (filters.expiry === 'good') matchExp = diffDays > 30;
-            } else if (filters.expiry && item.productType === 'loose') {
+            } else if (filters.expiry && !item.exp) {
                 matchExp = false;
             }
 
-            return matchSearch && matchCat && matchBrand && matchStock && matchExp;
+            const matchProductType = !filters.productType || (item.productType || 'packed') === filters.productType;
+
+            return matchSearch && matchCat && matchBrand && matchStock && matchExp && matchProductType;
         });
 
         tableBody.innerHTML = '';
@@ -1124,15 +1128,47 @@ document.addEventListener('DOMContentLoaded', async () => {
             groups[key].push(item);
         });
 
+        // Update Table Headers
+        const thead = document.getElementById('inventory-table-head');
+        if (filters.productType === 'loose') {
+            thead.innerHTML = `
+                <tr>
+                    <th>Status</th>
+                    <th>Product Details</th>
+                    <th>Category / Brand</th>
+                    <th>Batch Info</th>
+                    <th>Stock</th>
+                    <th>Unit</th>
+                    <th>Price/Unit</th>
+                    <th>Total Value</th>
+                    <th>Expiry</th>
+                    <th>Actions</th>
+                </tr>
+            `;
+        } else {
+            thead.innerHTML = `
+                <tr>
+                    <th>Status</th>
+                    <th>Product Details</th>
+                    <th>Category / Brand</th>
+                    <th>Batch Info</th>
+                    <th>Stock</th>
+                    <th>Pricing</th>
+                    <th>Expiry</th>
+                    <th>Actions</th>
+                </tr>
+            `;
+        }
+
         // 3. Render Groups
         Object.values(groups).forEach(group => {
             if (group.length === 1) {
                 // Single Item - Render Standard Row
                 const item = group[0];
-                renderSingleRow(item);
+                renderSingleRow(item, filters.productType);
             } else {
                 // Multiple Items - Render Parent + Children
-                renderGroupRows(group);
+                renderGroupRows(group, filters.productType);
             }
         });
 
@@ -1140,14 +1176,56 @@ document.addEventListener('DOMContentLoaded', async () => {
         attachTableListeners();
     }
 
-    function renderSingleRow(item) {
+    function renderSingleRow(item, viewType) {
         const tr = document.createElement('tr');
         const isLoose = item.productType === 'loose';
         const qty = isLoose ? (item.stockQuantity || 0) : (item.quantity || 0);
-        const status = isLoose ? { class: (qty === 0 ? 'dot-red' : (qty <= (item.reorderPoint || 10) ? 'dot-yellow' : 'dot-green')), title: 'Stock Levels', expiryClass: '', daysToExpiry: null } : getStatus(item);
+        const status = getStatus(item);
 
-        tr.innerHTML = `
-            <td><span class="status-dot ${status.class}" title="${status.title}"></span></td>
+        if (viewType === 'loose') {
+            const totalValue = qty * (item.price || item.pricePerUnit || 0);
+            tr.innerHTML = `
+                <td><span class="status-dot ${status.class}" title="${status.title}"></span></td>
+                <td>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        ${item.image ? `<img src="${item.image}" style="width:40px; height:40px; border-radius:4px; object-fit:cover;">` : '<div class="image-placeholder"><i class="fa-solid fa-plus"></i></div>'}
+                        <div>
+                            <div style="font-weight: 600;">${item.name}</div>
+                            <div style="display:flex; gap:6px; margin-top:2px;">
+                                <span class="badge badge-loose">LOOSE</span>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+                <td><div class="badge badge-cat">${item.brand || '-'}</div></td>
+                <td>
+                    <div style="font-family: monospace; font-weight: 600;">${item.batchNumber}</div>
+                    <div class="text-sm">MFD: ${formatDate(item.mfd)}</div>
+                </td>
+                <td>
+                    <div style="font-weight: 700;">${qty.toFixed(3)}</div>
+                    ${qty === 0 ? '<span style="color:var(--c-red-text); font-size:0.75em; font-weight:bold;">Out of Stock</span>' : (qty <= (item.reorderPoint || 10) ? '<span style="color:var(--c-orange-text); font-size:0.75em;">Low Stock</span>' : '')}
+                </td>
+                <td><div class="text-muted" style="font-weight: 600;">${item.unit || 'kg'}</div></td>
+                <td><div style="font-weight:700; color:var(--text-primary); font-size:1.05em;">₹${(item.price || item.pricePerUnit || 0).toFixed(2)}</div></td>
+                <td><div style="font-weight:700; color:var(--c-green-text); font-size:1.05em;">₹${totalValue.toFixed(2)}</div></td>
+                <td>
+                    ${!item.exp ? '<div class="text-muted">N/A</div>' : `
+                    <div style="font-weight: 600; ${status.expiryClass}">
+                        ${formatDate(item.exp)}
+                    </div>
+                    ${status.daysToExpiry !== null ? `<div class="text-sm">${status.daysToExpiry < 0 ? 'Expired' : status.daysToExpiry + ' days left'}</div>` : ''}
+                    `}
+                </td>
+                <td>
+                    <button class="action-btn adjust-stock-btn" data-id="${item._id}" title="Quick Adjust Stock"><i class="fa-solid fa-scale-unbalanced"></i></button>
+                    <button class="action-btn edit-btn" data-id="${item._id}" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button class="action-btn delete-btn" data-id="${item._id}" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            `;
+        } else {
+            tr.innerHTML = `
+                <td><span class="status-dot ${status.class}" title="${status.title}"></span></td>
             <td>
                 <div style="display:flex; gap:10px; align-items:center;">
                     ${item.image ? `<img src="${item.image}" style="width:40px; height:40px; border-radius:4px; object-fit:cover;">` : '<div class="image-placeholder"><i class="fa-solid fa-plus"></i></div>'}
@@ -1162,8 +1240,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             </td>
             <td><div class="badge badge-cat">${item.brand || '-'}</div></td>
             <td>
-                ${isLoose ? '<div class="text-muted">N/A</div>' : `
-                <div style="font-family: monospace; font-weight: 600;">${item.batchNumber}</div>
+                ${!item.batchNumber && !item.mfd ? '<div class="text-muted">N/A</div>' : `
+                <div style="font-family: monospace; font-weight: 600;">${item.batchNumber || '-'}</div>
                 <div class="text-sm">MFD: ${formatDate(item.mfd)}</div>
                 `}
             </td>
@@ -1179,7 +1257,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </div>
             </td>
             <td>
-                ${isLoose ? '<div class="text-muted">N/A</div>' : `
+                ${!item.exp ? '<div class="text-muted">N/A</div>' : `
                 <div style="font-weight: 600; ${status.expiryClass}">
                     ${formatDate(item.exp)}
                 </div>
@@ -1191,13 +1269,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <button class="action-btn delete-btn" data-id="${item._id}" title="Delete"><i class="fa-solid fa-trash"></i></button>
             </td>
         `;
+        }
         tableBody.appendChild(tr);
     }
 
-    function renderGroupRows(group) {
+    function renderGroupRows(group, viewType) {
         // Parent Row Data
         const parent = group[0]; // Take representative 
-        const totalQty = group.reduce((sum, i) => sum + (i.quantity || 0), 0);
+        const totalQty = group.reduce((sum, i) => sum + ((i.productType === 'loose' ? i.stockQuantity : i.quantity) || 0), 0);
         const groupID = `group-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
         // Aggregate Status
@@ -1333,6 +1412,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         let daysToExpiry = null;
+        const isLoose = item.productType === 'loose';
+        const qty = isLoose ? (item.stockQuantity || 0) : (item.quantity || 0);
 
         if (item.exp) {
             const expDate = new Date(item.exp);
@@ -1348,8 +1429,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 expiryClass = 'color:orange;';
             }
         }
-        if (item.quantity === 0) { statusClass = 'dot-red'; statusTitle = 'Out of Stock'; }
-        else if (item.quantity <= (item.reorderPoint || 10) && statusClass !== 'dot-red') {
+        if (qty <= 0) { statusClass = 'dot-red'; statusTitle = 'Out of Stock'; }
+        else if (qty <= (item.reorderPoint || 10) && statusClass !== 'dot-red') {
             statusClass = 'dot-yellow'; statusTitle = 'Low Stock';
         }
 
@@ -1374,6 +1455,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             })
         );
 
+        document.querySelectorAll('.adjust-stock-btn').forEach(btn =>
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const id = e.target.closest('button').dataset.id;
+                const item = inventory.find(i => i._id === id);
+                if (item) openAdjustStock(item);
+            })
+        );
+
     }
 
 
@@ -1387,6 +1477,91 @@ document.addEventListener('DOMContentLoaded', async () => {
     const inputExpiryAlert = document.getElementById('setting-expiry-alert');
     const inputExpiryWarning = document.getElementById('setting-expiry-warning');
     const inputExpiryCritical = document.getElementById('setting-expiry-critical');
+
+    // --- Quick Adjust Stock Logic ---
+    const adjustStockModal = document.getElementById('adjust-stock-modal');
+    const adjustStockName = document.getElementById('adjust-stock-product-name');
+    const adjustStockCurrent = document.getElementById('adjust-stock-current');
+    const adjustStockUnit = document.getElementById('adjust-stock-unit');
+    const adjustStockAction = document.getElementById('adjust-stock-action');
+    const adjustStockAmount = document.getElementById('adjust-stock-amount');
+    const adjustStockNew = document.getElementById('adjust-stock-new');
+    const btnSaveAdjustment = document.getElementById('btn-save-adjustment');
+    let currentAdjustProduct = null;
+
+    function openAdjustStock(item) {
+        currentAdjustProduct = item;
+        adjustStockName.textContent = item.name;
+        const currentQty = item.stockQuantity || 0;
+        adjustStockCurrent.textContent = currentQty.toFixed(3);
+        adjustStockUnit.textContent = item.unit || 'kg';
+        adjustStockAmount.value = '';
+        adjustStockNew.textContent = currentQty.toFixed(3);
+        adjustStockAction.value = 'add';
+        
+        adjustStockModal.style.display = 'flex';
+        adjustStockModal.classList.add('show');
+    }
+
+    function calculateNewStock() {
+        if (!currentAdjustProduct) return;
+        const currentQty = currentAdjustProduct.stockQuantity || 0;
+        const amount = parseFloat(adjustStockAmount.value) || 0;
+        const action = adjustStockAction.value;
+        let newQty = currentQty;
+        
+        if (action === 'add') {
+            newQty += amount;
+        } else {
+            newQty -= amount;
+            if (newQty < 0) newQty = 0;
+        }
+        
+        adjustStockNew.textContent = newQty.toFixed(3);
+    }
+
+    if (adjustStockAmount) adjustStockAmount.addEventListener('input', calculateNewStock);
+    if (adjustStockAction) adjustStockAction.addEventListener('change', calculateNewStock);
+
+    if (btnSaveAdjustment) {
+        btnSaveAdjustment.addEventListener('click', async () => {
+            if (!currentAdjustProduct || isSaving) return;
+            const amount = parseFloat(adjustStockAmount.value) || 0;
+            if (amount <= 0) {
+                QuadModals.alert("Invalid Input", "Please enter a valid amount to adjust.", "warning");
+                return;
+            }
+            
+            const action = adjustStockAction.value;
+            const currentQty = currentAdjustProduct.stockQuantity || 0;
+            let newQty = action === 'add' ? (currentQty + amount) : (currentQty - amount);
+            if (newQty < 0) newQty = 0;
+
+            try {
+                isSaving = true;
+                const formData = new FormData();
+                formData.append('stockQuantity', newQty);
+
+                const result = await apiRequest(`/products/${currentAdjustProduct._id}`, {
+                    method: 'PUT',
+                    body: formData
+                });
+
+                if (result && result.success) {
+                    QuadModals.showToast("Stock Adjusted Successfully!", "success");
+                    adjustStockModal.style.display = 'none';
+                    refreshInventoryData();
+                } else {
+                    QuadModals.alert("Failed", result?.message || "Could not adjust stock.", "error");
+                }
+            } catch (err) {
+                console.error("Adjustment Error:", err);
+                QuadModals.alert("Failed", err.message || "Network Error.", "error");
+            } finally {
+                isSaving = false;
+            }
+        });
+    }
 
     if (settingsBtn) {
         settingsBtn.addEventListener('click', () => {

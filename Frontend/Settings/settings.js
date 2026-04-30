@@ -1,5 +1,8 @@
 import CONFIG from '../Shared/Utils/config.js';
 import { apiRequest } from '../Shared/Utils/api.js';
+const LocService = window.LocService;
+
+
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log("[Settings] Initializing module...");
@@ -35,6 +38,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // Profile & Business
                 if (document.getElementById('shop-name')) document.getElementById('shop-name').value = store.name || '';
+                if (document.getElementById('gst-number')) document.getElementById('gst-number').value = store.gstNumber || '';
+                if (document.getElementById('store-email')) document.getElementById('store-email').value = store.email || '';
+                if (document.getElementById('store-address')) document.getElementById('store-address').value = store.address || '';
+                if (document.getElementById('logo-url')) {
+                    document.getElementById('logo-url').value = store.logoUrl || '';
+                    if (store.logoUrl) {
+                        const preview = document.getElementById('logo-preview');
+                        const container = document.getElementById('logo-preview-container');
+                        const filename = document.getElementById('logo-filename');
+                        preview.src = store.logoUrl;
+                        filename.textContent = 'Current Logo';
+                        container.style.display = 'flex';
+                    }
+                }
+                if (document.getElementById('static-qr-url')) {
+                    document.getElementById('static-qr-url').value = store.staticQrUrl || '';
+                    if (store.staticQrUrl) {
+                        const preview = document.getElementById('qr-preview');
+                        const container = document.getElementById('qr-preview-container');
+                        const filename = document.getElementById('qr-filename');
+                        preview.src = store.staticQrUrl;
+                        filename.textContent = 'Current QR';
+                        container.style.display = 'flex';
+                    }
+                }
+                if (document.getElementById('store-terms')) document.getElementById('store-terms').value = store.storeTerms || '';
+                if (document.getElementById('upi-id')) document.getElementById('upi-id').value = store.upiId || '';
                 
                 // Business Preferences
                 if (document.getElementById('low-stock-limit')) document.getElementById('low-stock-limit').value = store.lowStockThreshold || 10;
@@ -50,7 +80,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (document.getElementById('notif-reminders')) document.getElementById('notif-reminders').checked = store.notifPaymentReminders ?? false;
 
                 // Region
-                if (document.getElementById('app-language')) document.getElementById('app-language').value = store.language || 'en';
+                if (document.getElementById('app-language')) {
+                    document.getElementById('app-language').value = store.language || 'en';
+                    document.getElementById('app-language').addEventListener('change', (e) => LocService.setLanguage(e.target.value));
+                }
                 if (document.getElementById('date-format')) document.getElementById('date-format').value = store.dateFormat || 'dd-mm-yyyy';
                 if (document.getElementById('time-format')) document.getElementById('time-format').value = store.timeFormat || '12';
 
@@ -69,7 +102,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     language: document.getElementById('app-language')?.value,
                     dateFormat: document.getElementById('date-format')?.value,
                     timeFormat: document.getElementById('time-format')?.value,
+                    gstNumber: document.getElementById('gst-number')?.value,
+                    logoUrl: document.getElementById('logo-url')?.value,
+                    storeTerms: document.getElementById('store-terms')?.value,
+                    upiId: document.getElementById('upi-id')?.value,
+                    email: document.getElementById('store-email')?.value,
+                    address: document.getElementById('store-address')?.value,
+                    staticQrUrl: document.getElementById('static-qr-url')?.value,
                 };
+
+                // Subscription UI Update
+                updateSubscriptionUI(store);
+                LocService.applyTranslations();
 
             } else {
                 console.error("[Settings] DB data indicated failure:", dbData);
@@ -80,18 +124,95 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    window.saveProfile = async function () {
-        console.log("[Settings] Saving profile...");
-        const shopName = document.getElementById('shop-name').value;
-        const ownerName = document.getElementById('owner-name').value;
-        const contact = document.getElementById('contact-info').value;
+    function updateSubscriptionUI(store) {
+        const plan = store.subscriptionPlan || 'free';
+        const status = store.subscriptionStatus || 'active';
+        const expiry = store.subscriptionExpiry;
 
-        if (shopName === initialState.shopName && ownerName === initialState.ownerName && contact === initialState.contactInfo) {
-            showModal('info', 'No Changes', 'Profile settings are already up to date.');
-            return;
+        const currentPlanBadge = document.getElementById('current-plan-badge');
+        const currentPlanName = document.getElementById('current-plan-name');
+        const planExpiryText = document.getElementById('plan-expiry-text');
+        
+        const limitProducts = document.getElementById('limit-products');
+        const limitStaff = document.getElementById('limit-staff');
+        const barProducts = document.getElementById('bar-products');
+        const barStaff = document.getElementById('bar-staff');
+
+        // Plan Labels
+        const plans = {
+            free: { name: 'Digital Bharat', limitP: 100, limitS: 1, color: '#64748b' },
+            pro: { name: 'Vyapaar Pro', limitP: 1000000, limitS: 5, color: '#f97316' },
+            enterprise: { name: 'Empire Elite', limitP: 1000000, limitS: 1000000, color: '#3b82f6' }
+        };
+
+        const activePlan = plans[plan];
+        if (currentPlanBadge) {
+            currentPlanBadge.textContent = plan.toUpperCase();
+            currentPlanBadge.style.background = activePlan.color;
+        }
+        if (currentPlanName) currentPlanName.textContent = activePlan.name;
+
+        // Expiry calc
+        if (planExpiryText) {
+            if (plan === 'free') {
+                planExpiryText.textContent = "Plan never expires";
+            } else {
+                const date = new Date(expiry);
+                planExpiryText.textContent = `Expires on ${date.toLocaleDateString()}`;
+                if (new Date() > date) {
+                    planExpiryText.textContent = "Plan Expired";
+                    planExpiryText.style.color = '#ef4444';
+                }
+            }
+        }
+
+        // Feature Limits
+        const pCount = store.productCount || 0;
+        const sCount = store.employeeCount || 0;
+
+        if (limitProducts) limitProducts.textContent = `${pCount} / ${activePlan.limitP > 10000 ? 'Unlimited' : activePlan.limitP}`;
+        if (limitStaff) limitStaff.textContent = `${sCount} / ${activePlan.limitS > 10000 ? 'Unlimited' : activePlan.limitS}`;
+
+        if (barProducts) barProducts.style.width = Math.min((pCount / activePlan.limitP) * 100, 100) + '%';
+        if (barStaff) barStaff.style.width = Math.min((sCount / activePlan.limitS) * 100, 100) + '%';
+    }
+
+    window.saveProfile = async function () {
+        const saveBtn = document.querySelector('button[onclick="saveProfile()"]');
+        if (saveBtn?.classList.contains('loading')) return;
+
+        console.log("[Settings] Saving profile...");
+        
+        const originalBtnText = saveBtn ? saveBtn.innerHTML : 'Save Profile';
+        if (saveBtn) {
+            saveBtn.classList.add('loading');
+            saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+            saveBtn.disabled = true;
         }
 
         try {
+            const shopName = document.getElementById('shop-name')?.value || '';
+            const ownerName = document.getElementById('owner-name')?.value || '';
+            const contact = document.getElementById('contact-info')?.value || '';
+            const gstNumber = document.getElementById('gst-number')?.value || '';
+            const logoUrl = document.getElementById('logo-url')?.value || '';
+            const storeTerms = document.getElementById('store-terms')?.value || '';
+            const upiId = document.getElementById('upi-id')?.value || '';
+            const storeEmail = document.getElementById('store-email')?.value || '';
+            const storeAddress = document.getElementById('store-address')?.value || '';
+            const staticQrUrl = document.getElementById('static-qr-url')?.value || '';
+
+            if (shopName === initialState.shopName && ownerName === initialState.ownerName && 
+                contact === initialState.contactInfo && gstNumber === initialState.gstNumber &&
+                logoUrl === initialState.logoUrl && storeTerms === initialState.storeTerms &&
+                upiId === initialState.upiId && storeEmail === initialState.email && 
+                storeAddress === initialState.address && staticQrUrl === initialState.staticQrUrl) {
+                
+                // No changes, just return silently
+                return;
+            }
+
+
             // 1. Update User Profile (Works for both Owner and Staff)
             const userResult = await apiRequest('/users/update-profile', {
                 method: 'PATCH',
@@ -103,13 +224,29 @@ document.addEventListener('DOMContentLoaded', () => {
             if (userRole === 'owner') {
                 storeResult = await apiRequest('/stores/update', {
                     method: 'PUT',
-                    body: JSON.stringify({ name: shopName, phoneNumber: contact })
+                    body: JSON.stringify({ 
+                        name: shopName, 
+                        phoneNumber: contact, 
+                        gstNumber: gstNumber,
+                        logoUrl: logoUrl,
+                        storeTerms: storeTerms,
+                        upiId: upiId,
+                        email: storeEmail,
+                        address: storeAddress,
+                        staticQrUrl: staticQrUrl
+                    })
                 });
             }
 
             if (userResult.success && storeResult.success) {
                 // Update storage for immediate UI sync
                 const updatedUser = { ...user, ...userResult.data.user };
+                
+                // Update store details in sessionStorage
+                if (userRole === 'owner' && storeResult.data.store) {
+                    updatedUser.storeId = { ...updatedUser.storeId, ...storeResult.data.store };
+                }
+                
                 sessionStorage.setItem('currentUser', JSON.stringify(updatedUser));
                 
                 // Update UI Header (Shop Name)
@@ -118,17 +255,29 @@ document.addEventListener('DOMContentLoaded', () => {
                     brandTexts.forEach(el => el.textContent = shopName);
                 }
                 
-                initialState.shopName = shopName;
-                initialState.ownerName = ownerName;
-                initialState.contactInfo = contact;
+                initialState = {
+                    ...initialState,
+                    shopName, ownerName, contactInfo: contact, gstNumber, 
+                    logoUrl, storeTerms, upiId, email: storeEmail, 
+                    address: storeAddress, staticQrUrl
+                };
                 
-                showModal('success', 'Profile Saved', 'Credentials and shop details updated.');
+                QuadModals.showToast('Profile settings updated successfully', 'success');
             }
+
         } catch (err) {
             console.error("[Settings] Profile Save Error:", err);
             showModal('error', 'Update Failed', err.message);
+        } finally {
+            if (saveBtn) {
+                saveBtn.classList.remove('loading');
+                saveBtn.innerHTML = originalBtnText;
+                saveBtn.disabled = false;
+            }
         }
     };
+
+
 
     window.savePreferences = async function () {
         if (userRole !== 'owner') {
@@ -140,9 +289,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const tax = parseFloat(document.getElementById('default-tax').value);
 
         if (lowStock === initialState.lowStock && tax === initialState.tax) {
-            showModal('info', 'No Changes', 'Business preferences are already up to date.');
             return;
         }
+
 
         try {
             const result = await apiRequest('/stores/update', {
@@ -166,9 +315,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const notifReminders = document.getElementById('notif-reminders').checked;
 
         if (notifLowStock === initialState.notifLowStock && notifUdhaar === initialState.notifUdhaar && notifReminders === initialState.notifReminders) {
-            showModal('info', 'No Changes', 'Notification preferences are already up to date.');
             return;
         }
+
 
         try {
             // Usually global notifications are store-wide, but we allow modification if owner
@@ -207,9 +356,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const timeFormat = document.getElementById('time-format').value;
 
         if (language === initialState.language && dateFormat === initialState.dateFormat && timeFormat === initialState.timeFormat) {
-            showModal('info', 'No Changes', 'Language & Region settings are already up to date.');
             return;
         }
+
 
         try {
             const result = await apiRequest('/stores/update', {
@@ -239,9 +388,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const healthyExpiry = parseInt(document.getElementById('healthy-expiry-limit').value);
         
         if (highStock === initialState.highStock && healthyExpiry === initialState.healthyExpiry) {
-            showModal('info', 'No Changes', 'Smart Expiry settings are already up to date.');
             return;
         }
+
 
         try {
             const result = await apiRequest('/stores/update', {
@@ -316,19 +465,19 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.clearData = function () {
-        showModal('warning', 'Master Reset', 'CRITICAL: This will PERMANENTLY DELETE all products, sales, and employee data from the database. This cannot be undone. Are you absolutely sure?', async () => {
-             showModal('info', 'Resetting', 'Wiping database records for this store...');
+        showModal('warning', 'Hard Reset Account', 'CRITICAL: This will PERMANENTLY DELETE your entire account, your store, and all associated data (Staff, Products, Sales). You will lose everything and cannot log back in. Are you absolutely sure?', async () => {
+             showModal('info', 'Deleting Account', 'Wiping every record from our database...');
              try {
                  const result = await apiRequest('/stores/reset-data', { method: 'DELETE' });
                  if (result.success) {
                      localStorage.clear();
                      sessionStorage.clear();
-                     showModal('success', 'Wipe Complete', 'All store transactional data has been removed. You will now be logged out.', () => {
+                     showModal('success', 'Footprint Wiped', 'Your account and store data have been permanently removed. Thank you for using QuadStock.', () => {
                          window.location.href = '../landing/landing.html';
                      });
                  }
              } catch (err) {
-                 showModal('error', 'Reset Failed', err.message);
+                 showModal('error', 'Wipe Failed', err.message);
              }
         });
     };
@@ -336,13 +485,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- UI Helpers ---
     function handleRoleAccess() {
         if (userRole === 'staff') {
-            const ownerOnlySections = ['data-mgmt-section', 'region-section']; 
+            const ownerOnlySections = ['data-mgmt', 'region', 'preferences', 'expiry', 'notifications']; 
             
             // Explicitly hide elements if they exist
             ownerOnlySections.forEach(id => {
                 const el = document.getElementById(id);
-                if (el) el.style.setProperty('display', 'none');
+                if (el) el.style.setProperty('display', 'none', 'important');
+                
+                // Also hide the nav items
+                const navItem = document.querySelector(`.nav-item[href="#${id}"]`);
+                if (navItem) navItem.style.setProperty('display', 'none', 'important');
             });
+
             
             // Disable inputs for business rules
             const toDisable = ['low-stock-limit', 'default-tax', 'shop-name', 'high-stock-limit', 'healthy-expiry-limit'];
@@ -413,7 +567,94 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    window.handleLogoUpload = function (input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        // Limit 5MB
+        if (file.size > 5 * 1024 * 1024) {
+            showModal('error', 'File Too Large', 'Logo size must be less than 5MB.');
+            input.value = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const base64 = e.target.result;
+            document.getElementById('logo-url').value = base64;
+            document.getElementById('logo-preview').src = base64;
+            document.getElementById('logo-filename').textContent = file.name;
+            document.getElementById('logo-preview-container').style.display = 'flex';
+            document.getElementById('upload-status').textContent = 'Logo ready to save.';
+        };
+        reader.readAsDataURL(file);
+    };
+
+    window.removeUploadedLogo = function () {
+        document.getElementById('logo-url').value = '';
+        document.getElementById('logo-upload').value = '';
+        document.getElementById('logo-preview-container').style.display = 'none';
+        document.getElementById('upload-status').textContent = 'Logo removed. Click save to apply.';
+    };
+
+    window.handleQrUpload = function (input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        if (file.size > 5 * 1024 * 1024) {
+            showModal('error', 'File Too Large', 'QR size must be less than 5MB.');
+            input.value = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const base64 = e.target.result;
+            document.getElementById('static-qr-url').value = base64;
+            document.getElementById('qr-preview').src = base64;
+            document.getElementById('qr-filename').textContent = file.name;
+            document.getElementById('qr-preview-container').style.display = 'flex';
+            document.getElementById('qr-upload-status').textContent = 'QR ready to save.';
+        };
+        reader.readAsDataURL(file);
+    };
+
+    window.removeUploadedQr = function () {
+        document.getElementById('static-qr-url').value = '';
+        document.getElementById('qr-upload').value = '';
+        document.getElementById('qr-preview-container').style.display = 'none';
+        document.getElementById('qr-upload-status').textContent = 'QR removed. Click save to apply.';
+    };
+
+    // --- Navigation Logic ---
+    const navItems = document.querySelectorAll('.nav-item');
+    const sections = document.querySelectorAll('.settings-section');
+
+    navItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetId = item.getAttribute('href').slice(1);
+            
+            // Update Active Nav
+            navItems.forEach(nav => nav.classList.remove('active'));
+            item.classList.add('active');
+
+            // Scroll to Section
+            const targetSection = document.getElementById(targetId);
+            if (targetSection) {
+                targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+    });
+
+    window.closeModal = closeModal;
+
+
     // --- Final Execution ---
-    window.loadSettings();
+    LocService.init().then(() => {
+        LocService.applyTranslations();
+        window.loadSettings();
+    });
     handleRoleAccess();
 });
+

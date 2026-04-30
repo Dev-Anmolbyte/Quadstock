@@ -127,10 +127,23 @@ class StatsService {
             }).reduce((acc, o) => acc + (o.totalAmount || 0), 0);
         }
 
+        // Calculate Weekly Revenue (Monday to Sunday)
+        const day = now.getDay();
+        const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+        const startOfWeek = new Date(now.setDate(diff));
+        startOfWeek.setHours(0, 0, 0, 0);
+
+        const weeklyOrders = await Order.find({
+            storeId,
+            createdAt: { $gte: startOfWeek }
+        });
+        const weeklyRevenue = weeklyOrders.reduce((acc, o) => acc + (o.totalAmount || 0), 0);
+
         // Dynamic Chart Trends (Last 7 Days)
         const labels = [];
         const revenueData = [0, 0, 0, 0, 0, 0, 0]; // Now based on Orders
         const creditData = [0, 0, 0, 0, 0, 0, 0];  // Based on Udhaar Taken
+
         
         for (let i = 6; i >= 0; i--) {
             const d = new Date();
@@ -179,6 +192,15 @@ class StatsService {
         });
 
         const trends = { labels, revenueData, creditData };
+
+        // 3.5 Payment Mode Distribution
+        const paymentSplit = { cash: 0, upi: 0, card: 0, credit: 0 };
+        orders.forEach(o => {
+            const method = o.paymentMethod || 'cash';
+            if (paymentSplit.hasOwnProperty(method)) {
+                paymentSplit[method] += o.totalAmount || 0;
+            }
+        });
 
         // 4. User (Staff) Stats
         const totalUsers = await Employee.countDocuments(filter);
@@ -232,7 +254,9 @@ class StatsService {
             totalItems: products.length,
             totalStockValue,
             totalRevenue,
+            weeklyRevenue,
             totalRecovered,
+
             lowStockCount,
             lowStockList,
             highStockList,
@@ -243,6 +267,7 @@ class StatsService {
             totalUdhaarPending,
             topDebtors,
             trends,
+            paymentSplit,
             totalUsers,
             topProducts,
             refreshAt: new Date().toISOString(),

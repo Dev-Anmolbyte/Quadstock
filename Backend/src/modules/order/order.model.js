@@ -27,7 +27,12 @@ const orderSchema = new Schema(
             }
         ],
         totalAmount: { type: Number, required: true },
-        paymentMethod: { type: String, enum: ['cash', 'card', 'upi', 'credit'], default: 'cash' },
+        discountType: { type: String, enum: ['flat', 'percentage', 'none'], default: 'none' },
+        discountValue: { type: Number, default: 0 },
+        paymentMethod: { type: String, enum: ['cash', 'card', 'upi', 'credit', 'udhaar'], default: 'cash' },
+        customerName: { type: String, trim: true },
+        customerPhone: { type: String, trim: true },
+        dueDate: { type: String },
         status: { type: String, enum: ['completed', 'cancelled', 'refunded'], default: 'completed' }
     },
     {

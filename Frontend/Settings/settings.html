@@ -7,8 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Settings - QuadStock</title>
     <!-- Fonts & Icons -->
-    <link href="../Shared/Vendor/google-fonts/plus-jakarta-sans.css"
-        rel="stylesheet">
+    <link href="../Shared/Vendor/google-fonts/plus-jakarta-sans.css" rel="stylesheet">
     <link rel="stylesheet" href="../Shared/Vendor/font-awesome/css/all.min.css">
     <!-- CSS -->
     <link rel="stylesheet" href="../Shared/Styles/global.css">
@@ -32,275 +31,342 @@
                     <p class="page-subtitle">Personalize your system preferences, business rules, and smart aesthetics.</p>
                 </div>
 
-            <div class="settings-grid">
+                <div class="settings-container">
+                    <!-- Navigation Sidebar -->
+                    <nav class="settings-nav">
+                        <a href="#profile" class="nav-item active">
+                                <i class="fa-solid fa-user-gear"></i> <span data-i18n="Profile">Profile</span>
+                            </a>
+                            <a href="#preferences" class="nav-item">
+                                <i class="fa-solid fa-briefcase"></i> <span data-i18n="Business Preferences">Business Preferences</span>
+                            </a>
+                            <a href="#notifications" class="nav-item">
+                                <i class="fa-solid fa-bell"></i> <span data-i18n="Notifications">Notifications</span>
+                            </a>
+                            <a href="#subscription" class="nav-item"><i class="fa-solid fa-crown"></i> Subscription</a>
+                            <a href="#region" class="nav-item">
+                                <i class="fa-solid fa-earth-americas"></i> <span data-i18n="Localization">Localization</span>
+                            </a>
+                            <a href="#security" class="nav-item">
+                                <i class="fa-solid fa-shield-halved"></i> <span data-i18n="Security">Security</span>
+                            </a>
+                        <a href="#data" class="nav-item"><i class="fa-solid fa-database"></i> Data Control</a>
+                    </nav>
 
-                <!-- Profile Section -->
-                <section class="settings-card">
-                    <div class="card-header">
-                        <div class="icon-box orange"><i class="fa-solid fa-store"></i></div>
-                        <h3>Profile & Business</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="form-group">
-                            <label>Shop Name</label>
-                            <div class="input-with-icon">
-                                <i class="fa-solid fa-shop"></i>
-                                <input type="text" id="shop-name" placeholder="Enter Shop Name">
+                    <!-- Sections Container -->
+                    <div class="settings-sections">
+                        
+                        <!-- Profile & Business -->
+                        <section id="profile" class="settings-section">
+                            <div class="section-header">
+                                <h2>Profile & Business</h2>
+                                <p>Manage your shop identity and public billing details.</p>
                             </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Owner Name</label>
-                            <div class="input-with-icon">
-                                <i class="fa-solid fa-user-tie"></i>
-                                <input type="text" id="owner-name" placeholder="Enter Owner Name">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Contact Number</label>
-                            <div class="input-with-icon">
-                                <i class="fa-solid fa-phone"></i>
-                                <input type="text" id="contact-info" placeholder="+91 XXXXX XXXXX">
-                            </div>
-                        </div>
-                        <button class="btn-save" onclick="saveProfile()">Save Profile</button>
-                    </div>
-                </section>
+                            <div class="section-content">
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label>Shop Name</label>
+                                        <div class="input-with-icon">
+                                            <i class="fa-solid fa-shop"></i>
+                                            <input type="text" id="shop-name" placeholder="Your Shop Name">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Owner Name</label>
+                                        <div class="input-with-icon">
+                                            <i class="fa-solid fa-user-tie"></i>
+                                            <input type="text" id="owner-name" placeholder="Owner Name">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Contact Number</label>
+                                        <div class="input-with-icon">
+                                            <i class="fa-solid fa-phone"></i>
+                                            <input type="text" id="contact-info" placeholder="+91 XXXXX XXXXX">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>GST Number (Optional)</label>
+                                        <div class="input-with-icon">
+                                            <i class="fa-solid fa-file-invoice"></i>
+                                            <input type="text" id="gst-number" placeholder="GSTIN">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>UPI ID (for Dynamic QR)</label>
+                                        <div class="input-with-icon">
+                                            <i class="fa-solid fa-money-bill-transfer"></i>
+                                            <input type="text" id="upi-id" placeholder="e.g. username@upi">
+                                        </div>
+                                    </div>
 
-                <!-- Business Preferences -->
-                <section class="settings-card">
-                    <div class="card-header">
-                        <div class="icon-box blue"><i class="fa-solid fa-sliders"></i></div>
-                        <h3>Preferences</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="form-group">
-                            <label>Low Stock Threshold (Qty)</label>
-                            <div class="input-with-icon">
-                                <i class="fa-solid fa-arrow-turn-down"></i>
-                                <input type="number" id="low-stock-limit" value="10" min="1">
+                                    <div class="form-group">
+                                        <label>Store Email</label>
+                                        <div class="input-with-icon">
+                                            <i class="fa-solid fa-envelope"></i>
+                                            <input type="email" id="store-email" placeholder="shopname@gmail.com">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Store Address</label>
+                                        <div class="input-with-icon">
+                                            <i class="fa-solid fa-location-dot"></i>
+                                            <input type="text" id="store-address" placeholder="Enter Address">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Store Logo (Max 5MB)</label>
+                                        <div style="display: flex; align-items: center; gap: 1rem; background: var(--input-bg); padding: 0.5rem; border-radius: 12px; border: 2px solid var(--border-color); height: 50px;">
+                                            <input type="file" id="logo-upload" accept="image/*" style="display: none;" onchange="handleLogoUpload(this)">
+                                            <button type="button" class="btn-save" style="width: auto; padding: 0.5rem 1rem; font-size: 0.85rem; box-shadow: none; margin: 0;" onclick="document.getElementById('logo-upload').click()">
+                                                <i class="fa-solid fa-upload"></i> Upload Logo
+                                            </button>
+                                            <div id="logo-preview-container" style="display: none; align-items: center; gap: 0.5rem; flex: 1; overflow: hidden;">
+                                                <img id="logo-preview" src="" style="height: 34px; width: 34px; border-radius: 6px; object-fit: cover; border: 1px solid var(--border-color);">
+                                                <span id="logo-filename" style="font-size: 0.85rem; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></span>
+                                                <i class="fa-solid fa-circle-xmark" style="color: #ef4444; cursor: pointer;" onclick="removeUploadedLogo()"></i>
+                                            </div>
+                                            <input type="hidden" id="logo-url">
+                                        </div>
+                                        <small id="upload-status">Upload a high-quality JPG/PNG logo.</small>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Payment QR (Max 5MB)</label>
+                                        <div style="display: flex; align-items: center; gap: 1rem; background: var(--input-bg); padding: 0.5rem; border-radius: 12px; border: 2px solid var(--border-color); height: 50px;">
+                                            <input type="file" id="qr-upload" accept="image/*" style="display: none;" onchange="handleQrUpload(this)">
+                                            <button type="button" class="btn-save" style="width: auto; padding: 0.5rem 1rem; font-size: 0.85rem; box-shadow: none; margin: 0; background: #6366f1;" onclick="document.getElementById('qr-upload').click()">
+                                                <i class="fa-solid fa-qrcode"></i> Upload QR
+                                            </button>
+                                            <div id="qr-preview-container" style="display: none; align-items: center; gap: 0.5rem; flex: 1; overflow: hidden;">
+                                                <img id="qr-preview" src="" style="height: 34px; width: 34px; border-radius: 6px; object-fit: cover; border: 1px solid var(--border-color);">
+                                                <span id="qr-filename" style="font-size: 0.85rem; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></span>
+                                                <i class="fa-solid fa-circle-xmark" style="color: #ef4444; cursor: pointer;" onclick="removeUploadedQr()"></i>
+                                            </div>
+                                            <input type="hidden" id="static-qr-url">
+                                        </div>
+                                        <small id="qr-upload-status">Upload a static Payment QR for bills.</small>
+                                    </div>
+                                    <div class="form-group full-width">
+                                        <label>Invoice Terms & Conditions</label>
+                                        <textarea id="store-terms" placeholder="Terms printed on your bills..."></textarea>
+                                    </div>
+                                </div>
                             </div>
-                            <small>Products below this quantity will be flagged red.</small>
-                        </div>
-                        <div class="form-group">
-                            <label>Default Tax / GST (%)</label>
-                            <div class="input-with-icon">
-                                <i class="fa-solid fa-percent"></i>
-                                <input type="number" id="default-tax" value="18" min="0">
+                            <div class="section-footer">
+                                <button class="btn-save" onclick="saveProfile()">Save Profile</button>
                             </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Currency Symbol</label>
-                            <div class="input-with-icon">
-                                <i class="fa-solid fa-indian-rupee-sign"></i>
-                                <input type="text" value="₹" disabled style="background:#f1f5f9; cursor:not-allowed;">
-                            </div>
-                        </div>
-                        <button class="btn-save" onclick="savePreferences()">Update Preferences</button>
-                    </div>
-                </section>
+                        </section>
 
-                <!-- Smart Expiry Configuration -->
-                <section class="settings-card">
-                    <div class="card-header">
-                        <div class="icon-box" style="background: linear-gradient(135deg, #f59e0b, #d97706);"><i class="fa-solid fa-boxes-stacked"></i></div>
-                        <h3>Smart Expiry Config</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="form-group">
-                            <label>High Stock Threshold (Qty)</label>
-                            <div class="input-with-icon">
-                                <i class="fa-solid fa-arrow-trend-up"></i>
-                                <input type="number" id="high-stock-limit" min="1" value="100">
+                        <!-- Business Preferences -->
+                        <section id="preferences" class="settings-section">
+                            <div class="section-header">
+                                <h2>Preferences & Rules</h2>
+                                <p>Configure stock thresholds and tax regulations.</p>
                             </div>
-                            <small>Highlights products exceeding this quantity as "High Stock".</small>
-                        </div>
-                        <div class="form-group">
-                            <label>Healthy Stock Threshold (Days)</label>
-                            <div class="input-with-icon">
-                                <i class="fa-regular fa-calendar-check"></i>
-                                <input type="number" id="healthy-expiry-limit" min="8" value="30">
+                            <div class="section-content">
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label>Low Stock Threshold</label>
+                                        <div class="input-with-icon">
+                                            <i class="fa-solid fa-arrow-down-wide-short"></i>
+                                            <input type="number" id="low-stock-limit" min="1">
+                                        </div>
+                                        <small>Items below this count will trigger alerts.</small>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Default Tax (%)</label>
+                                        <div class="input-with-icon">
+                                            <i class="fa-solid fa-percent"></i>
+                                            <input type="number" id="default-tax" min="0" max="100">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>High Stock Threshold</label>
+                                        <div class="input-with-icon">
+                                            <i class="fa-solid fa-arrow-up-wide-short"></i>
+                                            <input type="number" id="high-stock-limit">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Healthy Stock (Days)</label>
+                                        <div class="input-with-icon">
+                                            <i class="fa-solid fa-calendar-check"></i>
+                                            <input type="number" id="healthy-expiry-limit">
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <small>Wait until this many days before expiry to show warnings.</small>
-                        </div>
-                        <button class="btn-save" style="background: linear-gradient(135deg, #f59e0b, #d97706);" onclick="saveExpirySettings()">Sync to Database</button>
-                    </div>
-                </section>
+                            <div class="section-footer">
+                                <button class="btn-save" onclick="saveExpirySettings()">Sync Preferences</button>
+                            </div>
+                        </section>
 
-                <!-- Notifications -->
-                <section class="settings-card">
-                    <div class="card-header">
-                        <div class="icon-box green"><i class="fa-solid fa-bell"></i></div>
-                        <h3>Notifications</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="toggle-group">
-                            <div class="toggle-info">
-                                <h4>Low Stock Alerts</h4>
-                                <p>Get notified on dashboard when stock is low.</p>
+                        <!-- Notifications -->
+                        <section id="notifications" class="settings-section">
+                            <div class="section-header">
+                                <h2>Notifications</h2>
+                                <p>Choose what alerts you want to see on your dashboard.</p>
                             </div>
-                            <label class="switch">
-                                <input type="checkbox" id="notif-lowstock" checked>
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-                        <div class="toggle-group">
-                            <div class="toggle-info">
-                                <h4>Udhaar Overdue Alerts</h4>
-                                <p>Highlight overdue payments in red.</p>
+                            <div class="section-content">
+                                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                                    <div class="toggle-item">
+                                        <div class="toggle-text">
+                                            <h4>Low Stock Alerts</h4>
+                                            <p>Real-time warnings when inventory is depleting.</p>
+                                        </div>
+                                        <label class="switch">
+                                            <input type="checkbox" id="notif-lowstock" checked>
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
+                                    <div class="toggle-item">
+                                        <div class="toggle-text">
+                                            <h4>Udhaar Overdue Alerts</h4>
+                                            <p>Highlight pending payments past their due date.</p>
+                                        </div>
+                                        <label class="switch">
+                                            <input type="checkbox" id="notif-udhaar" checked>
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
+                                    <div class="toggle-item">
+                                        <div class="toggle-text">
+                                            <h4>Payment Reminders</h4>
+                                            <p>Auto-generate payment prompts for regular customers.</p>
+                                        </div>
+                                        <label class="switch">
+                                            <input type="checkbox" id="notif-reminders">
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
-                            <label class="switch">
-                                <input type="checkbox" id="notif-udhaar" checked>
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-                        <div class="toggle-group">
-                            <div class="toggle-info">
-                                <h4>Payment Reminders (Mock)</h4>
-                                <p>Auto-send reminders via simple implementation.</p>
+                            <div class="section-footer">
+                                <button class="btn-save" onclick="saveNotifications()">Save Alerts</button>
                             </div>
-                            <label class="switch">
-                                <input type="checkbox" id="notif-reminders">
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-                        <button class="btn-save" onclick="saveNotifications()">Save Settings</button>
-                    </div>
-                </section>
+                        </section>
 
-                <!-- Language & Region -->
-                <section class="settings-card" id="region-section">
-                    <div class="card-header">
-                        <div class="icon-box blue"><i class="fa-solid fa-language"></i></div>
-                        <h3>Language & Region</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="form-group">
-                            <label>App Language</label>
-                            <select id="app-language"
-                                style="width:100%; padding:0.75rem; border:1px solid var(--border-color); border-radius:0.5rem; background:var(--bg-body); color:var(--text-primary); outline:none;">
-                                <option value="en">English (Default)</option>
-                                <option value="hi">Hindi</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Date Format</label>
-                            <select id="date-format"
-                                style="width:100%; padding:0.75rem; border:1px solid var(--border-color); border-radius:0.5rem; background:var(--bg-body); color:var(--text-primary); outline:none;">
-                                <option value="dd-mm-yyyy">DD-MM-YYYY</option>
-                                <option value="mm-dd-yyyy">MM-DD-YYYY</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Time Format</label>
-                            <select id="time-format"
-                                style="width:100%; padding:0.75rem; border:1px solid var(--border-color); border-radius:0.5rem; background:var(--bg-body); color:var(--text-primary); outline:none;">
-                                <option value="12">12-Hour (AM/PM)</option>
-                                <option value="24">24-Hour</option>
-                            </select>
-                        </div>
-                        <button class="btn-save" onclick="saveRegionSettings()">Save Preferences</button>
-                    </div>
-                </section>
-
-                <!-- Support & Help -->
-                <section class="settings-card">
-                    <div class="card-header">
-                        <div class="icon-box green"><i class="fa-solid fa-headset"></i></div>
-                        <h3>Support & Help</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="action-row">
-                            <button class="btn-outline"
-                                style="border-color:var(--primary-blue); color:var(--primary-blue);"
-                                onclick="window.open('mailto:support@quadstock.com')">
-                                <i class="fa-solid fa-envelope"></i> Email Support
-                            </button>
-                        </div>
-                        <div class="action-row">
-                            <button class="btn-outline"
-                                style="border-color:var(--primary-green); color:var(--primary-green);"
-                                onclick="window.open('https://wa.me/919876543210')">
-                                <i class="fa-brands fa-whatsapp"></i> Chat on WhatsApp
-                            </button>
-                        </div>
-                        <p style="font-size:0.85rem; color:var(--text-secondary); margin-top:1rem; text-align:center;">
-                            Our team is available 10 AM - 7 PM (Mon-Sat).
-                        </p>
-                    </div>
-                </section>
-
-                <!-- Change Password -->
-                <section class="settings-card">
-                    <div class="card-header">
-                        <div class="icon-box blue"><i class="fa-solid fa-lock"></i></div>
-                        <h3>Change Password</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="form-group">
-                            <label>Current Password</label>
-                            <div class="input-with-icon">
-                                <i class="fa-solid fa-lock"></i>
-                                <input type="password" id="current-password" placeholder="Enter current password">
-                                <i class="fa-solid fa-eye password-toggle-btn" 
-                                   onclick="togglePassword('current-password', this)"></i>
+                        <!-- Subscription Section -->
+                        <section id="subscription" class="settings-section">
+                            <div class="section-header">
+                                <h2>Subscription</h2>
+                                <p>Manage your current plan and platform limits.</p>
                             </div>
-                        </div>
-                        <div class="form-group">
-                            <label>New Password</label>
-                            <div class="input-with-icon">
-                                <i class="fa-solid fa-shield-halved"></i>
-                                <input type="password" id="new-password" placeholder="Enter new password">
-                                <i class="fa-solid fa-eye password-toggle-btn" 
-                                   onclick="togglePassword('new-password', this)"></i>
+                            <div class="section-content">
+                                <div class="sub-status-box" id="sub-status-container">
+                                    <div class="sub-info">
+                                        <span class="plan-badge" id="current-plan-badge">FREE</span>
+                                        <h4 id="current-plan-name">Digital Bharat</h4>
+                                        <p id="plan-expiry-text">Plan never expires</p>
+                                    </div>
+                                    <div class="sub-icon"><i class="fa-solid fa-crown"></i></div>
+                                </div>
+                                <div class="feature-limits" style="background: var(--bg-main); padding: 2rem; border-radius: 20px;">
+                                    <div class="limit-item">
+                                        <span>Inventory Products</span>
+                                        <span id="limit-products">0 / 100</span>
+                                    </div>
+                                    <div class="limit-progress" style="margin-bottom: 2rem;"><div class="progress-bar" id="bar-products" style="width: 0%"></div></div>
+                                    
+                                    <div class="limit-item">
+                                        <span>Staff Members</span>
+                                        <span id="limit-staff">0 / 1</span>
+                                    </div>
+                                    <div class="limit-progress"><div class="progress-bar" id="bar-staff" style="width: 0%"></div></div>
+                                </div>
+                                <button class="btn-save" style="margin-top: 2rem;" onclick="window.location.href='../landing/landing.html#pricing'">UPGRADE PLAN</button>
                             </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Confirm New Password</label>
-                            <div class="input-with-icon">
-                                <i class="fa-solid fa-check-double"></i>
-                                <input type="password" id="confirm-password" placeholder="Confirm new password">
-                                <i class="fa-solid fa-eye password-toggle-btn" 
-                                   onclick="togglePassword('confirm-password', this)"></i>
+                        </section>
+
+                        <!-- Localization -->
+                        <section id="region" class="settings-section">
+                            <div class="section-header">
+                                <h2>Localization</h2>
+                                <p>Set your language and regional formatting.</p>
                             </div>
-                        </div>
-                        <button class="btn-save" onclick="changePassword()">Update Password</button>
-                    </div>
-                </section>
+                            <div class="section-content">
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label>App Language</label>
+                                        <select id="app-language">
+                                            <option value="en">English (Default)</option>
+                                            <option value="hi">Hindi</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Date Format</label>
+                                        <select id="date-format">
+                                            <option value="dd-mm-yyyy">DD-MM-YYYY</option>
+                                            <option value="mm-dd-yyyy">MM-DD-YYYY</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Time Format</label>
+                                        <select id="time-format">
+                                            <option value="12">12-Hour (AM/PM)</option>
+                                            <option value="24">24-Hour</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="section-footer">
+                                <button class="btn-save" onclick="saveRegionSettings()">Update Region</button>
+                            </div>
+                        </section>
 
-                <!-- Data Management (Owner Only) -->
-                <section class="settings-card danger-zone" id="data-mgmt-section">
-                    <div class="card-header">
-                        <div class="icon-box red"><i class="fa-solid fa-database"></i></div>
-                        <h3>Data Management</h3>
-                    </div>
-                    <div class="card-body">
-                        <p class="warning-text">
-                            <i class="fa-solid fa-circle-exclamation"></i>
-                            Sensitive actions. Proceed with caution.
-                        </p>
-                        <div class="action-row">
-                            <button class="btn-outline" onclick="exportData()">
-                                <i class="fa-solid fa-download"></i> Export Data (JSON)
-                            </button>
-                        </div>
-                        <div class="action-row">
-                            <button class="btn-danger" onclick="clearData()">
-                                <i class="fa-solid fa-trash"></i> Reset All Data
-                            </button>
-                        </div>
-                    </div>
-                </section>
+                        <!-- Security -->
+                        <section id="security" class="settings-section">
+                            <div class="section-header">
+                                <h2>Security</h2>
+                                <p>Update your credentials to keep your shop secure.</p>
+                            </div>
+                            <div class="section-content">
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label>Current Password</label>
+                                        <div class="input-with-icon">
+                                            <i class="fa-solid fa-lock"></i>
+                                            <input type="password" id="current-password" placeholder="••••••••">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>New Password</label>
+                                        <div class="input-with-icon">
+                                            <i class="fa-solid fa-shield-halved"></i>
+                                            <input type="password" id="new-password" placeholder="Minimum 6 chars">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Confirm Password</label>
+                                        <div class="input-with-icon">
+                                            <i class="fa-solid fa-check-double"></i>
+                                            <input type="password" id="confirm-password" placeholder="Confirm new password">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="section-footer">
+                                <button class="btn-save" onclick="changePassword()">Update Password</button>
+                            </div>
+                        </section>
 
-                <!-- About -->
-                <section class="settings-card" style="grid-column: 1 / -1;">
-                    <div class="card-body" style="text-align:center; color:var(--text-secondary);">
-                        <p><strong>QuadStock</strong> v1.0.0</p>
-                        <p style="font-size:0.9rem;">Developed with <i class="fa-solid fa-heart"
-                                style="color:#ef4444;"></i> for Business Growth.</p>
-                    </div>
-                </section>
+                        <!-- Data Control -->
+                        <section id="data" class="settings-section danger-section">
+                            <div class="section-header danger-header">
+                                <h2>Data Control</h2>
+                                <p>Export your records or permanently reset your shop data.</p>
+                            </div>
+                            <div class="section-content">
+                                <div style="display: flex; gap: 1.5rem;">
+                                    <button class="btn-save" style="background: #64748b; flex: 1;" onclick="exportData()">EXPORT ALL DATA (JSON)</button>
+                                    <button class="btn-danger" style="flex: 1;" onclick="clearData()">RESET ALL SHOP DATA</button>
+                                </div>
+                            </div>
+                        </section>
 
-                </div> <!-- closing settings-grid -->
+                    </div> <!-- closing settings-sections -->
+                </div> <!-- closing settings-container -->
+
             </div> <!-- closing content-scrollable -->
         </main>
     </div>
@@ -318,12 +384,12 @@
     </div>
 
     <!-- Script -->
-    <script src="../Shared/Utils/offline.js"></script>
+    <script src="../Shared/Utils/localization.js"></script>
     <script src="../Shared/Auth/rbac.js"></script>
+
     <script src="settings.js" type="module"></script>
     <script>window.ACTIVE_PAGE = 'settings';</script>
     <script src="../Shared/Components/sidebar.js"></script>
 </body>
 
 </html>
-

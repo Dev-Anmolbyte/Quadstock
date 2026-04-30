@@ -18,7 +18,9 @@ class LeaveService {
     }
 
     async getMyLeaves(employeeId, storeId) {
-        return await Leave.find({ employeeId, storeId }).sort({ createdAt: -1 });
+        return await Leave.find({ employeeId, storeId })
+            .populate('employeeId', 'name photo designation')
+            .sort({ createdAt: -1 });
     }
 
     async getAllLeaves(storeId, status) {

@@ -49,6 +49,7 @@ const productSchema = new Schema(
         // Discounts
         discount: { type: Number, default: 0 }, // Current active discount amount or percentage
         discountType: { type: String, enum: ['percentage', 'fixed'], default: 'percentage' },
+        discountReason: { type: String, trim: true }, // Root level field for active discount reason
         discountHistory: [{
             amount: { type: Number, required: true },
             type: { type: String, enum: ['percentage', 'fixed'], required: true },

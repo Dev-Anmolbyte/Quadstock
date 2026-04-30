@@ -332,23 +332,40 @@ document.addEventListener('DOMContentLoaded', async () => {
             tr.style.cursor = 'pointer';
 
             tr.innerHTML = `
-                <td data-label="Date">${dateStr}</td>
-                <td data-label="Due Date" style="color: #F47C25; font-weight: 600;">${dueDateStr}</td>
-                <td data-label="Customer"><strong>${item.name}</strong></td>
-                <td data-label="Contact">${item.contact || '-'}</td>
-                <td data-label="Description">${item.transactions?.[0]?.description || '-'}</td>
-                <td data-label="Balance">
-                    <div style="display:flex; flex-direction:column; align-items:flex-end;">
-                         <span>${formattedBalance}</span>
-                         ${item.balance < item.totalAmount && item.balance > 0 ? `<small style="color:#22c55e; font-size:0.7em;">(of ${formattedTotal})</small>` : ''}
+                <td data-label="Customer">
+                    <div style="display:flex; flex-direction:column; gap:0.25rem;">
+                        <strong style="font-size: 1rem;">${item.name}</strong>
+                        <div style="display:flex; gap:0.75rem; font-size:0.75rem; color:var(--text-secondary); font-weight:600;">
+                            <span><i class="fa-solid fa-calendar-day"></i> ${dateStr}</span>
+                            ${item.contact ? `<span><i class="fa-solid fa-phone"></i> ${item.contact}</span>` : ''}
+                        </div>
+                        <div style="font-size:0.8rem; color:var(--primary); font-weight:700; margin-top:0.25rem;">
+                            <i class="fa-solid fa-quote-left" style="font-size:0.6rem; opacity:0.5;"></i> ${item.transactions?.[0]?.description || 'No reason provided'}
+                        </div>
                     </div>
                 </td>
-                <td data-label="Status"><span class="status-badge ${statusClass}">${statusText}</span></td>
+                <td data-label="Credit Amount">
+                    <div style="font-weight: 700; color: var(--text-main);">${formattedTotal}</div>
+                </td>
+                <td data-label="Pending">
+                    <div style="display:flex; flex-direction:column;">
+                         <span style="font-weight: 900; color: var(--accent-red); font-size: 1.1rem;">${formattedBalance}</span>
+                         ${item.balance < item.totalAmount && item.balance > 0 ? `<small style="color:var(--accent-green); font-size:0.7rem; font-weight:800;">(Recv: ₹${(item.totalAmount - item.balance).toFixed(0)})</small>` : ''}
+                    </div>
+                </td>
+                <td data-label="Due Date" style="color: var(--primary); font-weight: 800; font-size: 0.95rem;">
+                    <i class="fa-solid fa-clock-rotate-left" style="font-size:0.8rem; opacity:0.7;"></i> ${dueDateStr}
+                </td>
+                <td data-label="Status">
+                    <span class="status-badge ${statusClass}">${statusText}</span>
+                </td>
                 <td data-label="Actions">
-                    <button class="action-btn view" onclick="viewDetails('${item._id}')" title="View Details"><i class="fa-solid fa-eye"></i></button>
-                    <button class="action-btn edit" onclick="editRecord('${item._id}')" title="Edit Entry"><i class="fa-solid fa-edit"></i></button>
-                    <button class="action-btn delete" onclick="deleteRecord('${item._id}')" title="Delete Record"><i class="fa-solid fa-trash"></i></button>
-                    ${item.contact ? `<a href="https://wa.me/${item.contact}?text=Hello ${item.name}, regarding your pending payment of ${formattedBalance} due on ${dueDateStr}." target="_blank" class="action-btn whatsapp"><i class="fa-brands fa-whatsapp"></i></a>` : ''}
+                    <div style="display:flex; gap:0.4rem;">
+                        <button class="action-btn view" onclick="viewDetails('${item._id}')" title="View Details"><i class="fa-solid fa-eye"></i></button>
+                        <button class="action-btn edit" onclick="editRecord('${item._id}')" title="Edit Entry"><i class="fa-solid fa-edit"></i></button>
+                        <button class="action-btn delete" onclick="deleteRecord('${item._id}')" title="Delete Record"><i class="fa-solid fa-trash"></i></button>
+                        ${item.contact ? `<a href="https://wa.me/${item.contact}?text=Hello ${item.name}, regarding your pending payment of ${formattedBalance} due on ${dueDateStr}." target="_blank" class="action-btn whatsapp"><i class="fa-brands fa-whatsapp"></i></a>` : ''}
+                    </div>
                 </td>
             `;
             udhaarTableBody.appendChild(tr);

@@ -14,6 +14,9 @@
     <link rel="stylesheet" href="../Shared/Styles/global.css">
     <link rel="stylesheet" href="../Shared/Styles/sidebar.css">
     <link rel="stylesheet" href="inventory.css">
+    <link rel="stylesheet" href="../Shared/Styles/notification_badge.css">
+    <!-- Localization -->
+    <script src="../Shared/Utils/localization.js"></script>
     <link rel="stylesheet" href="../Shared/Components/quad-modals.css">
 
 </head>
@@ -74,23 +77,12 @@
 
                 <!-- 2. The Control Bar: Search & Advanced Filters -->
                 <div class="control-bar-container">
-                    <div class="control-bar-top">
-                        <div class="search-box global-search">
-                            <i class="fa-solid fa-search"></i>
-                            <input type="text" id="inventory-search"
-                                placeholder="Search by Product, Brand, or Batch/SKU...">
-                        </div>
-                        <div class="action-buttons">
-                            <button class="btn-secondary" id="toggle-view-btn" title="Toggle Full View">
-                                <i class="fa-solid fa-expand"></i>
-                            </button>
-                            <button class="btn-primary" id="add-product-btn">
-                                <i class="fa-solid fa-plus"></i> Add Product
-                            </button>
-                        </div>
-                    </div>
-
                     <div class="control-bar-filters">
+                        <select id="filter-product-type" class="filter-select">
+                            <option value="">All Types</option>
+                            <option value="packed">Packed Items</option>
+                            <option value="loose">Loose Items</option>
+                        </select>
                         <select id="filter-category" class="filter-select">
                             <option value="">All Categories</option>
                             <!-- Populated via JS -->
@@ -112,13 +104,29 @@
                             <option value="expired">Expired</option>
                         </select>
                     </div>
+
+                    <div class="control-bar-top">
+                        <div class="search-box global-search">
+                            <i class="fa-solid fa-search"></i>
+                            <input type="text" id="inventory-search"
+                                placeholder="Search by Product, Brand, or Batch/SKU...">
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn-secondary" id="toggle-view-btn" title="Toggle Full View">
+                                <i class="fa-solid fa-expand"></i>
+                            </button>
+                            <button class="btn-primary" id="add-product-btn">
+                                <i class="fa-solid fa-plus"></i> Add Product
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Inventory Table -->
                 <div class="card table-card">
                     <div class="table-responsive">
                         <table class="inventory-table">
-                            <thead>
+                            <thead id="inventory-table-head">
                                 <tr>
                                     <th>Status</th>
                                     <th>Product Details</th>
@@ -211,7 +219,7 @@
                             </div>
                         </div>
 
-                        <div class="form-row">
+                        <div class="form-row" id="volume-weight-section">
                             <div class="form-group">
                                 <label>Volume / Weight</label>
                                 <input type="text" id="product-weight" placeholder="e.g. 1Kg, 500ml">
@@ -276,18 +284,23 @@
                         <!-- Section B: Stock & Smart Expiry Tracking -->
                         <div id="section-stock" class="form-section">
                             <h4 class="section-title"><i class="fa-solid fa-boxes-stacked"></i> Stock & Batch</h4>
+                            
+                            <div class="form-row" id="batch-section">
+                                <div class="form-group">
+                                    <label>Batch / Lot Number <span class="required">*</span></label>
+                                    <div class="input-with-action">
+                                        <input type="text" id="batch-number" placeholder="BAT-001">
+                                        <button type="button" id="btn-gen-batch" class="btn-icon" title="Generate Batch #"><i class="fa-solid fa-wand-magic-sparkles"></i></button>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label id="label-reorder-point">Low Stock Alert Level</label>
+                                    <input type="number" id="reorder-point" min="0" value="10" placeholder="Alert when stock < X">
+                                </div>
+                            </div>
+
                             <div id="packed-stock-fields">
                                 <div class="form-row">
-                                    <div class="form-group">
-                                        <label>Batch / Lot Number <span class="required">*</span></label>
-                                        <div class="input-with-action">
-                                            <input type="text" id="batch-number" placeholder="BAT-001">
-
-                                            <button type="button" id="btn-gen-batch" class="btn-icon"
-                                                title="Generate Batch #"><i
-                                                    class="fa-solid fa-wand-magic-sparkles"></i></button>
-                                        </div>
-                                    </div>
                                     <div class="form-group">
                                         <label>Stock Quantity <span class="required">*</span></label>
                                         <div class="input-with-unit">
@@ -374,11 +387,7 @@
                                 </div>
                             </div>
 
-                            <div class="form-group">
-                                <label>Low Stock Alert Level</label>
-                                <input type="number" id="reorder-point" min="0" value="10"
-                                    placeholder="Alert when stock < X">
-                            </div>
+                            <!-- Reorder point moved up with batch number -->
                         </div>
 
                         <!-- Section C: Pricing & Analytics -->
@@ -408,8 +417,6 @@
 
                         <div class="form-actions">
                             <div class="left-actions">
-                                <button type="button" id="btn-split-batch" class="btn-secondary small-btn"
-                                    title="Add another batch for this product">+ Split Batch (Add Another)</button>
                             </div>
                             <div class="right-actions">
                                 <button type="button" class="btn-secondary close-modal-btn">Cancel</button>
@@ -471,6 +478,44 @@
                 <button class="btn-secondary close-delete-modal">Cancel</button>
                 <button class="btn-primary" id="confirm-delete-btn"
                     style="background: var(--c-red-text); color: white;">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Adjust Stock Modal -->
+    <div id="adjust-stock-modal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-scale-unbalanced"></i> Adjust Stock</h3>
+                <button class="close-modal" onclick="document.getElementById('adjust-stock-modal').style.display='none'">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h4 id="adjust-stock-product-name" style="margin-bottom: 0.5rem; text-align: center; color: var(--text-primary);">Product Name</h4>
+                <div style="text-align: center; margin-bottom: 1rem; color: var(--text-secondary);">
+                    Current Stock: <strong id="adjust-stock-current">0.000</strong> <span id="adjust-stock-unit">kg</span>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label>Adjustment Action</label>
+                    <select id="adjust-stock-action" class="filter-select" style="width: 100%;">
+                        <option value="add">Add Stock (+)</option>
+                        <option value="reduce">Reduce Stock (-)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label>Quantity to Adjust <span class="required">*</span></label>
+                    <input type="number" id="adjust-stock-amount" min="0.001" step="0.001" placeholder="Enter amount">
+                </div>
+                
+                <div style="text-align: center; margin-bottom: 1.5rem; padding: 0.75rem; background: var(--bg-soft); border-radius: 8px;">
+                    New Total: <strong id="adjust-stock-new" style="color: var(--primary-color); font-size: 1.1rem;">0.000</strong>
+                </div>
+
+                <div class="form-actions" style="justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn-secondary" onclick="document.getElementById('adjust-stock-modal').style.display='none'">Cancel</button>
+                    <button type="button" class="btn-primary" id="btn-save-adjustment">Confirm Adjustment</button>
+                </div>
             </div>
         </div>
     </div>

@@ -14,6 +14,8 @@
     <link rel="stylesheet" href="employees.css">
     <link rel="stylesheet" href="staff_details.css">
     <link rel="stylesheet" href="../Shared/Components/quad-modals.css">
+    <!-- Localization -->
+    <script src="../Shared/Utils/localization.js"></script>
 </head>
 
 <body>
@@ -263,12 +265,7 @@
                                     <label class="edit-form-label">Address</label>
                                     <textarea id="edit-address" class="edit-form-input" rows="3"></textarea>
                                 </div>
-                                <div class="edit-form-group full-width" style="margin-top: 1rem;">
-                                    <button type="button" id="btn-generate-payslip" class="btn-primary-action"
-                                        style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
-                                        <i class="fa-solid fa-file-invoice-dollar"></i> Generate Monthly Payslip
-                                    </button>
-                                </div>
+
                             </div>
                         </form>
                     </div>
@@ -417,23 +414,7 @@
                                 </div>
                             </div>
 
-                            <!-- Payslip Generation Card -->
-                            <div class="action-card">
-                                <div class="action-header">
-                                    <div class="action-icon green">
-                                        <i class="fa-solid fa-file-invoice-dollar"></i>
-                                    </div>
-                                    <div class="action-text">
-                                        <h4>Generate Payslip</h4>
-                                        <p>Download official salary slip.</p>
-                                    </div>
-                                </div>
-                                <div class="action-controls">
-                                    <button id="btn-generate-payslip-action" class="btn-primary-action" style="width: 100%;">
-                                        <i class="fa-solid fa-download"></i> Download PDF
-                                    </button>
-                                </div>
-                            </div>
+
 
                             <!-- Leave Management Card (Fix Task 6 - New Feature) -->
                             <div class="action-card">

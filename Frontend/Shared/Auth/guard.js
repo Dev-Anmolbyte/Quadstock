@@ -89,6 +89,9 @@
     }
 
     // --- 6. Role-Based Access ---
+    const store = sessionUser?.storeId || sessionEmployee?.storeId;
+    const plan = store?.subscriptionPlan || 'free';
+
     if (isEmployeeLoggedIn) {
         try {
             const emp = sessionEmployee; 
@@ -112,6 +115,15 @@
             window.location.href = '../landing/landing.html';
             return;
         }
+    }
+
+    // --- 6.1 Subscription Benefit Checks (Feature Guard) ---
+    // If user is on FREE plan, block access to Advanced Analytics and Smart Expiry
+    const premiumModules = ['/smartexpiry/']; // Added smart expiry to premium
+    if (plan === 'free' && premiumModules.some(mod => currentPath.includes(mod))) {
+        alert("Smart Expiry Guard is a PRO feature. Please upgrade your plan to access this.");
+        window.location.href = '../Ownerdashboard/dashboard.html';
+        return;
     }
 
     // --- 7. Final Unlock ---

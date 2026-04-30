@@ -245,17 +245,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 const pText = document.getElementById('target-percent');
                 
                 // For weekly/monthly we can either have specific endpoints or just use current summary
-                // The backend currently provides monthly summary. Let's update UI.
+                // Update UI for Weekly and Monthly Sales
                 const mVal = document.getElementById('monthly-sales-val');
+                const wVal = document.getElementById('weekly-sales-val');
+                
                 if (mVal) mVal.textContent = `₹${summary.totalSales.toLocaleString()}`;
-                if (dVal) dVal.textContent = `₹${summary.totalSales.toLocaleString()}`; // Simplified for now
+                if (wVal) wVal.textContent = `₹${(summary.weeklySales || 0).toLocaleString()}`;
 
                 if (pBar && pText) {
-                    const monthlyTarget = 300000; // Example
+                    const monthlyTarget = 300000; 
                     let percent = Math.min((summary.totalSales / monthlyTarget) * 100, 100).toFixed(0);
                     pText.textContent = `${percent}%`;
                     pBar.style.width = `${percent}%`;
                 }
+
             }
         } catch (error) {
             console.error("Failed to fetch sales performance:", error);
@@ -265,8 +268,24 @@ document.addEventListener('DOMContentLoaded', () => {
     loadAttendance();
     fetchSalesPerformance();
     
+    // --- NEW: Periodic Sync (Every 5 minutes) ---
+    setInterval(() => {
+        loadAttendance();
+        fetchSalesPerformance();
+    }, 300000);
+
     // --- 8. Tab Close / Exit Handling ---
+    // Prevent unload penalty for internal navigation using event delegation
+    document.addEventListener('click', (e) => {
+        const link = e.target.closest('a');
+        if (link && link.href) {
+            window.isInternalNavigation = true;
+        }
+    });
+
     window.addEventListener('beforeunload', (event) => {
+        if (window.isInternalNavigation) return;
+        
         const lastSession = dailyRecord.sessions[dailyRecord.sessions.length - 1];
         const isWorking = lastSession && !lastSession.out;
 
@@ -278,6 +297,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     window.addEventListener('unload', () => {
+        if (window.isInternalNavigation) return;
+        
         const lastSession = dailyRecord.sessions[dailyRecord.sessions.length - 1];
         const isWorking = lastSession && !lastSession.out;
 
@@ -286,14 +307,14 @@ document.addEventListener('DOMContentLoaded', () => {
             fetch(`${API_BASE}/attendance/punch-out`, {
                 method: 'PATCH',
                 headers: HEADERS,
-                body: JSON.stringify({ isBreak: false }),
+                body: JSON.stringify({ isBreak: true }),
                 keepalive: true
             }).catch(err => console.error("Exit punch-out failed:", err));
             
             fetch(`${API_BASE}/employees/status`, {
                 method: 'PATCH',
                 headers: HEADERS,
-                body: JSON.stringify({ status: 'offline' }),
+                body: JSON.stringify({ status: 'break' }),
                 keepalive: true
             }).catch(err => console.error("Exit status sync failed:", err));
 
@@ -304,7 +325,20 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-function logout() {
+async function logout() {
+    try {
+        const sessionToken = sessionStorage.getItem('authToken');
+        if (sessionToken) {
+            await fetch(`${CONFIG.API_BASE_URL}/users/logout`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${sessionToken}`
+                }
+            });
+        }
+    } catch (error) {
+        console.error("Logout API failed:", error);
+    }
     sessionStorage.clear();
     window.location.href = '../Authentication/employee_login.html';
 }

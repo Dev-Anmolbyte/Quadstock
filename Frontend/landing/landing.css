@@ -293,9 +293,112 @@ body {
   to { transform: translate(50px, 100px) rotate(180deg); }
 }
 
+/* --- Pricing Section --- */
+.pricing-toggle-container {
+  display: flex;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 8px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 126, 54, 0.2);
+  width: fit-content;
+  margin: 0 auto;
+}
+
+.dark .pricing-toggle-container {
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.pricing-toggle-btn {
+  padding: 10px 24px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #64748b;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.pricing-toggle-btn.active {
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 10px 20px -5px rgba(255, 126, 54, 0.4);
+}
+
+.pricing-card {
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.pricing-card.featured {
+  border: 2px solid var(--primary);
+  position: relative;
+  transform: scale(1.05);
+  box-shadow: 0 40px 80px -15px rgba(255, 126, 54, 0.2);
+}
+
+@media (max-width: 1024px) {
+  .pricing-card.featured {
+    transform: scale(1);
+  }
+}
+
+.pricing-card:hover {
+  transform: translateY(-15px);
+  box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.2);
+}
+
+.pricing-card.featured:hover {
+    transform: translateY(-15px) scale(1.05);
+}
+
+.price-text {
+  font-size: 3.5rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.dark .check-item {
+    color: #94a3b8;
+}
+
+.check-icon {
+  width: 20px;
+  height: 20px;
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--accent);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+}
+
 /* --- Responsive Adjustments --- */
 @media (max-width: 768px) {
   .showcase-grid {
     grid-template-columns: 1fr;
+  }
+  
+  .pricing-toggle-container {
+      flex-wrap: wrap;
+      justify-content: center;
+  }
+  
+  .pricing-toggle-btn {
+      padding: 8px 16px;
+      font-size: 0.8rem;
   }
 }

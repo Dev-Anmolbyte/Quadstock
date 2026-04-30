@@ -89,8 +89,7 @@ function initStaffDetails(apiBase, headers, userRole) {
     const roleSelect = document.getElementById('modal-role-select');
     const btnBlock = document.getElementById('btn-block-employee-modal');
     const btnDelete = document.getElementById('btn-delete-employee-modal');
-    const btnActionPayslip = document.getElementById('btn-generate-payslip-action');
-    const btnProfilePayslip = document.getElementById('btn-generate-payslip');
+
     const btnManageLeave = document.getElementById('btn-manage-leave');
 
     if (btnUpdateRole) {
@@ -151,38 +150,9 @@ function initStaffDetails(apiBase, headers, userRole) {
         };
     }
 
-    if (btnActionPayslip) {
-        btnActionPayslip.onclick = () => generatePayslipAction();
-    }
-    if (btnProfilePayslip) {
-        btnProfilePayslip.onclick = () => generatePayslipAction();
-    }
 
-    async function generatePayslipAction() {
-        const month = new Date().toISOString().slice(0, 7);
-        try {
-            const res = await fetch(`${API_CONFIG.base}/payslips/generate`, {
-                method: 'POST',
-                headers: API_CONFIG.headers,
-                body: JSON.stringify({
-                    employeeId: CURRENT_EMP._id,
-                    month,
-                    basicSalary: CURRENT_EMP.salary,
-                    allowances: 0,
-                    deductions: 0
-                })
-            });
-            const result = await res.json();
-            if (result.success) {
-                QuadModals.showToast("Payslip generated successfully!", "success");
-            } else {
-                QuadModals.showToast(result.message || "Generation failed", "error");
-            }
-        } catch (err) {
-            console.error(err);
-            QuadModals.showToast("Network error during payslip generation", "error");
-        }
-    }
+
+
 
     if (btnManageLeave) {
         btnManageLeave.onclick = () => switchTab(3); // Leaves Tab
@@ -305,27 +275,47 @@ async function renderSales() {
         
         if (result.success) {
             const data = result.data;
+            const ordersHtml = data.orders && data.orders.length > 0 
+                ? data.orders.map(o => `
+                    <div class="sale-record-item" style="display: flex; justify-content: space-between; padding: 0.75rem; border-bottom: 1px solid var(--border-soft); font-size: 0.85rem;">
+                        <div>
+                            <div style="font-weight: 700;">Order #${o._id.slice(-6).toUpperCase()}</div>
+                            <div style="color: var(--text-muted); font-size: 0.75rem;">${new Date(o.createdAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-weight: 700; color: var(--c-green-text);">₹${o.totalAmount.toFixed(2)}</div>
+                            <div style="color: var(--text-muted); font-size: 0.75rem;">${o.paymentMethod.toUpperCase()}</div>
+                        </div>
+                    </div>
+                `).join('')
+                : '<p class="empty-detail-msg">No sales records found for this month.</p>';
+
             salesContainer.innerHTML = `
-                <div class="sales-performance-card" style="padding: 1.5rem; text-align: center;">
-                    <div style="font-size: 2.5rem; color: var(--primary); margin-bottom: 0.5rem;">
-                        <i class="fa-solid fa-sack-dollar"></i>
+                <div class="sales-performance-card" style="padding: 1.5rem; text-align: center; background: var(--bg-soft); border-radius: 16px; margin-bottom: 1.5rem;">
+                    <div style="font-size: 2rem; color: var(--primary); margin-bottom: 0.5rem;">
+                        <i class="fa-solid fa-indian-rupee-sign"></i>
                     </div>
                     <h3 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.25rem;">₹${data.totalSales.toLocaleString()}</h3>
-                    <p style="color: var(--text-secondary); font-size: 0.9rem;">Total Sales this Month</p>
-                    <div style="margin-top: 1.5rem; height: 8px; background: var(--bg-light); border-radius: 4px; overflow: hidden;">
-                        <div style="width: ${Math.min((data.totalSales/200000)*100, 100)}%; height: 100%; background: var(--primary);"></div>
-                    </div>
-                    <p style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-muted);">Goal: ₹2,00,000 (${Math.round((data.totalSales/200000)*100)}%)</p>
+                    <p style="color: var(--text-secondary); font-size: 0.85rem;">Total Sales (${data.month})</p>
                     
-                    <div style="margin-top: 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                        <div style="background: var(--bg-light); padding: 1rem; border-radius: 12px;">
-                            <h4 style="font-size: 1.2rem; font-weight: 700;">${data.count}</h4>
-                            <p style="font-size: 0.7rem; color: var(--text-secondary);">Orders</p>
+                    <div style="margin-top: 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div style="background: var(--bg-card); padding: 0.75rem; border-radius: 12px; border: 1px solid var(--border-soft);">
+                            <h4 style="font-size: 1.1rem; font-weight: 700;">${data.count}</h4>
+                            <p style="font-size: 0.65rem; color: var(--text-secondary);">Orders</p>
                         </div>
-                        <div style="background: var(--bg-light); padding: 1rem; border-radius: 12px;">
-                            <h4 style="font-size: 1.2rem; font-weight: 700;">₹${Math.round(data.totalSales / (data.count || 1)).toLocaleString()}</h4>
-                            <p style="font-size: 0.7rem; color: var(--text-secondary);">Avg. Value</p>
+                        <div style="background: var(--bg-card); padding: 0.75rem; border-radius: 12px; border: 1px solid var(--border-soft);">
+                            <h4 style="font-size: 1.1rem; font-weight: 700;">₹${Math.round(data.totalSales / (data.count || 1)).toLocaleString()}</h4>
+                            <p style="font-size: 0.65rem; color: var(--text-secondary);">Avg. Value</p>
                         </div>
+                    </div>
+                </div>
+
+                <div class="recent-sales-list">
+                    <h4 style="margin-bottom: 1rem; font-size: 0.9rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fa-solid fa-receipt" style="color: var(--primary);"></i> Recent Sales
+                    </h4>
+                    <div class="sales-records-scroll" style="max-height: 300px; overflow-y: auto;">
+                        ${ordersHtml}
                     </div>
                 </div>
             `;

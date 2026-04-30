@@ -55,6 +55,7 @@ body {
     background-color: var(--bg-body);
     color: var(--text-main);
     overflow-x: hidden;
+    font-size: 0.9rem; /* Global base font slightly smaller */
 }
 
 /* --- Premium Background Decoration --- */
@@ -164,7 +165,7 @@ body {
 }
 
 .stat-info h3 { 
-    font-size: 2rem; 
+    font-size: 1.75rem; /* Reduced from 2rem */
     font-weight: 900; 
     color: var(--text-main);
     letter-spacing: -0.03em;
@@ -185,7 +186,7 @@ body {
     align-items: center;
     justify-content: center;
     gap: 1rem;
-    font-size: 1.1rem;
+    font-size: 1rem; /* Reduced from 1.1rem */
     white-space: nowrap;
     height: fit-content;
     align-self: end;
@@ -227,7 +228,7 @@ body {
 }
 
 .card-header h3 {
-    font-size: 1.6rem;
+    font-size: 1.4rem; /* Reduced from 1.6rem */
     font-weight: 900;
     color: var(--text-main);
     letter-spacing: -0.02em;
@@ -291,9 +292,9 @@ body {
 
 .udhaar-table th {
     background: rgba(255, 255, 255, 0.03);
-    padding: 1.75rem 1.5rem;
+    padding: 1.5rem 1.25rem; /* Slightly tighter padding */
     text-align: left;
-    font-size: 0.75rem;
+    font-size: 0.7rem; /* Reduced from 0.75rem */
     font-weight: 850;
     color: var(--text-secondary);
     text-transform: uppercase;
@@ -302,10 +303,10 @@ body {
 }
 
 .udhaar-table td {
-    padding: 1.75rem 1.5rem;
+    padding: 1.5rem 1.25rem; /* Tighter padding */
     border-bottom: 1px solid var(--card-border);
     color: var(--text-main);
-    font-size: 1.05rem;
+    font-size: 0.9rem; /* Reduced from 1.05rem */
     transition: all 0.3s ease;
 }
 

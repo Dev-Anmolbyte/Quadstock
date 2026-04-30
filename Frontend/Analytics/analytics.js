@@ -3,6 +3,11 @@ import { apiRequest } from '../Shared/Utils/api.js';
 
 document.addEventListener('DOMContentLoaded', function () {
     // --- State Management ---
+    // --- Context and State ---
+    const ctx_auth = window.authContext || {};
+    const user = ctx_auth.user || null;
+    const userRole = ctx_auth.role || 'owner';
+
     window.analyticsData = {};
     let mainTrendsChartInstance = null;
     const formatter = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
@@ -16,12 +21,57 @@ document.addEventListener('DOMContentLoaded', function () {
                 const d = result.data;
                 window.analyticsData = d; 
                 
+                const store = user?.storeId;
+                const plan = store?.subscriptionPlan || 'free';
+
                 updateKPIs(d);
                 updateMainChart(d);
+
                 populateTables(d);
+
+                if (plan === 'free') {
+                    applyAnalyticsRestriction();
+                }
             }
         } catch (err) {
             console.error("Analytics Refresh Error:", err);
+        }
+    }
+
+    function applyAnalyticsRestriction() {
+        const sellersBody = document.getElementById('best-sellers-summary-body');
+        const udhaarBody = document.getElementById('udhaar-summary-body');
+        
+        if (sellersBody) {
+             sellersBody.innerHTML = `
+                <tr><td colspan="3" style="text-align:center; padding: 3rem;">
+                    <div style="opacity: 0.6; margin-bottom: 1rem;"><i class="fa-solid fa-lock" style="font-size: 2rem;"></i></div>
+                    <strong>Best Sellers is a PRO feature</strong><br>
+                    <small>Upgrade to see which items drive your growth.</small>
+                    <br><br>
+                    <button class="btn-sm" onclick="window.location.href='../landing/landing.html#pricing'" style="background: var(--primary-orange); color: white; border: none;">Upgrade Now</button>
+                </td></tr>
+             `;
+        }
+
+        // Keep Udhaar Summary as basic, but maybe limit rows
+        // For now, let's just show a "Upgrade for full reports" button at the bottom of the page
+        const analyticsGrid = document.querySelector('.analytics-grid');
+        if (analyticsGrid && !document.getElementById('promo-upgrade-banner')) {
+            const banner = document.createElement('div');
+            banner.id = 'promo-upgrade-banner';
+            banner.className = 'card';
+            banner.style.gridColumn = '1 / -1';
+            banner.style.background = 'linear-gradient(90deg, #f97316, #fb923c)';
+            banner.style.color = 'white';
+            banner.style.textAlign = 'center';
+            banner.style.padding = '2rem';
+            banner.innerHTML = `
+                <h3 style="margin-bottom: 0.5rem;"><i class="fa-solid fa-rocket"></i> Unlock Power Analytics with QuadStock Pro</h3>
+                <p style="opacity: 0.9;">Get detailed customer insights, unlimited staff reports, and smart prediction charts.</p>
+                <button onclick="window.location.href='../landing/landing.html#pricing'" style="margin-top: 1.5rem; padding: 0.75rem 2rem; border-radius: 2rem; border: none; background: white; color: #f97316; font-weight: 800; cursor: pointer;">View Pricing</button>
+            `;
+            analyticsGrid.appendChild(banner);
         }
     }
 
@@ -76,12 +126,11 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // --- 2. Update Main Trends Chart ---
     function updateMainChart(d) {
-        const ctx = document.getElementById('mainTrendsChart')?.getContext('2d');
-        if (!ctx) return;
+        const canvas = document.getElementById('mainTrendsChart');
+        if (!canvas || !window.Chart) return;
+        const ctx = canvas.getContext('2d');
 
-        // Dynamic Real-Time Data from Backend
         const labels = d.trends?.labels || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
         const revenueData = d.trends?.revenueData || [0, 0, 0, 0, 0, 0, 0];
         const creditData = d.trends?.creditData || [0, 0, 0, 0, 0, 0, 0];
@@ -90,15 +139,6 @@ document.addEventListener('DOMContentLoaded', function () {
             mainTrendsChartInstance.destroy();
         }
 
-        // Premium Gradient Styling
-        const revGrad = ctx.createLinearGradient(0, 0, 0, 350);
-        revGrad.addColorStop(0, 'rgba(16, 185, 129, 0.5)'); // Emerald Green
-        revGrad.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
-
-        const credGrad = ctx.createLinearGradient(0, 0, 0, 350);
-        credGrad.addColorStop(0, 'rgba(244, 63, 94, 0.5)'); // Rose Red
-        credGrad.addColorStop(1, 'rgba(244, 63, 94, 0.0)');
-        
         const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
 
         mainTrendsChartInstance = new Chart(ctx, {
@@ -110,88 +150,37 @@ document.addEventListener('DOMContentLoaded', function () {
                         label: 'Product Sales',
                         data: revenueData,
                         borderColor: '#10b981',
-                        backgroundColor: revGrad,
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
                         fill: true,
                         tension: 0.4,
                         borderWidth: 3,
-                        pointBackgroundColor: '#10b981',
-                        pointBorderColor: '#ffffff',
-                        pointBorderWidth: 2,
-                        pointRadius: 4,
-                        pointHoverRadius: 6
+                        pointRadius: 4
                     },
                     {
-                        label: 'New Credit (Udhaar)',
+                        label: 'New Credit',
                         data: creditData,
                         borderColor: '#f43f5e',
-                        backgroundColor: credGrad,
+                        backgroundColor: 'rgba(244, 63, 94, 0.1)',
                         fill: true,
                         tension: 0.4,
                         borderWidth: 3,
-                        pointBackgroundColor: '#f43f5e',
-                        pointBorderColor: '#ffffff',
-                        pointBorderWidth: 2,
-                        pointRadius: 4,
-                        pointHoverRadius: 6
+                        pointRadius: 4
                     }
                 ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                interaction: {
-                    mode: 'index',
-                    intersect: false,
-                },
                 scales: {
                     y: { 
-                        beginAtZero: true, 
+                        beginAtZero: true,
                         grid: { color: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' },
-                        ticks: { 
-                            callback: v => formatter.format(v),
-                            color: isDark ? '#94a3b8' : '#64748b',
-                            font: { family: "'Plus Jakarta Sans', sans-serif", weight: '600' }
-                        },
-                        border: { display: false }
+                        ticks: { callback: v => formatter.format(v) }
                     },
-                    x: { 
-                        grid: { display: false },
-                        ticks: { 
-                            color: isDark ? '#94a3b8' : '#64748b',
-                            font: { family: "'Plus Jakarta Sans', sans-serif", weight: '600' }
-                        },
-                        border: { display: false }
-                    }
+                    x: { grid: { display: false } }
                 },
                 plugins: {
-                    legend: { 
-                        position: 'top', 
-                        align: 'end',
-                        labels: { 
-                            usePointStyle: true, 
-                            boxWidth: 8, 
-                            color: isDark ? '#f8fafc' : '#0f172a',
-                            font: { family: "'Plus Jakarta Sans', sans-serif", weight: '700' }
-                        } 
-                    },
-                    tooltip: {
-                        backgroundColor: isDark ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.9)',
-                        titleColor: isDark ? '#f8fafc' : '#0f172a',
-                        bodyColor: isDark ? '#cbd5e1' : '#475569',
-                        borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
-                        borderWidth: 1,
-                        padding: 12,
-                        boxPadding: 6,
-                        usePointStyle: true,
-                        callbacks: {
-                            label: function(context) {
-                                let label = context.dataset.label || '';
-                                if (label) label += ': ';
-                                if (context.parsed.y !== null) label += formatter.format(context.parsed.y);
-                                return label;
-                            }
-                        }
-                    }
+                    legend: { position: 'top', align: 'end' }
                 }
             }
         });

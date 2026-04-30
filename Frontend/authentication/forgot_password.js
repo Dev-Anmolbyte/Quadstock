@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             clearError(newPasswordInput);
 
-            const btnSubmit = document.querySelector('.btn-submit');
+            const btnSubmit = step3.querySelector('.btn-submit');
             btnSubmit.disabled = true;
             btnSubmit.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
 

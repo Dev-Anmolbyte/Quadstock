@@ -6,7 +6,7 @@ import statsService from "../stats/stats.service.js";
 
 class OrderService {
     async createOrder(orderData, storeId, employeeId = null) {
-        const { items, total, paymentMethod } = orderData;
+        const { items, total, paymentMethod, discount, customerName, customerPhone, dueDate } = orderData;
 
         // Start Transaction (if DB supports it, else manual rollback logic)
         // For now, let's do safe sequential updates.
@@ -52,8 +52,39 @@ class OrderService {
             employeeId,
             items: processedItems,
             totalAmount: total,
-            paymentMethod: paymentMethod || 'cash'
+            discountType: discount?.type || 'none',
+            discountValue: discount?.value || 0,
+            paymentMethod: paymentMethod || 'cash',
+            customerName: customerName || '',
+            customerPhone: customerPhone || '',
+            dueDate: dueDate
         });
+
+        // ─── UDHAAR INTEGRATION ───
+        if (paymentMethod === 'udhaar') {
+            if (!customerName || !customerPhone) {
+                // In a real production app, we might want to throw an error here,
+                // but for now let's just log it or handle gracefully.
+                console.warn("[OrderService] Udhaar selected but customer info missing.");
+            } else {
+                try {
+                    const { default: udhaarService } = await import("../udhaar/udhaar.service.js");
+                    const { Udhaar } = await import("../udhaar/udhaar.model.js");
+                    
+                    // Always create a new record for each purchase as requested
+                    await udhaarService.createRecord({
+                        name: customerName,
+                        contact: customerPhone,
+                        totalAmount: total,
+                        dueDate: dueDate, // Pass the due date
+                        date: new Date().toISOString().split('T')[0],
+                        description: `Purchase from Order #${order._id.toString().slice(-6).toUpperCase()}`
+                    }, storeId);
+                } catch (err) {
+                    console.error("[OrderService] Failed to sync with Udhaar module:", err.message);
+                }
+            }
+        }
         
         // Sync to StoreStats
         await statsService.updateMonthlyStats(storeId, 'sale', total, order.createdAt);
@@ -71,26 +102,40 @@ class OrderService {
     }
 
     async getEmployeeSalesSummary(employeeId, storeId, month) {
+        // Get start of current week (Monday)
+        const now = new Date();
+        const day = now.getDay();
+        const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+        const startOfWeek = new Date(now.setDate(diff));
+        startOfWeek.setHours(0, 0, 0, 0);
+
         // month: "YYYY-MM"
-        const filter = {
+        const monthStart = new Date(`${month}-01`);
+        const monthEnd = new Date(new Date(monthStart).setMonth(monthStart.getMonth() + 1));
+
+        const orders = await Order.find({ employeeId, storeId, createdAt: { $gte: monthStart, $lt: monthEnd } });
+        
+        // Filter for weekly sales (only from orders already fetched if they fit, or refetch)
+        // Since we only fetched one month, we should fetch all orders for the week to be safe
+        const weeklyOrders = await Order.find({
             employeeId,
             storeId,
-            createdAt: {
-                $gte: new Date(`${month}-01`),
-                $lt: new Date(new Date(`${month}-01`).setMonth(new Date(`${month}-01`).getMonth() + 1))
-            }
-        };
+            createdAt: { $gte: startOfWeek }
+        });
 
-        const orders = await Order.find(filter);
         const totalSales = orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+        const weeklySales = weeklyOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
         
         return {
             count: orders.length,
             totalSales,
-            month
+            weeklySales,
+            month,
+            orders: orders.slice(0, 10) // Limit detailed records returned
         };
     }
 }
+
 
 
 export default new OrderService();

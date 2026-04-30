@@ -22,6 +22,12 @@ const storeSchema = new Schema(
         },
         address: { type: String, trim: true },
         phoneNumber: { type: String, trim: true },
+        gstNumber: { type: String, trim: true, uppercase: true },
+        logoUrl: { type: String, trim: true },
+        storeTerms: { type: String, trim: true, default: "Thank you for shopping with us!" },
+        upiId: { type: String, trim: true },
+        email: { type: String, trim: true },
+        staticQrUrl: { type: String, trim: true },
         highStockThreshold: { type: Number, default: 100 },
         healthyExpiryThreshold: { type: Number, default: 30 },
         expiryWarningThreshold: { type: Number, default: 14 },
@@ -35,7 +41,28 @@ const storeSchema = new Schema(
         notifLowStock: { type: Boolean, default: true },
         notifUdhaarOverdue: { type: Boolean, default: true },
         notifPaymentReminders: { type: Boolean, default: false },
+        
+        // Subscription Management
+        subscriptionPlan: {
+            type: String,
+            enum: ["free", "pro", "enterprise"],
+            default: "free"
+        },
+        subscriptionStatus: {
+            type: String,
+            enum: ["active", "inactive", "expired"],
+            default: "active" // Default for free plan
+        },
+        subscriptionExpiry: {
+            type: Date,
+            default: () => new Date(Date.now() + 100 * 365 * 24 * 60 * 60 * 1000) // Virtually infinite for free plan
+        },
+        subscriptionCycle: { type: String, enum: ["none", "monthly", "quarter", "half", "yearly"], default: "none" },
+        subscriptionAmount: { type: Number, default: 0 },
+        razorpayOrderId: { type: String },
+        razorpayPaymentId: { type: String },
     },
+
     {
         timestamps: true
     }

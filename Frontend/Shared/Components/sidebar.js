@@ -15,37 +15,20 @@
  */
 (function () {
     const initSidebar = () => {
-        // ── 1. NAV ITEMS (Can be overridden by window.CUSTOM_NAV_ITEMS) ──────────
-        const TRANSLATIONS = {
-            hi: {
-                dashboard: 'डैशबोर्ड',
-                analytics: 'एनालिटिक्स',
-                inventory: 'इन्वेंटरी',
-                employees: 'कर्मचारी',
-                smartexpiry: 'स्मार्ट एक्सपायरी',
-                query: 'पूछताछ',
-                complain: 'शिकायतें',
-                udhaar: 'उधार',
-                sales: 'पीओएस टर्मिनल',
-                settings: 'सेटिंग्स',
-                logout: 'लॉगआउट',
-                store: 'स्टोर',
-                store_id: 'स्टोर आईडी'
-            }
-        };
-
-        const lang = localStorage.getItem('language') || 'en';
-
+        // --- 1. NAV ITEMS ---
+        const Loc = window.LocService;
+        
         const DEFAULT_NAV_ITEMS = [
-            { id: 'dashboard',   icon: 'fa-house',               label: (lang === 'hi' ? TRANSLATIONS.hi.dashboard : 'Dashboard'),   href: '../Ownerdashboard/dashboard.html' },
-            { id: 'analytics',   icon: 'fa-chart-simple',        label: (lang === 'hi' ? TRANSLATIONS.hi.analytics : 'Analytics'),   href: '../Analytics/analytics.html' },
-            { id: 'inventory',   icon: 'fa-boxes-stacked',       label: (lang === 'hi' ? TRANSLATIONS.hi.inventory : 'Inventory'),   href: '../Inventory/inventory.html' },
-            { id: 'employees',   icon: 'fa-users',               label: (lang === 'hi' ? TRANSLATIONS.hi.employees : 'Employees'),   href: '../Employees/employees.html' },
-            { id: 'smartexpiry', icon: 'fa-hourglass-end',       label: (lang === 'hi' ? TRANSLATIONS.hi.smartexpiry : 'Smart Expiry'),href: '../smartexpiry/smartexpiry.html' },
-            { id: 'query',       icon: 'fa-clipboard-question',  label: (lang === 'hi' ? TRANSLATIONS.hi.query : 'Queries'),     href: '../Query/query.html' },
-            { id: 'complain',    icon: 'fa-circle-exclamation',  label: (lang === 'hi' ? TRANSLATIONS.hi.complain : 'Complaints'),  href: '../Complain/complain.html' },
-            { id: 'udhaar',      icon: 'fa-indian-rupee-sign',   label: (lang === 'hi' ? TRANSLATIONS.hi.udhaar : 'Udhaar'),      href: '../Udhaar/udhaar.html' },
-            { id: 'sales',       icon: 'fa-receipt',             label: (lang === 'hi' ? TRANSLATIONS.hi.sales : 'POS Terminal'),href: '../Sales/sales.html' },
+            { id: 'dashboard',   icon: 'fa-house',               label: Loc.translate('Dashboard'),   href: '../Ownerdashboard/dashboard.html' },
+            { id: 'analytics',   icon: 'fa-chart-simple',        label: Loc.translate('Analytics'),   href: '../Analytics/analytics.html' },
+            { id: 'inventory',   icon: 'fa-boxes-stacked',       label: Loc.translate('Inventory'),   href: '../Inventory/inventory.html' },
+            { id: 'employees',   icon: 'fa-users',               label: Loc.translate('Staff'),       href: '../Employees/employees.html' },
+            { id: 'smartexpiry', icon: 'fa-hourglass-end',       label: Loc.translate('Smart Expiry'),href: '../smartexpiry/smartexpiry.html' },
+            { id: 'query',       icon: 'fa-clipboard-question',  label: Loc.translate('Queries'),     href: '../Query/query.html' },
+            { id: 'complain',    icon: 'fa-circle-exclamation',  label: Loc.translate('Complaints'),  href: '../Complain/complain.html' },
+            { id: 'udhaar',      icon: 'fa-indian-rupee-sign',   label: Loc.translate('Udhaar'),      href: '../Udhaar/udhaar.html' },
+            { id: 'staffleaves', icon: 'fa-calendar-check',      label: Loc.translate('Staff Leaves'), href: '../staffleaves/staffleaves.html' },
+            { id: 'sales',       icon: 'fa-receipt',             label: Loc.translate('POS Terminal'),href: '../Sales/sales.html' },
         ];
 
         const user = (window.authContext && window.authContext.user) || JSON.parse(sessionStorage.getItem('user'));
@@ -54,15 +37,44 @@
         const NAV_ITEMS = (window.CUSTOM_NAV_ITEMS || DEFAULT_NAV_ITEMS).filter(item => {
             // If user is staff, hide owner-only pages
             if (userRole === 'staff') {
-                return !['analytics', 'employees', 'inventory', 'smartexpiry', 'udhaar', 'sales'].includes(item.id);
+                return !['analytics', 'employees', 'inventory', 'smartexpiry', 'udhaar'].includes(item.id);
             }
+            // If user is owner, hide POS Terminal (sales)
+            if (item.id === 'sales') return false;
+            
             return true;
         });
 
         const FOOTER_ITEMS = [
-            { id: 'settings', icon: 'fa-gear',               label: (lang === 'hi' ? TRANSLATIONS.hi.settings : 'Settings'), href: '../Settings/settings.html' },
-            { id: 'logout',   icon: 'fa-right-from-bracket', label: (lang === 'hi' ? TRANSLATIONS.hi.logout : 'Logout'),   href: '../landing/landing.html', cls: 'logout' },
+            { id: 'settings', icon: 'fa-gear',               label: Loc.translate('Settings'), href: '../Settings/settings.html' },
+            { id: 'logout',   icon: 'fa-right-from-bracket', label: Loc.translate('Logout'),   href: 'javascript:void(0)', onclick: 'handleGlobalLogout()', cls: 'logout' },
         ];
+
+
+        // ── 1.1 GLOBAL LOGOUT HANDLER ──────────────────────────────────────────
+        window.handleGlobalLogout = async function() {
+            const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+                            ? 'http://localhost:3000/api' : '/api';
+            const token = sessionStorage.getItem('authToken');
+            
+            // If it's an employee on the staff dashboard, we can use their local logout if exists,
+            // but for consistency we do it here.
+            try {
+                if (token) {
+                    await fetch(`${apiBase}/users/logout`, {
+                        method: 'POST',
+                        headers: { 'Authorization': 'Bearer ' + token }
+                    });
+                }
+            } catch (err) {
+                console.error("Logout API failed:", err);
+            }
+
+            sessionStorage.clear();
+            localStorage.removeItem('authToken'); // Also clear from localStorage if any
+            window.location.href = '../landing/landing.html';
+        };
+
 
         const activePage = window.ACTIVE_PAGE || '';
 
@@ -109,10 +121,11 @@
                     <div class="store-identity">
                         <i class="fa-solid fa-store store-identity-icon"></i>
                         <div class="shop-name-topbar shop-name">
-                            <div class="topbar-line">${lang === 'hi' ? TRANSLATIONS.hi.store : 'Store'} :- <span id="topbar-store-name">QuadStock</span></div>
-                            <div class="topbar-line">${lang === 'hi' ? TRANSLATIONS.hi.store_id : 'Store id'} :- <span id="topbar-store-id">...</span></div>
+                            <div class="topbar-line">${Loc.translate('Store')} :- <span id="topbar-store-name">QuadStock</span></div>
+                            <div class="topbar-line">${Loc.translate('Store id')} :- <span id="topbar-store-id">...</span></div>
                         </div>
                     </div>
+
                 </div>
                 <div class="header-right">
                     <div class="digital-clock" id="digital-clock">--:--:-- --</div>
@@ -268,12 +281,42 @@
                 .then(result => {
                     if (result.success && result.data) {
                         const { queries, complaints } = result.data;
+                        const ownerId = ctx.ownerRefId || 'global';
                         
                         const updateBadge = (id, count) => {
+                            // Only allow badges for Query and Complain as requested
+                            if (id !== 'query' && id !== 'complain') return;
+
                             const badge = document.getElementById(`badge-${id}`);
                             if (badge) {
-                                if (count > 0) {
-                                    badge.textContent = count > 99 ? '9'+'+' : count;
+                                const keyCount = `notif_last_count_${id}_${ownerId}`;
+                                const keySeen = `notif_is_seen_${id}_${ownerId}`;
+
+                                let lastCount = parseInt(localStorage.getItem(keyCount)) || 0;
+                                let isSeen = localStorage.getItem(keySeen) === 'true';
+
+                                // If user is on the page, mark as seen
+                                if (id === activePage) {
+                                    localStorage.setItem(keyCount, count);
+                                    localStorage.setItem(keySeen, 'true');
+                                    badge.style.display = 'none';
+                                    return;
+                                }
+
+                                // Logic to detect NEW unseen messages
+                                if (count > lastCount) {
+                                    // Count increased -> New message arrived -> Re-show notification
+                                    localStorage.setItem(keyCount, count);
+                                    localStorage.setItem(keySeen, 'false');
+                                    isSeen = false;
+                                } else if (count < lastCount) {
+                                    // Count decreased -> Items resolved -> Update reference but keep seen state
+                                    localStorage.setItem(keyCount, count);
+                                }
+
+                                // Only appear when there is at least one unseen message
+                                if (count > 0 && !isSeen) {
+                                    badge.textContent = count > 99 ? '99+' : count;
                                     badge.style.display = 'flex';
                                 } else {
                                     badge.style.display = 'none';

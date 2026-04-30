@@ -326,22 +326,17 @@ body {
     border-radius: 1rem;
     border: 1px solid var(--border-color);
     box-shadow: var(--card-shadow);
-    overflow: hidden;
-    /* Flex grow */
+    /* Removed overflow: hidden to allow sticky headers to work */
     display: flex;
     flex-direction: column;
-    /* IMPORTANT: Allow it to shrink/grow in the flex container */
     flex: 1;
     min-height: 0;
 }
 
 .table-responsive {
     overflow-x: auto;
-    overflow-y: auto;
-    height: 100%;
-    /* Fill the card */
+    overflow-y: visible; /* Crucial for sticky headers in the main scroll */
     flex: 1;
-    /* Grow to fill card */
 }
 
 .inventory-table {
@@ -360,15 +355,21 @@ body {
 }
 
 .inventory-table th {
-    background: var(--bg-body);
-    font-weight: 600;
-    font-size: 0.75rem;
+    background: #f1f5f9; /* Distinct light gray/blue for better visibility */
+    font-weight: 700;
+    font-size: 0.7rem;
     text-transform: uppercase;
+    letter-spacing: 0.05em;
     color: var(--text-secondary);
     position: sticky;
-    top: 0;
-    z-index: 20;
-    /* Ensure header stays on top */
+    top: -1.5rem; /* Sticks to the top of the scroll area */
+    z-index: 50;
+    border-bottom: 2px solid var(--border-color);
+}
+
+[data-theme="dark"] .inventory-table th {
+    background: #1e293b; /* Darker navy for dark theme header */
+    border-bottom-color: rgba(255, 255, 255, 0.1);
 }
 
 .inventory-table tbody tr:hover {

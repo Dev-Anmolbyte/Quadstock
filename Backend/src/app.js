@@ -20,7 +20,8 @@ import pageRouter from './modules/page/page.routes.js';
 import orderRouter from './modules/order/order.routes.js';
 import attendanceRouter from './modules/attendance/attendance.routes.js';
 import leaveRouter from './modules/leave/leave.routes.js';
-import payslipRouter from './modules/payslip/payslip.routes.js';
+
+import subscriptionRouter from './modules/subscription/subscription.routes.js';
 
 import { errorHandler } from './middleware/error.middleware.js';
 
@@ -35,8 +36,8 @@ app.use(cors({
     origin: process.env.CORS_ORIGIN || "*",
     credentials: true
 }));
-app.use(express.json({ limit: '16kb' }));
-app.use(express.urlencoded({ extended: true, limit: '16kb' }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static(path.join(process.cwd(), "Backend", "public")));
 app.use(cookieParser());
 app.use((req, res, next) => {
@@ -67,7 +68,8 @@ app.use("/api/pages", pageRouter);
 app.use("/api/sales", orderRouter);
 app.use("/api/attendance", attendanceRouter);
 app.use("/api/leaves", leaveRouter);
-app.use("/api/payslips", payslipRouter);
+
+app.use("/api/subscriptions", subscriptionRouter);
 
 
 app.get("/", (req, res) => {

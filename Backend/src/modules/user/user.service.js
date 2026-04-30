@@ -4,6 +4,7 @@ import { Store } from "../store/store.model.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { generateOTP } from "../../utils/generateOtp.js";
 import { sendOtpEmail } from "../../utils/sendEmail.js";
+import { Attendance } from "../attendance/attendance.model.js";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 
@@ -79,7 +80,7 @@ class UserService {
 
     async loginUser(emailOrUsername, password) {
         // Try User Collection First (Owners)
-        let user = await User.findOne({ 
+        let user = await User.findOne({
             $or: [
                 { email: emailOrUsername.toLowerCase() },
                 { username: emailOrUsername.toLowerCase() }
@@ -88,7 +89,7 @@ class UserService {
 
         // Try Employee Collection Second (Staff)
         if (!user) {
-            user = await Employee.findOne({ 
+            user = await Employee.findOne({
                 $or: [
                     { email: emailOrUsername.toLowerCase() },
                     { username: emailOrUsername.toLowerCase() }
@@ -124,18 +125,41 @@ class UserService {
     }
 
     async logoutUser(userId) {
-        await User.findByIdAndUpdate(
-            userId,
-            {
-                $unset: {
-                    refreshToken: 1 // remove refresh token from db
-                }
-            },
-            {
-                returnDocument: 'after'
+        // 1. Try to find in User (Owner)
+        let user = await User.findById(userId);
+        let model = User;
+
+        // 2. Try to find in Employee (Staff)
+        if (!user) {
+            user = await Employee.findById(userId);
+            model = Employee;
+        }
+
+        if (!user) return;
+
+        // 3. Logic for Employee: If they have an active shift, set status to 'break'
+        if (model === Employee) {
+            const today = new Date().toISOString().split('T')[0];
+            const attendance = await Attendance.findOne({
+                employeeId: userId,
+                storeId: user.storeId,
+                date: today,
+                "sessions.out": { $exists: false }
+            });
+
+            if (attendance) {
+                console.log(`[Logout] Emp ${userId} has active shift. Setting status to 'break'.`);
+                user.status = 'break';
+            } else {
+                user.status = 'offline';
             }
-        );
+        }
+
+        // 4. Remove refresh token
+        user.refreshToken = undefined;
+        await user.save({ validateBeforeSave: false });
     }
+
 
     async refreshAccessToken(incomingRefreshToken) {
         try {
@@ -214,7 +238,7 @@ class UserService {
         // Ensure suggestion doesn't end with a special character
         suggestion = suggestion.replace(/[@_.]$/, "");
         if (!suggestion) suggestion = "user";
-        
+
         let finalSuggestion = suggestion;
         const alphabet = "abcdefghijklmnopqrstuvwxyz";
         let attempt = 0;
@@ -223,7 +247,7 @@ class UserService {
             const randomChar = alphabet[Math.floor(Math.random() * alphabet.length)];
             finalSuggestion = `${suggestion}${randomChar}`;
             if (attempt > 10) {
-                 finalSuggestion = `${suggestion}${alphabet[attempt % 26]}${alphabet[(attempt + 1) % 26]}`;
+                finalSuggestion = `${suggestion}${alphabet[attempt % 26]}${alphabet[(attempt + 1) % 26]}`;
             }
             attempt++;
             if (attempt > 100) break;
@@ -287,8 +311,9 @@ class UserService {
         user.otpAttempts = 0; // Reset attempts on resend
         await user.save({ validateBeforeSave: false });
 
+        const storeName = user.storeId?.name || "QuadStock";
         try {
-            await sendOtpEmail(user.email, user.name, storeName, otp);
+            await sendOtpEmail(user.email, user.name, storeName, otp, 'activation');
         } catch (emailErr) {
             console.error("[Resend OTP Email] Failed:", emailErr.message);
             throw new ApiError(500, "Failed to send OTP email. Please try again.");
@@ -298,8 +323,8 @@ class UserService {
     // ─── Forgot Password ──────────────────────────────────────────────────
     async forgotPassword(email, username) {
         console.log(`[Forgot Password] Searching for User with Username: "${username}" and Email: "${email}"`);
-        
-        const user = await User.findOne({ 
+
+        const user = await User.findOne({
             username: username?.toLowerCase().trim(),
             email: email?.toLowerCase().trim()
         });
@@ -317,7 +342,7 @@ class UserService {
 
         const storeName = user.storeId?.name || "Your Store";
         try {
-            await sendOtpEmail(user.email, user.name, storeName, otp);
+            await sendOtpEmail(user.email, user.name, storeName, otp, 'password_reset');
         } catch (error) {
             console.error("[Forgot Password Email] Failed:", error.message);
             // Don't throw here, just return true so we don't leak user existence if we wanted, 
@@ -347,7 +372,7 @@ class UserService {
         user.otp = undefined;
         user.otpExpiry = undefined;
         user.otpAttempts = 0;
-        
+
         // Also verify the user if they were unverified
         user.isVerified = true;
 

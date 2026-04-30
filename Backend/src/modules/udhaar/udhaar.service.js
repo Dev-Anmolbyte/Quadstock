@@ -5,13 +5,19 @@ import statsService from "../stats/stats.service.js";
 
 class UdhaarService {
     async createRecord(data, storeId) {
-        const { totalAmount } = data;
+        const { totalAmount, date, description } = data;
         // Enforce balance = totalAmount on creation
         const finalData = {
             ...data,
             storeId,
             balance: totalAmount,
-            status: 'pending'
+            status: 'pending',
+            transactions: [{
+                date: date || new Date().toISOString().split('T')[0],
+                type: 'taken',
+                amount: totalAmount,
+                description: description || 'Initial Credit'
+            }]
         };
         const record = await Udhaar.create(finalData);
         

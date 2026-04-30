@@ -285,7 +285,7 @@ body {
 
 .chart-container-large { height: 400px; position: relative; width: 100%; }
 .chart-container-medium { height: 280px; position: relative; width: 100%; }
-#payment-split-card .chart-container-medium { height: 400px; }
+
 
 /* ============================================================
    Glass Tables

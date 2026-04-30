@@ -17,6 +17,9 @@
     <link rel="stylesheet" href="../Ownerdashboard/dashboard.css">
     <link rel="stylesheet" href="../Shared/Components/quad-modals.css">
     <link rel="stylesheet" href="smartexpiry.css">
+    <link rel="stylesheet" href="../Shared/Styles/notification_badge.css">
+    <!-- Localization -->
+    <script src="../Shared/Utils/localization.js"></script>
 </head>
 
 <body>
@@ -79,9 +82,14 @@
 
                 <!-- Controls: Search & Sort -->
                 <div class="controls-bar">
-                    <div class="search-wrapper">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" id="search-input" placeholder="Search product, batch, category...">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div class="item-check-wrapper" title="Select All Items">
+                            <input type="checkbox" id="select-all" class="item-check">
+                        </div>
+                        <div class="search-wrapper">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="search-input" placeholder="Search product, batch, category...">
+                        </div>
                     </div>
                     <div class="sort-wrapper">
                         <span class="sort-label">Sort by:</span>
