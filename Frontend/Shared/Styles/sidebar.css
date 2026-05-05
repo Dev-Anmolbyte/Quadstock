@@ -160,7 +160,8 @@
     overflow: hidden;
     position: relative;
     background-color: var(--bg-body);
-    padding: 0; /* Important: The top bar needs 100% width */
+    padding: 0;
+    min-width: 0;
 }
 
 /* Scrollable container for page content */
@@ -168,7 +169,7 @@
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 1.5rem 2rem;
+    padding: 0.5rem 2rem 2rem; /* Balanced spacing with top-bar margin */
     display: flex;
     flex-direction: column;
     min-width: 0;
@@ -184,14 +185,18 @@
 /* Top Bar */
 .top-bar {
     height: var(--header-height);
-    padding: 0 2rem;
+    margin: 1.25rem 2rem 1rem;
+    padding: 0 1.5rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
     background: var(--bg-card);
-    border-bottom: 1px solid var(--border-color);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
     flex-shrink: 0;
     z-index: 100;
+    box-shadow: var(--shadow-sm);
+    transition: margin 0.3s ease, border-radius 0.3s ease;
 }
 
 .header-left, .header-right {
@@ -359,7 +364,9 @@
     }
 
     .top-bar {
+        margin: 1rem;
         padding: 0 1rem;
+        border-radius: 16px;
     }
 
     .digital-clock {
@@ -380,7 +387,9 @@
         padding: 0.75rem;
     }
     .top-bar {
+        margin: 0.75rem 0.5rem;
         padding: 0 0.5rem;
+        border-radius: 12px;
     }
     .store-identity {
         gap: 0.5rem;

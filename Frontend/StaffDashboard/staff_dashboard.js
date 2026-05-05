@@ -110,38 +110,62 @@ document.addEventListener('DOMContentLoaded', () => {
             displayTime = new Date(firstSession.in).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
 
-        badge.className = 'status-pill';
+        // Update Circular Ring
+        const ring = document.querySelector('.ring-progress');
+        if (ring) {
+            ring.style.strokeDashoffset = isWorking ? '140' : (isOnBreak ? '210' : '283');
+        }
+
+        badge.className = 'status-pill-v2';
+
+        const endTimeEl = document.getElementById('status-end-time');
+        const endTimeContainer = document.getElementById('end-time-container');
+        let displayEndTime = '--:--';
 
         if (isWorking) {
             badge.classList.add('online');
             label.textContent = 'Active Duty';
             timeEl.textContent = displayTime;
-            desc.textContent = 'You are currently on shift.';
+            desc.textContent = 'You are currently on shift. Crush your goals!';
             
             btnMain.innerHTML = '<i class="fa-solid fa-stop"></i> <span>End Shift</span>';
-            btnMain.style.background = '#ef4444';
+            btnMain.style.background = 'var(--accent-rose)';
             btnSub.style.display = 'flex';
             btnSub.innerHTML = '<i class="fa-solid fa-mug-hot"></i> <span>Go on Break</span>';
+            
+            if (endTimeContainer) endTimeContainer.style.display = 'none';
         } else if (isOnBreak) {
             badge.classList.add('break');
             label.textContent = 'On Break';
             timeEl.textContent = displayTime;
-            desc.textContent = 'Relax, you are on break.';
+            desc.textContent = 'Relax and recharge. You deserve it!';
 
             btnMain.innerHTML = '<i class="fa-solid fa-stop"></i> <span>End Shift</span>';
-            btnMain.style.background = '#ef4444';
+            btnMain.style.background = 'var(--accent-rose)';
             btnSub.style.display = 'flex';
             btnSub.innerHTML = '<i class="fa-solid fa-play"></i> <span>Resume Duty</span>';
+            
+            if (endTimeContainer) endTimeContainer.style.display = 'none';
         } else {
             badge.classList.add('offline');
             label.textContent = 'Off Duty';
             timeEl.textContent = displayTime;
-            desc.textContent = lastSession ? 'Shift ended for today.' : 'Start your shift to begin.';
+            
+            if (lastSession && lastSession.out && !lastSession.isBreak) {
+                displayEndTime = new Date(lastSession.out).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                if (endTimeContainer) endTimeContainer.style.display = 'block';
+                desc.textContent = 'Shift ended. Great work today!';
+            } else {
+                if (endTimeContainer) endTimeContainer.style.display = 'none';
+                desc.textContent = 'Start your shift to begin tracking.';
+            }
 
             btnMain.innerHTML = '<i class="fa-solid fa-play"></i> <span>Start Shift</span>';
             btnMain.style.background = 'var(--primary)';
             btnSub.style.display = 'none';
         }
+
+        if (endTimeEl) endTimeEl.textContent = displayEndTime;
     }
 
     if (btnMain) {
@@ -240,7 +264,6 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (result.success && result.data) {
                 const summary = result.data;
-                const dVal = document.getElementById('current-sales');
                 const pBar = document.getElementById('target-progress-bar');
                 const pText = document.getElementById('target-percent');
                 
@@ -296,7 +319,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    window.addEventListener('unload', () => {
+    window.addEventListener('pagehide', () => {
         if (window.isInternalNavigation) return;
         
         const lastSession = dailyRecord.sessions[dailyRecord.sessions.length - 1];
@@ -318,8 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 keepalive: true
             }).catch(err => console.error("Exit status sync failed:", err));
 
-            // Clear sessionStorage as part of logout
-            sessionStorage.clear();
+            // Removed sessionStorage.clear() as it triggers on page refresh/HMR, causing unwanted logout
         }
     });
 });

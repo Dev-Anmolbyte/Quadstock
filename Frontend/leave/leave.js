@@ -28,24 +28,50 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (role === 'owner') {
         staffOnlyActions.style.display = 'none';
         document.querySelector('.page-subtitle').textContent = 'Review and manage staff leave applications';
+    } else {
+        // Staff side: Hide stats and filters as requested for a cleaner view
+        const statsGrid = document.querySelector('.stats-grid');
+        const controlsBar = document.querySelector('.controls-bar');
+        if (statsGrid) statsGrid.style.display = 'none';
+        if (controlsBar) controlsBar.style.display = 'none';
+        
+        document.querySelector('.page-subtitle').textContent = 'Track your leave applications and status';
     }
 
     // --- Initialization ---
-    await fetchLeaves();
+    if (ctx && ctx.isAuthenticated) {
+        await fetchLeaves();
+    } else {
+        leavesList.innerHTML = `<div class="error-state" style="padding:4rem; text-align:center;"><p>Session expired. Please login again.</p></div>`;
+    }
 
     // --- Core Functions ---
     async function fetchLeaves() {
         try {
-            const endpoint = role === 'owner' ? '/leave/admin/all' : '/leave/';
+            const endpoint = role === 'owner' ? '/leaves/admin/all' : '/leaves/';
             const res = await apiRequest(endpoint);
+            
             if (res.success) {
                 leaves = res.data || [];
                 renderLeaves();
                 updateStats();
+            } else {
+                showError('Failed to load records: ' + (res.message || 'Unknown error'));
             }
         } catch (err) {
             console.error('Error fetching leaves:', err);
+            showError('Unable to connect to the server. Please check your connection.');
         }
+    }
+
+    function showError(msg) {
+        leavesList.innerHTML = `
+            <div class="error-state" style="padding: 4rem; text-align: center; color: var(--rejected-color);">
+                <i class="fa-solid fa-triangle-exclamation" style="font-size: 3rem; margin-bottom: 1rem; display: block;"></i>
+                <p style="font-weight: 700;">${msg}</p>
+                <button onclick="location.reload()" class="review-btn" style="margin-top: 1rem;">Retry</button>
+            </div>
+        `;
     }
 
     function renderLeaves() {
@@ -80,12 +106,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             const start = new Date(l.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
             const end = new Date(l.endDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
             const staffName = l.employeeId?.name || 'Staff Member';
-            const avatar = staffName.charAt(0).toUpperCase();
+            const photo = l.employeeId?.photo;
+            const avatarContent = photo 
+                ? `<img src="${photo}" alt="${staffName}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`
+                : staffName.charAt(0).toUpperCase();
 
             return `
                 <div class="leave-card" data-id="${l._id}">
                     <div class="staff-info">
-                        <div class="staff-avatar">${avatar}</div>
+                        <div class="staff-avatar" style="overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                            ${avatarContent}
+                        </div>
                         <div class="staff-details">
                             <h4>${staffName}</h4>
                             <p>${l.employeeId?.designation || 'Staff'}</p>
@@ -188,7 +219,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
 
         try {
-            const res = await apiRequest('/leave/', 'POST', formData);
+            const res = await apiRequest('/leaves/', { 
+                method: 'POST', 
+                body: JSON.stringify(formData) 
+            });
             if (res.success) {
                 QuadModals.alert('Success', 'Leave request submitted successfully!', 'success');
                 leaveModal.classList.remove('visible');
@@ -210,7 +244,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             const adminNote = document.getElementById('adminNote').value;
 
             try {
-                const res = await apiRequest(`/leave/${id}/status`, 'PATCH', { status, adminNote });
+                const res = await apiRequest(`/leaves/${id}/status`, { 
+                    method: 'PATCH', 
+                    body: JSON.stringify({ status, adminNote }) 
+                });
                 if (res.success) {
                     QuadModals.alert('Updated', `Request ${status} successfully`, 'success');
                     statusModal.classList.remove('visible');

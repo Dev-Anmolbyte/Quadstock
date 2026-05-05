@@ -11,6 +11,55 @@
     margin-top: 2rem;
 }
 
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.page-title {
+    font-size: 2rem;
+    font-weight: 900;
+}
+
+.page-subtitle {
+    color: var(--text-muted);
+    font-size: 1rem;
+    margin-top: 0.25rem;
+}
+
+#btn-apply-leave {
+    background: linear-gradient(135deg, var(--primary), #6366f1);
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 16px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 10px 25px rgba(99, 102, 241, 0.25);
+    font-size: 1rem;
+}
+
+#btn-apply-leave:hover {
+    transform: translateY(-4px) rotate(-1deg);
+    box-shadow: 0 15px 35px rgba(99, 102, 241, 0.4);
+    filter: brightness(1.1);
+}
+
+#btn-apply-leave i {
+    font-size: 1.2rem;
+    transition: transform 0.3s;
+}
+
+#btn-apply-leave:hover i {
+    transform: rotate(90deg) scale(1.2);
+}
+
 /* Stats Grid */
 .stats-grid {
     display: grid;
@@ -275,8 +324,136 @@
     margin-bottom: 1.5rem;
 }
 
-.btn-reject { background: var(--bg-soft); color: var(--rejected-color); }
-.btn-reject:hover { background: var(--rejected-color); color: white; }
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 800;
+    margin-bottom: 0.6rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.form-group input, 
+.form-group textarea {
+    width: 100%;
+    padding: 0.8rem 1.25rem;
+    border-radius: 12px;
+    border: 1px solid var(--border-soft);
+    background: var(--bg-soft);
+    color: var(--text-main);
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: all 0.3s;
+    box-sizing: border-box; /* Ensures padding doesn't cause overflow */
+    resize: vertical; /* Prevents horizontal resizing */
+}
+
+.form-group input:focus, 
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: var(--bg-card);
+    box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.1);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.modal-header h3 {
+    font-size: 1.5rem;
+    font-weight: 900;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: color 0.2s;
+}
+
+.close-modal:hover {
+    color: var(--rejected-color);
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.modal-footer button {
+    padding: 0.8rem 1.8rem;
+    border-radius: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: none;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary), #6366f1);
+    color: white;
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.2);
+}
+
+.btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 25px rgba(99, 102, 241, 0.3);
+    filter: brightness(1.1);
+}
+
+.btn-secondary {
+    background: var(--bg-soft);
+    color: var(--text-main);
+    border: 1px solid var(--border-soft) !important;
+}
+
+.btn-secondary:hover {
+    background: var(--border-soft);
+    transform: translateY(-2px);
+}
+
+.btn-reject {
+    background: rgba(239, 68, 68, 0.1) !important;
+    color: var(--rejected-color) !important;
+    border: 1px solid rgba(239, 68, 68, 0.2) !important;
+}
+
+.btn-reject:hover {
+    background: var(--rejected-color) !important;
+    color: white !important;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+}
+
+.btn-approve {
+    background: linear-gradient(135deg, var(--approved-color), #059669) !important;
+    color: white !important;
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.2) !important;
+}
+
+.btn-approve:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 25px rgba(16, 185, 129, 0.3) !important;
+    filter: brightness(1.1);
+}
 
 /* Responsive */
 @media (max-width: 768px) {

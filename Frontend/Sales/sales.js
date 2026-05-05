@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- 3. DOM Elements ---
     const unifiedSearchInput = document.getElementById('unified-search-input');
-    const categoryBtns = document.querySelectorAll('.cat-btn');
+    const categoryBtns = document.querySelectorAll('.cat-pill');
     const productGrid = document.getElementById('product-grid');
     
     const cartItemsList = document.getElementById('cart-items');
@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     const cartItemCount = document.getElementById('cart-item-count');
     const posCategoryFilter = document.getElementById('pos-category-filter');
-    const paymentBtns = document.querySelectorAll('.payment-btn');
+    const paymentBtns = document.querySelectorAll('.pay-method');
 
     let selectedType = 'all'; // 'all', 'packed', 'loose'
     let selectedCategory = 'all'; // 'all' or category name
@@ -92,12 +92,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         const query = unifiedSearchInput.value.toLowerCase().trim();
         let filtered = inventory;
 
-        // 1. Filter by Product Type (Packed/Loose)
         if (selectedType !== 'all') {
             filtered = filtered.filter(p => p.productType === selectedType);
         }
 
-        // 2. Filter by Category
         if (selectedCategory !== 'all') {
             filtered = filtered.filter(p => 
                 (p.categoryName && p.categoryName.toLowerCase() === selectedCategory) || 
@@ -105,7 +103,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             );
         }
 
-        // 3. Search Query
         if (query) {
             filtered = filtered.filter(p => 
                 p.name.toLowerCase().includes(query) || 
@@ -114,7 +111,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             );
         }
 
-        // 4. Sort: In-stock items first
         filtered.sort((a, b) => {
             const stockA = a.quantity || a.stockQuantity || 0;
             const stockB = b.quantity || b.stockQuantity || 0;
@@ -131,68 +127,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         productGrid.innerHTML = filtered.map(p => {
             const imgSrc = p.image || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=400';
             const stockQty = p.quantity || p.stockQuantity || 0;
-            const stockLabel = p.productType === 'packed' ? `${stockQty} pcs left` : `${stockQty} ${p.unit || 'kg'} left`;
-            let stockClass = 'stock-normal';
-            let cardClass = '';
-            
-            if (stockQty <= 0) {
-                stockClass = 'stock-out';
-                cardClass = 'out-of-stock';
-            } else if (stockQty <= 5) {
-                stockClass = 'stock-low';
-            }
-
-            const { originalPrice, finalPrice, discountInfo } = getEffectivePrice(p);
-            const priceDisplay = discountInfo 
-                ? `<div class="v-product-price">
-                    <span class="final-price">₹${finalPrice.toFixed(2)}</span>
-                    <span class="original-price" style="text-decoration: line-through; font-size: 0.75rem; opacity: 0.6; margin-left: 4px;">₹${originalPrice.toFixed(2)}</span>
-                    <span class="discount-tag" style="background: var(--c-green-bg); color: var(--c-green-text); font-size: 0.65rem; padding: 1px 4px; border-radius: 4px; margin-left: 4px; font-weight: 800;">${discountInfo.label}</span>
-                   </div>`
-                : `<div class="v-product-price">₹${originalPrice.toFixed(2)}${p.productType === 'loose' ? `/${p.unit || 'kg'}` : ''}</div>`;
-
-            const mfdDate = p.mfd ? new Date(p.mfd).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' }) : 'N/A';
-            const expDate = p.exp ? new Date(p.exp).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' }) : 'N/A';
+            const cardClass = stockQty <= 0 ? 'out-of-stock' : '';
+            const { finalPrice, discountInfo } = getEffectivePrice(p);
 
             return `
                 <div class="v-product-card ${cardClass}" data-id="${p._id}">
                     <div class="v-product-img">
                         <img src="${imgSrc}" alt="${p.name}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=400'">
+                        <span class="badge-v2 ${p.productType === 'loose' ? 'badge-loose' : 'badge-packed'}">
+                            ${p.productType === 'loose' ? 'LOOSE' : 'PACKED'}
+                        </span>
                         ${discountInfo ? `
-                            <span class="badge-expiry-discount" style="position: absolute; top: 8px; right: 8px; background: #ef4444; color: white; font-size: 10px; font-weight: 900; padding: 2px 6px; border-radius: 6px; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3); text-transform: uppercase;">
-                                ${p.discountReason && p.discountReason.toLowerCase().includes('stock') ? 'STOCK SALE' : 
-                                  p.discountReason && p.discountReason.toLowerCase().includes('expiry') ? 'EXPIRY SALE' : 
-                                  p.discountReason ? p.discountReason.toUpperCase() : 'PROMO SALE'}
+                            <span class="badge-expiry-discount" style="position: absolute; bottom: 8px; left: 8px; background: #ef4444; color: white; font-size: 10px; font-weight: 900; padding: 2px 6px; border-radius: 6px; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3); text-transform: uppercase;">
+                                ${p.discountReason ? p.discountReason.toUpperCase() : 'OFFER'}
                             </span>
                         ` : ''}
                     </div>
                     <div class="v-product-info">
-                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px;">
-                            <div class="v-product-brand" style="font-size: 0.7rem; font-weight: 800; color: var(--primary-color); text-transform: uppercase; letter-spacing: 0.5px;">${p.brand || 'No Brand'}</div>
-                            <span class="badge ${p.productType === 'loose' ? 'badge-loose' : 'badge-packed'}" style="position: static; font-size: 9px; padding: 1px 4px; border-radius: 4px;">
-                                ${p.productType === 'loose' ? 'LOOSE' : 'PACKED'}
-                            </span>
-                        </div>
-                        <h4 class="v-product-name" title="${p.name}" style="margin-bottom: 8px;">${p.name}</h4>
-                        
-                        <div class="v-product-details" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 12px; font-size: 0.8rem; font-weight: 600;">
-                            <div title="Batch Number" style="grid-column: span 2; background: rgba(var(--primary-rgb), 0.05); padding: 6px 10px; border-radius: 8px; color: var(--primary-color); border: 1px solid rgba(var(--primary-rgb), 0.1); display: flex; align-items: center; gap: 8px;">
-                                <i class="fa-solid fa-hashtag" style="font-size: 0.85rem;"></i>
-                                <span style="letter-spacing: 0.5px;">${p.batchNumber || 'N/A'}</span>
-                            </div>
-                            <div title="Stock Quantity" class="${stockClass}" style="background: rgba(0,0,0,0.03); padding: 5px 8px; border-radius: 6px;">
-                                <i class="fa-solid fa-boxes-stacked" style="width: 14px; color: var(--primary-color);"></i> ${stockQty} ${p.unit || 'pcs'}
-                            </div>
-                            <div title="MFD" style="background: rgba(0,0,0,0.03); padding: 5px 8px; border-radius: 6px; color: var(--text-secondary);">
-                                <i class="fa-solid fa-industry" style="width: 14px; color: var(--primary-color);"></i> <span style="font-size: 0.65rem; opacity: 0.7;">M:</span> ${mfdDate}
-                            </div>
-                            <div title="Expiry" style="grid-column: span 2; background: ${p.exp && new Date(p.exp) < new Date() ? 'rgba(239, 68, 68, 0.1)' : 'rgba(0,0,0,0.03)'}; padding: 6px 10px; border-radius: 8px; color: ${p.exp && new Date(p.exp) < new Date() ? '#ef4444' : 'var(--text-secondary)'}; border: 1px solid ${p.exp && new Date(p.exp) < new Date() ? 'rgba(239, 68, 68, 0.2)' : 'transparent'};">
-                                <i class="fa-solid fa-calendar-xmark" style="width: 14px; color: ${p.exp && new Date(p.exp) < new Date() ? '#ef4444' : 'var(--primary-color)'};"></i> <span style="font-size: 0.7rem; opacity: 0.8;">EXPIRY DATE:</span> <span style="font-weight: 800;">${expDate}</span>
-                            </div>
-                        </div>
-
-                        <div class="v-product-bottom" style="border-top: 1px solid var(--border-color); padding-top: 8px;">
-                            ${priceDisplay}
+                        <div class="v-product-brand" style="font-size: 0.7rem; font-weight: 800; color: var(--pos-primary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">${p.brand || 'No Brand'}</div>
+                        <h4 class="v-product-name" title="${p.name}">${p.name}</h4>
+                        <div class="v-product-footer">
+                            <div class="v-product-price">₹${finalPrice.toFixed(2)}${p.productType === 'loose' ? `/${p.unit || 'kg'}` : ''}</div>
+                            <div class="v-product-stock">${stockQty} ${p.unit || 'pcs'}</div>
                         </div>
                     </div>
                 </div>
@@ -456,8 +412,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (cart.length === 0) {
             cartItemsList.innerHTML = `
                 <div class="empty-cart-state">
-                    <i class="fa-solid fa-cart-shopping"></i>
-                    <p>Cart is empty</p>
+                    <div class="empty-icon-bg"><i class="fa-solid fa-cart-plus"></i></div>
+                    <h4>Empty Cart</h4>
+                    <p>Scan items or select from grid</p>
                 </div>
             `;
             updateSummary(0);
@@ -473,46 +430,26 @@ document.addEventListener('DOMContentLoaded', async () => {
             return `
                 <div class="cart-item-row">
                     <div class="cart-item-main">
-                        <span class="cart-item-name">
-                            ${item.name} 
-                            <span class="badge ${item.productType === 'loose' ? 'badge-loose' : 'badge-packed'}">
-                                ${item.productType === 'loose' ? 'LOOSE' : 'PACKED'}
-                            </span>
-                        </span>
+                        <span class="cart-item-name">${item.name}</span>
                         <span class="cart-item-total">₹${itemTotal.toFixed(2)}</span>
                     </div>
                     
-                    ${item.productType === 'packed' ? `
-                    <div class="cart-item-sub">
-                        <div class="qty-control">
-                            <span>Qty:</span>
-                            <div class="qty-btns">
+                    <div class="cart-item-controls">
+                        ${item.productType === 'packed' ? `
+                            <div class="qty-stepper">
                                 <button onclick="changeQty(${index}, -1)">-</button>
                                 <input type="number" class="qty-val" value="${item.cartQty}" min="1" onchange="updateCartQty(${index}, this.value)">
                                 <button onclick="changeQty(${index}, 1)">+</button>
                             </div>
-                        </div>
-                        <span class="item-rate">Price: ₹${item.price.toFixed(2)}</span>
-                    </div>
-                    <div class="cart-item-actions">
-                        <button onclick="removeCartItem(${index})" class="text-red">
-                            <i class="fa-solid fa-trash"></i> Remove
+                        ` : `
+                            <button onclick="editLooseCartItem(${index})" class="item-delete-btn" style="color: var(--pos-primary); opacity: 1;">
+                                <i class="fa-solid fa-pen-to-square"></i> ${item.cartQty} ${item.unit || 'kg'}
+                            </button>
+                        `}
+                        <button onclick="removeCartItem(${index})" class="item-delete-btn">
+                            <i class="fa-solid fa-trash-can"></i> Remove
                         </button>
                     </div>
-                    ` : `
-                    <div class="cart-item-sub">
-                        <span>Qty: <strong class="text-primary">${item.cartQty} ${item.unit || 'kg'}</strong></span>
-                        <span class="item-rate">Rate: ₹${item.price.toFixed(2)}/${item.unit || 'kg'}</span>
-                    </div>
-                    <div class="cart-item-actions">
-                        <button onclick="editLooseCartItem(${index})" class="text-primary">
-                            <i class="fa-solid fa-pen"></i> Edit
-                        </button>
-                        <button onclick="removeCartItem(${index})" class="text-red">
-                            <i class="fa-solid fa-trash"></i> Remove
-                        </button>
-                    </div>
-                    `}
                 </div>
             `;
         }).join('');

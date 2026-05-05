@@ -23,16 +23,10 @@
     font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
-body {
-    background: var(--bg-main);
-    color: var(--text-main);
-}
+/* Body styles managed by global.css */
 
-.main-content {
-    padding: 2rem;
-    max-width: 1400px;
-    margin: 0 auto;
-}
+/* Settings specific overrides for main-content if any */
+/* Removed redundant layout styles that caused scrolling issues */
 
 .page-header {
     margin-bottom: 3rem;
@@ -270,12 +264,7 @@ body {
 input:checked + .slider { background-color: var(--primary); }
 input:checked + .slider:before { transform: translateX(22px); }
 
-/* Custom Scroll */
-.content-scrollable {
-    overflow-y: auto;
-    height: calc(100vh - 100px);
-    padding-right: 1rem;
-}
+/* Content scrollable managed by sidebar.css */
 
 /* Danger Zone */
 .danger-section {

@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const targetDirs = [
-    'Analytics', 'Complain', 'Inventory', 'Query', 'smartexpiry', 'Udhaar', 'Settings', 'Employees', 'staffleaves'
+    'Analytics', 'Complain', 'Inventory', 'Query', 'smartexpiry', 'Udhaar', 'Settings', 'Employees', 'leave'
 ];
 
 const basePath = path.join(__dirname);
@@ -51,7 +51,7 @@ let sidebarTemplateHtml = `
                     <i class="fa-solid fa-indian-rupee-sign"></i>
                     <span>Udhaar/Pending</span>
                 </a>
-                <a href="../staffleaves/staffleaves.html" class="menu-item __STAFFLEAVES_ACTIVE__" title="Staff Leaves">
+                <a href="../leave/leave.html" class="menu-item __LEAVE_ACTIVE__" title="Staff Leaves">
                     <i class="fa-solid fa-calendar-check"></i>
                     <span>Staff Leaves</span>
                 </a>
@@ -88,7 +88,7 @@ function getActiveReplacement(dirName) {
         'Udhaar': '__UDHAAR_ACTIVE__',
         'Settings': '__SETTINGS_ACTIVE__',
         'Employees': '__EMPLOYEES_ACTIVE__',
-        'staffleaves': '__STAFFLEAVES_ACTIVE__'
+        'leave': '__LEAVE_ACTIVE__'
     };
     return map[dirName] || '';
 }

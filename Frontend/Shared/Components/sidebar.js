@@ -16,7 +16,8 @@
 (function () {
     const initSidebar = () => {
         // --- 1. NAV ITEMS ---
-        const Loc = window.LocService;
+        // Robust Localization Helper
+        const Loc = window.LocService || { translate: (s) => s };
         
         const DEFAULT_NAV_ITEMS = [
             { id: 'dashboard',   icon: 'fa-house',               label: Loc.translate('Dashboard'),   href: '../Ownerdashboard/dashboard.html' },
@@ -27,7 +28,7 @@
             { id: 'query',       icon: 'fa-clipboard-question',  label: Loc.translate('Queries'),     href: '../Query/query.html' },
             { id: 'complain',    icon: 'fa-circle-exclamation',  label: Loc.translate('Complaints'),  href: '../Complain/complain.html' },
             { id: 'udhaar',      icon: 'fa-indian-rupee-sign',   label: Loc.translate('Udhaar'),      href: '../Udhaar/udhaar.html' },
-            { id: 'staffleaves', icon: 'fa-calendar-check',      label: Loc.translate('Staff Leaves'), href: '../staffleaves/staffleaves.html' },
+            { id: 'leave',       icon: 'fa-calendar-check',      label: Loc.translate('Staff Leaves'), href: '../leave/leave.html' },
             { id: 'sales',       icon: 'fa-receipt',             label: Loc.translate('POS Terminal'),href: '../Sales/sales.html' },
         ];
 

@@ -5,14 +5,14 @@
     <script src="../Shared/Auth/guard.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuadStock - Staff Dashboard</title>
+    <title>Dashboard - QuadStock Staff</title>
+    <link rel="icon" type="image/png" href="../../assets/favicon.png">
     <!-- Fonts & Icons -->
     <link rel="stylesheet" href="../Shared/Vendor/google-fonts/plus-jakarta-sans.css">
     <link rel="stylesheet" href="../Shared/Vendor/font-awesome/css/all.min.css">
     <!-- Base Styles -->
     <link rel="stylesheet" href="../Shared/Styles/global.css">
     <link rel="stylesheet" href="../Shared/Styles/sidebar.css">
-    <link rel="stylesheet" href="../Ownerdashboard/dashboard.css">
     <link rel="stylesheet" href="staff_dashboard.css">
     <link rel="stylesheet" href="../Shared/Components/quad-modals.css">
     <link rel="stylesheet" href="../Shared/Styles/notification_badge.css">
@@ -29,95 +29,116 @@
         <main class="main-content">
             <!-- Top Bar injected by sidebar.js -->
 
-            <header class="top-header">
-                <div class="header-left">
-                    <h1>Staff Dashboard</h1>
-                    <p class="text-secondary">Welcome back, <span id="staff-name"
-                            style="color: var(--primary); font-weight: 800;">User</span> ✨</p>
-                </div>
-            </header>
-
             <div class="content-scrollable">
-                <div class="grid">
-                    <!-- Attendance Card -->
-                    <div class="card attendance-card">
-                        <div class="punch-display">
-                            <div id="status-badge" class="status-pill offline">
-                                <i class="fa-solid fa-circle" style="font-size: 0.6rem;"></i>
-                                <span id="status-label">Offline</span>
+                <!-- Welcome Hero Section -->
+                <div class="welcome-hero">
+                    <div class="hero-text">
+                        <div class="greeting-tag">Welcome Back</div>
+                        <h1 class="hero-title">Hey, <span id="staff-name">User</span> <span class="wave">👋</span></h1>
+                        <p class="hero-subtitle">You're doing great! Here's a quick look at your performance.</p>
+                    </div>
+                    <div class="hero-visual">
+                        <div class="glow-circle"></div>
+                        <i class="fa-solid fa-rocket hero-icon"></i>
+                    </div>
+                </div>
+
+                <div class="dashboard-main-grid">
+                    <!-- Left Column: Attendance & Sales Progress -->
+                    <div class="dashboard-column main-column">
+                        
+                        <!-- Attendance Card (Premium Design) -->
+                        <div class="card attendance-card-v2">
+                            <div class="card-header-minimal">
+                                <h3>Shift Controller</h3>
+                                <div id="status-badge" class="status-pill-v2 offline">
+                                    <i class="fa-solid fa-circle"></i>
+                                    <span id="status-label">Off Duty</span>
+                                </div>
                             </div>
-                            <h2 id="status-time" class="punch-time">00:00</h2>
-                            <p id="status-desc" class="punch-desc">Start your shift to begin tracking.</p>
+                            
+                            <div class="attendance-display">
+                                <div class="time-ring">
+                                    <svg viewBox="0 0 100 100">
+                                        <circle class="ring-bg" cx="50" cy="50" r="45"></circle>
+                                        <circle class="ring-progress" cx="50" cy="50" r="45"></circle>
+                                    </svg>
+                                    <div class="time-content">
+                                        <div class="time-entry">
+                                            <span class="time-label">Started at</span>
+                                            <h2 id="status-time">00:00</h2>
+                                        </div>
+                                        <div class="time-entry" id="end-time-container">
+                                            <div class="time-divider"></div>
+                                            <span class="time-label">Ended at</span>
+                                            <h2 id="status-end-time">--:--</h2>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="status-info">
+                                    <p id="status-desc">Click 'Start Shift' to begin tracking your work hours.</p>
+                                </div>
+                            </div>
+
+                            <div class="attendance-actions">
+                                <button id="btn-main-action" class="btn-action-primary">
+                                    <i class="fa-solid fa-play"></i> <span>Start Shift</span>
+                                </button>
+                                <button id="btn-sub-action" class="btn-action-secondary" style="display: none;">
+                                    <i class="fa-solid fa-mug-hot"></i> <span>Break</span>
+                                </button>
+                            </div>
                         </div>
 
-                        <div class="buttons-stack">
-                            <button id="btn-main-action" class="btn-punch">
-                                <i class="fa-solid fa-play"></i> <span>Start Shift</span>
-                            </button>
-                            <button id="btn-sub-action" class="btn-punch secondary-punch" style="display: none;">
-                                <i class="fa-solid fa-mug-hot"></i> <span>Go on Break</span>
-                            </button>
+                        <!-- Monthly Sales Card (Simplified) -->
+                        <div class="card monthly-sales-card">
+                            <div class="card-header-minimal">
+                                <h3>Monthly Sales</h3>
+                                <div class="stat-icon-box-small">
+                                    <i class="fa-solid fa-chart-line"></i>
+                                </div>
+                            </div>
+                            <div class="sales-display-minimal">
+                                <h2 class="current-val" id="monthly-sales-val">₹0</h2>
+                                <p class="sales-desc">Your total sales contribution for the current month.</p>
+                            </div>
                         </div>
                     </div>
 
-                        <!-- Weekly Sales -->
-                        <div class="card">
-                            <h3
-                                style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem; color: var(--text-main);">
-                                <i class="fa-solid fa-calendar-week" style="color: var(--accent-primary);"></i> Weekly
-                                Sales Performance
-                            </h3>
-                            <div
-                                style="text-align: center; padding: 1.5rem 0; background: var(--bg-soft); border-radius: 1rem; border: 1px solid var(--border-soft);">
-                                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem;">This
-                                    Week's Revenue</p>
-                                <h2 id="weekly-sales-val"
-                                    style="margin: 0; font-size: 2.5rem; font-weight: 800; color: var(--text-main);">₹0
-                                </h2>
-                                <div
-                                    style="margin-top: 1rem; display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 0.35rem 0.75rem; border-radius: 2rem; font-size: 0.85rem; font-weight: 600;">
-                                    <i class="fa-solid fa-arrow-trend-up"></i>
-                                    <span>Keep it up!</span>
+                    <!-- Right Column: Stats & Quick Link -->
+                    <div class="dashboard-column side-column">
+                        
+                        <!-- Mini Stats Grid -->
+                        <div class="mini-stats-stack">
+                            <div class="mini-stat-card weekly">
+                                <div class="stat-icon-box">
+                                    <i class="fa-solid fa-calendar-week"></i>
+                                </div>
+                                <div class="stat-details">
+                                    <span class="stat-label">Weekly Sales</span>
+                                    <h3 id="weekly-sales-val">₹0</h3>
+                                </div>
+                                <div class="stat-trend up">
+                                    <i class="fa-solid fa-caret-up"></i>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Monthly Sales -->
-                        <div class="card">
-                            <h3
-                                style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem; color: var(--text-main);">
-                                <i class="fa-solid fa-calendar-days" style="color: var(--accent-primary);"></i> Monthly
-                                Sales Performance
-                            </h3>
-                            <div
-                                style="text-align: center; padding: 1.5rem 0; background: var(--bg-soft); border-radius: 1rem; border: 1px solid var(--border-soft);">
-                                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem;">This
-                                    Month's Revenue</p>
-                                <h2 id="monthly-sales-val"
-                                    style="margin: 0; font-size: 2.5rem; font-weight: 800; color: var(--text-main);">₹0
-                                </h2>
-                                <div id="monthly-status"
-                                    style="margin-top: 1rem; display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(59, 130, 246, 0.1); color: #3b82f6; padding: 0.35rem 0.75rem; border-radius: 2rem; font-size: 0.85rem; font-weight: 600;">
-                                    <i class="fa-solid fa-medal"></i>
-                                    <span>Great Job!</span>
+                        <!-- POS Action Card -->
+                        <div class="pos-launch-card">
+                            <div class="pos-card-content">
+                                <div class="pos-icon-circle">
+                                    <i class="fa-solid fa-cash-register"></i>
                                 </div>
+                                <h2>Launch POS</h2>
+                                <p>Ready for a new transaction?</p>
+                                <a href="../Sales/sales.html" class="btn-pos-launch">
+                                    Start Billing <i class="fa-solid fa-arrow-right"></i>
+                                </a>
                             </div>
+                            <div class="pos-card-decoration"></div>
                         </div>
-
-                    <!-- POS Banner -->
-                    <div class="pos-banner">
-                        <i class="fa-solid fa-cash-register banner-icon"></i>
-                        <div style="position: relative; z-index: 1;">
-                            <h2 style="margin: 0 0 0.5rem 0; font-weight: 800;">Smart Billing System</h2>
-                            <p style="margin: 0; opacity: 0.9; font-size: 1rem; font-weight: 500;">Ready to serve
-                                customers? Access the store POS for quick checkout.</p>
-                        </div>
-                        <a href="../Sales/sales.html" class="action-btn-styled">
-                            <i class="fa-solid fa-bolt"></i> Launch POS
-                        </a>
                     </div>
-
-
                 </div>
             </div>
         </main>
@@ -126,10 +147,11 @@
     <script>
         window.ACTIVE_PAGE = 'dashboard';
         window.CUSTOM_NAV_ITEMS = [
-            { id: 'dashboard', icon: 'fa-house-chimney', label: 'Dashboard', href: 'staff_dashboard.html' },
-            { id: 'sales', icon: 'fa-cash-register', label: 'POS Billing', href: '../Sales/sales.html' },
+            { id: 'dashboard', icon: 'fa-house', label: 'Dashboard', href: 'staff_dashboard.html' },
+            { id: 'leave', icon: 'fa-calendar-check', label: 'Apply Leave', href: '../leave/leave.html' },
+            { id: 'sales', icon: 'fa-receipt', label: 'POS Billing', href: '../Sales/sales.html' },
             { id: 'query', icon: 'fa-clipboard-question', label: 'Query', href: '../Query/query.html' },
-            { id: 'complain', icon: 'fa-triangle-exclamation', label: 'Complain', href: '../Complain/complain.html' },
+            { id: 'complain', icon: 'fa-circle-exclamation', label: 'Complain', href: '../Complain/complain.html' },
         ];
     </script>
     <script src="../Shared/Components/quad-modals.js"></script>
