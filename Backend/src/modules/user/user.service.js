@@ -111,6 +111,11 @@ class UserService {
             throw new ApiError(403, "Please verify your account before logging in.");
         }
 
+        // Check for blocked status (Employees only)
+        if (user.role !== 'owner' && user.isBlocked) {
+            throw new ApiError(403, "Your access has been blocked. Please contact the owner.");
+        }
+
         const accessToken = user.generateAccessToken();
         const refreshToken = user.generateRefreshToken();
 

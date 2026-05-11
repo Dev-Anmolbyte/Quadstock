@@ -43,6 +43,26 @@ class LeaveService {
         await leave.save();
         return leave;
     }
+
+    async deleteLeave(leaveId, userId, role, storeId) {
+        const query = { _id: leaveId, storeId };
+        
+        // If employee, they can only delete their own pending leaves
+        if (role !== 'owner') {
+            query.employeeId = userId;
+            const leave = await Leave.findOne(query);
+            
+            if (!leave) throw new ApiError(404, "Leave request not found");
+            if (leave.status !== 'pending') {
+                throw new ApiError(400, "Approved or rejected leaves cannot be deleted by employees");
+            }
+        }
+
+        const deletedLeave = await Leave.findOneAndDelete(query);
+        if (!deletedLeave) throw new ApiError(404, "Leave request not found");
+        
+        return deletedLeave;
+    }
 }
 
 export default new LeaveService();

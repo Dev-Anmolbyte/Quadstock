@@ -87,16 +87,63 @@
                             <div class="card-header">
                                 <h3>Revenue vs. Credit Trend</h3>
                                 <div class="chart-controls">
-                                    <button class="chart-btn active" onclick="switchChartType('mainTrendsChart', 'line', this)">
-                                        <i class="fa-solid fa-chart-line"></i>
-                                    </button>
-                                    <button class="chart-btn" onclick="switchChartType('mainTrendsChart', 'bar', this)">
-                                        <i class="fa-solid fa-chart-bar"></i>
-                                    </button>
-                                </div>
+                                     <div class="week-picker">
+                                         <button class="week-btn" onclick="changeWeek(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+                                         <span class="week-text week-label">Current Week</span>
+                                         <button class="week-btn" onclick="changeWeek(1)"><i class="fa-solid fa-chevron-right"></i></button>
+                                     </div>
+                                     <div class="chart-type-toggle">
+                                         <button class="chart-btn active" onclick="switchChartType('mainTrendsChart', 'line', this)">
+                                             <i class="fa-solid fa-chart-line"></i>
+                                         </button>
+                                         <button class="chart-btn" onclick="switchChartType('mainTrendsChart', 'bar', this)">
+                                             <i class="fa-solid fa-chart-bar"></i>
+                                         </button>
+                                     </div>
+                                 </div>
                             </div>
                             <div class="chart-container-large">
                                 <canvas id="mainTrendsChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 2.5: Customer Footfall -->
+                <section id="footfall-section" class="analytics-section">
+                    <div class="section-header">
+                        <h2>Customer Visits (Footfall)</h2>
+                        <span class="text-sm text-muted">Weekly trends based on billing activity</span>
+                    </div>
+                    <div class="analytics-grid">
+                        <div class="card chart-full-width animate-on-load">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-person-walking"></i> Visit Trends</h3>
+                                <div class="chart-controls">
+                                    <div class="week-picker">
+                                        <button class="week-btn" onclick="changeWeek(-1, 'footfall')"><i class="fa-solid fa-chevron-left"></i></button>
+                                        <span class="week-text week-label">Current Week</span>
+                                        <button class="week-btn" onclick="changeWeek(1, 'footfall')"><i class="fa-solid fa-chevron-right"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="footfall-stats-header">
+                                <div class="foot-summary-item">
+                                    <span class="lbl">Weekly Visits</span>
+                                    <h4 id="foot-total-visits">0</h4>
+                                </div>
+                                <div class="foot-summary-item">
+                                    <span class="lbl">Peak Business Hour</span>
+                                    <h4 id="foot-peak-hour">N/A</h4>
+                                </div>
+                            </div>
+                            <div class="chart-container-medium">
+                                <canvas id="footfallChart"></canvas>
+                            </div>
+                            <div class="footfall-legend">
+                                <div class="legend-item normal"><span class="dot"></span> Normal (Morning/Late)</div>
+                                <div class="legend-item mid"><span class="dot"></span> Mid (Busy)</div>
+                                <div class="legend-item rush"><span class="dot"></span> Rush (Peak Hours)</div>
                             </div>
                         </div>
                     </div>
@@ -158,19 +205,11 @@
                                 <h3><i class="fa-solid fa-triangle-exclamation"></i> Critical Inventory Alerts</h3>
                                 <button class="btn-sm" onclick="window.location.href='../Inventory/inventory.html'">Godam</button>
                             </div>
-                            <div class="table-responsive">
-                                <table class="analytics-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Product</th>
-                                            <th>Status</th>
-                                            <th>Reason</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="alerts-summary-body">
-                                        <!-- Injected by JS -->
-                                    </tbody>
-                                </table>
+                            <div id="alerts-grid-container" class="alerts-modern-grid">
+                                <!-- Injected by JS as individual cards -->
+                                <div class="loading-state" style="text-align:center; padding: 3rem; opacity: 0.5;">
+                                    <i class="fa-solid fa-circle-notch fa-spin"></i> Loading alerts...
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -47,7 +47,7 @@ class StatsService {
         };
     }
 
-    async getOwnerStats(storeId, month, year) {
+    async getOwnerStats(storeId, month, year, trendsOffset = 0, footfallOffset = 0) {
         const filter = withStore({}, { storeId });
         const now = new Date();
         now.setHours(0,0,0,0);
@@ -127,42 +127,49 @@ class StatsService {
             }).reduce((acc, o) => acc + (o.totalAmount || 0), 0);
         }
 
-        // Calculate Weekly Revenue (Monday to Sunday)
-        const day = now.getDay();
-        const diff = now.getDate() - day + (day === 0 ? -6 : 1);
-        const startOfWeek = new Date(now.setDate(diff));
-        startOfWeek.setHours(0, 0, 0, 0);
+        // --- 1. Trends Calculation (Earning & Credit) ---
+        const tOffset = parseInt(trendsOffset) || 0;
+        const trendStartDate = new Date();
+        trendStartDate.setDate(trendStartDate.getDate() - trendStartDate.getDay() + (tOffset * 7));
+        trendStartDate.setHours(0, 0, 0, 0);
 
-        const weeklyOrders = await Order.find({
-            storeId,
-            createdAt: { $gte: startOfWeek }
+        const trendEndDate = new Date(trendStartDate);
+        trendEndDate.setDate(trendEndDate.getDate() + 6);
+        trendEndDate.setHours(23, 59, 59, 999);
+
+        // --- 2. Footfall Calculation ---
+        const fOffset = parseInt(footfallOffset) || 0;
+        const footStartDate = new Date();
+        footStartDate.setDate(footStartDate.getDate() - footStartDate.getDay() + (fOffset * 7));
+        footStartDate.setHours(0, 0, 0, 0);
+
+        const footEndDate = new Date(footStartDate);
+        footEndDate.setDate(footEndDate.getDate() + 6);
+        footEndDate.setHours(23, 59, 59, 999);
+
+        const footOrders = orders.filter(o => {
+            const d = new Date(o.createdAt);
+            return d >= footStartDate && d <= footEndDate;
         });
-        const weeklyRevenue = weeklyOrders.reduce((acc, o) => acc + (o.totalAmount || 0), 0);
+        const weeklyRevenue = footOrders.reduce((acc, o) => acc + (o.totalAmount || 0), 0);
 
-        // Dynamic Chart Trends (Last 7 Days)
+        // Dynamic Chart Trends (7 Days: Sun to Sat)
         const labels = [];
-        const revenueData = [0, 0, 0, 0, 0, 0, 0]; // Now based on Orders
-        const creditData = [0, 0, 0, 0, 0, 0, 0];  // Based on Udhaar Taken
+        const revenueData = [0, 0, 0, 0, 0, 0, 0];
+        const creditData = [0, 0, 0, 0, 0, 0, 0];
 
-        
-        for (let i = 6; i >= 0; i--) {
-            const d = new Date();
-            d.setDate(d.getDate() - i);
+        for (let i = 0; i < 7; i++) {
+            const d = new Date(trendStartDate);
+            d.setDate(d.getDate() + i);
             labels.push(d.toLocaleDateString('en-US', { weekday: 'short' }));
         }
 
-        // Populate revenueData from Orders
+        // Populate revenueData from all store orders that fall within this week
         orders.forEach(o => {
             const oDate = new Date(o.createdAt);
-            for (let i = 0; i < 7; i++) {
-                const targetDate = new Date();
-                targetDate.setDate(targetDate.getDate() - (6 - i));
-                
-                if (oDate.getDate() === targetDate.getDate() && 
-                    oDate.getMonth() === targetDate.getMonth() && 
-                    oDate.getFullYear() === targetDate.getFullYear()) {
-                    revenueData[i] += o.totalAmount || 0;
-                }
+            if (oDate >= trendStartDate && oDate <= trendEndDate) {
+                const dayIndex = oDate.getDay(); // 0 (Sun) to 6 (Sat)
+                revenueData[dayIndex] += o.totalAmount || 0;
             }
         });
 
@@ -178,8 +185,8 @@ class StatsService {
                     }
                     
                     for (let i = 0; i < 7; i++) {
-                        const targetDate = new Date();
-                        targetDate.setDate(targetDate.getDate() - (6 - i));
+                        const targetDate = new Date(trendStartDate);
+                        targetDate.setDate(targetDate.getDate() + i);
                         
                         if (txDate.getDate() === targetDate.getDate() && 
                             txDate.getMonth() === targetDate.getMonth() && 
@@ -205,19 +212,67 @@ class StatsService {
         // 4. User (Staff) Stats
         const totalUsers = await Employee.countDocuments(filter);
 
-        // 5. Ranking calculations
-        const topProducts = inventory
-            .filter(item => item.quantity > 0)
-            .map(item => ({
-                name: item.productId?.name || 'Unknown',
-                image: item.productId?.image || null,
-                quantity: item.quantity,
-                price: item.price,
-                totalValue: (item.price || 0) * (item.quantity || 0)
-            }))
-            .sort((a, b) => b.totalValue - a.totalValue)
-            .slice(0, 6);
+        // --- 5. Best Sellers & Growth Logic (Based on Demand/Orders) ---
+        const prevWeekStart = new Date(trendStartDate);
+        prevWeekStart.setDate(prevWeekStart.getDate() - 7);
+        const prevWeekEnd = new Date(trendEndDate);
+        prevWeekEnd.setDate(prevWeekEnd.getDate() - 7);
 
+        const productStats = {}; // { productId: { name: string, currentQty: number, currentRev: number, prevQty: number } }
+
+        orders.forEach(o => {
+            const oDate = new Date(o.createdAt);
+            const isCurrent = oDate >= trendStartDate && oDate <= trendEndDate;
+            const isPrevious = oDate >= prevWeekStart && oDate <= prevWeekEnd;
+
+            if (isCurrent || isPrevious) {
+                o.items.forEach(item => {
+                    const pid = item.productId?.toString();
+                    if (!pid) return;
+
+                    if (!productStats[pid]) {
+                        productStats[pid] = { 
+                            name: 'Unknown Product', 
+                            currentQty: 0, 
+                            currentRev: 0, 
+                            prevQty: 0 
+                        };
+                    }
+
+                    if (isCurrent) {
+                        productStats[pid].currentQty += item.quantity || 0;
+                        productStats[pid].currentRev += item.total || 0;
+                    } else if (isPrevious) {
+                        productStats[pid].prevQty += item.quantity || 0;
+                    }
+                });
+            }
+        });
+
+        // Resolve product names from inventory/products if needed, but Order items usually have details
+        // Wait, Order.items.productId is just an ID. I need names. 
+        // I can use the existing 'inventory' or 'products' array to map names.
+        const productMap = {};
+        products.forEach(p => productMap[p._id.toString()] = p.name);
+
+        const bestSellers = Object.keys(productStats).map(pid => {
+            const stats = productStats[pid];
+            const name = productMap[pid] || stats.name;
+            const growth = stats.prevQty === 0 ? 100 : Math.round(((stats.currentQty - stats.prevQty) / stats.prevQty) * 100);
+            
+            return {
+                productId: pid,
+                name: name,
+                quantity: stats.currentQty,
+                totalValue: stats.currentRev,
+                growth: growth
+            };
+        })
+        .filter(p => p.quantity > 0)
+        .sort((a, b) => b.totalValue - a.totalValue)
+        .slice(0, 8);
+
+        // Fallback for UI tables
         const outOfStockList = inventory
             .filter(item => item.quantity === 0)
             .map(item => ({
@@ -246,9 +301,18 @@ class StatsService {
             .sort((a, b) => b.quantity - a.quantity)
             .slice(0, 6);
 
-        const deadStockList = inventory
-            .filter(item => item.quantity > 0) // Cannot track inactivity yet since no POS exist, mocking empty
-            .slice(0, 0);
+        // Footfall Analytics (Selected Week)
+        const hourlyFootfall = new Array(24).fill(0);
+        footOrders.forEach(o => {
+            const hour = new Date(o.createdAt).getHours();
+            hourlyFootfall[hour]++;
+        });
+
+        const footfall = {
+            totalVisits: footOrders.length,
+            hourlyData: hourlyFootfall,
+            peakHour: hourlyFootfall.indexOf(Math.max(...hourlyFootfall))
+        };
 
         return {
             totalItems: products.length,
@@ -260,7 +324,6 @@ class StatsService {
             lowStockCount,
             lowStockList,
             highStockList,
-            deadStockList,
             outOfStockCount,
             expiringSoonCount,
             expiredCount,
@@ -269,7 +332,8 @@ class StatsService {
             trends,
             paymentSplit,
             totalUsers,
-            topProducts,
+            bestSellers,
+            footfall,
             refreshAt: new Date().toISOString(),
             expiringSoonList: expiringSoonList.map(item => ({
                 name: item.productId?.name,
@@ -282,7 +346,17 @@ class StatsService {
                 daysPast: Math.ceil((now - item.expiryDate) / (1000 * 60 * 60 * 24))
             })),
             outOfStockList,
-            bestSellers: topProducts,
+            bestSellers: bestSellers,
+            trendsWeekRange: {
+                start: trendStartDate.toISOString(),
+                end: trendEndDate.toISOString(),
+                offset: tOffset
+            },
+            footfallWeekRange: {
+                start: footStartDate.toISOString(),
+                end: footEndDate.toISOString(),
+                offset: fOffset
+            },
             settings: {
                 notifLowStock: store?.notifLowStock ?? true,
                 notifUdhaarOverdue: store?.notifUdhaarOverdue ?? true,

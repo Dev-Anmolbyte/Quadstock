@@ -9,7 +9,7 @@ const productRouter = Router();
 productRouter.use(authMiddleware);
 
 productRouter.route("/")
-    .post(authorizeRoles("owner"), upload.single("image"), addProduct)
+    .post(authorizeRoles("owner", "inventory_manager"), upload.single("image"), addProduct)
     .get(getProducts);
 
 productRouter.route("/smart-expiry")
@@ -19,8 +19,8 @@ productRouter.route("/bulk/discount")
     .put(authorizeRoles("owner", "staff"), applyDiscount); // Changed from owner-only so staff might use it, but can restrict.
 
 productRouter.route("/:id")
-    .put(authorizeRoles("owner"), upload.single("image"), updateProduct)
-    .delete(authorizeRoles("owner"), deleteProduct);
+    .put(authorizeRoles("owner", "inventory_manager"), upload.single("image"), updateProduct)
+    .delete(authorizeRoles("owner", "inventory_manager"), deleteProduct);
 
 productRouter.route("/:id/discount")
     .put(authorizeRoles("owner", "staff"), applyDiscount);

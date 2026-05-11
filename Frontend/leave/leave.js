@@ -136,9 +136,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <div class="leave-status">
                         <span class="status-badge status-${l.status}">${l.status}</span>
                     </div>
-                    ${role === 'owner' && l.status === 'pending' ? `
-                        <button class="review-btn" onclick="openReviewModal('${l._id}')">Review Request</button>
-                    ` : ''}
+                    <div class="leave-actions" style="display: flex; gap: 0.5rem; align-items: center;">
+                        ${role === 'owner' && l.status === 'pending' ? `
+                            <button class="review-btn" onclick="openReviewModal('${l._id}')">Review Request</button>
+                        ` : ''}
+                        ${(role === 'owner' || (role !== 'owner' && l.status === 'pending')) ? `
+                            <button class="delete-btn" onclick="deleteLeave('${l._id}')" title="Delete Leave Request">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        ` : ''}
+                    </div>
                 </div>
             `;
         }).join('');
@@ -171,6 +178,33 @@ document.addEventListener('DOMContentLoaded', async () => {
             <div style="font-style: italic; border-left: 3px solid var(--primary); padding: 0.5rem 1rem; background: var(--bg-card); border-radius: 0 12px 12px 0;">"${leave.reason}"</div>
         `;
         statusModal.classList.add('visible');
+    };
+
+    window.deleteLeave = async (id) => {
+        const confirmMsg = role === 'owner' 
+            ? "Are you sure you want to delete this leave record? This action cannot be undone."
+            : "Are you sure you want to delete your leave request? It will be completely removed.";
+            
+        const confirmed = await QuadModals.confirm(
+            "Confirm Delete", 
+            confirmMsg,
+            "Delete",
+            "Cancel"
+        );
+
+        if (!confirmed) return;
+
+        try {
+            const res = await apiRequest(`/leaves/${id}`, { method: 'DELETE' });
+            if (res.success) {
+                QuadModals.alert('Deleted', 'Leave record has been removed.', 'success');
+                await fetchLeaves();
+            } else {
+                QuadModals.alert('Error', res.message || 'Failed to delete', 'error');
+            }
+        } catch (err) {
+            QuadModals.alert('Error', 'Network error. Failed to delete.', 'error');
+        }
     };
 
     // --- Event Listeners ---

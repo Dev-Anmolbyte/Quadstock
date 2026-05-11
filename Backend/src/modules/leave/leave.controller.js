@@ -40,9 +40,20 @@ const updateLeaveStatus = asyncHandler(async (req, res) => {
     });
 });
 
+const deleteLeave = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    await leaveService.deleteLeave(id, req.user._id, req.user.role, req.user.storeId);
+    
+    return res.status(200).json({
+        success: true,
+        message: "Leave request deleted successfully"
+    });
+});
+
 export {
     requestLeave,
     getMyLeaves,
     getAllLeaves,
-    updateLeaveStatus
+    updateLeaveStatus,
+    deleteLeave
 };

@@ -97,7 +97,7 @@
                     "Action": "कार्रवाई",
                     "Edit": "एडिट",
                     "Delete": "डिलीट",
-                    "Total Value": "कुल मूल्य"
+                    "Inventory Value": "इन्वेंट्री मूल्य"
                 }
             };
         }
@@ -161,29 +161,34 @@
         }
 
         applyTranslations() {
-            // If English, we might need a page reload to revert, or just return
-            if (this.settings.language === 'en') return;
+            const lang = this.settings.language;
+            console.log(`[LocService] Applying ${lang} translations...`);
             
-            console.log("[LocService] Applying Hindi translations...");
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
-                const translated = this.translate(key);
+                let translated = key;
                 
-                if (translated !== key) {
-                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-                        el.placeholder = translated;
-                    } else if (el.classList.contains('translate-title')) {
-                        el.title = translated;
-                    } else {
-                        // Preserve icon if any
-                        const icon = el.querySelector('i');
-                        if (icon) {
-                            el.innerHTML = '';
-                            el.appendChild(icon);
-                            el.appendChild(document.createTextNode(' ' + translated));
+                if (lang === 'hi' && this.translations.hi[key]) {
+                    translated = this.translations.hi[key];
+                }
+
+                if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                    el.placeholder = translated;
+                } else if (el.classList.contains('translate-title')) {
+                    el.title = translated;
+                } else {
+                    // Preserve icon if any
+                    const icon = el.querySelector('i');
+                    if (icon) {
+                        // Find the text node and update it
+                        let textNode = Array.from(el.childNodes).find(node => node.nodeType === 3);
+                        if (textNode) {
+                            textNode.textContent = ' ' + translated;
                         } else {
-                            el.innerText = translated;
+                            el.appendChild(document.createTextNode(' ' + translated));
                         }
+                    } else {
+                        el.innerText = translated;
                     }
                 }
             });

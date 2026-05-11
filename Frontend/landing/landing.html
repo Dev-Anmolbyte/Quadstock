@@ -11,7 +11,9 @@
     
     <script src="../Shared/Auth/guard.js"></script>
     <link rel="stylesheet" href="../Shared/Styles/global.css">
+    <link rel="stylesheet" href="../Shared/Components/quad-modals.css">
     <link rel="stylesheet" href="landing.css">
+    <script src="../Shared/Components/quad-modals.js"></script>
     
     <!-- Tailwind CSS (Silencing production warning for cleaner console) -->
     <script>
@@ -386,7 +388,7 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
                 <!-- Free Plan -->
-                <div class="fade-up pricing-card glass p-8 rounded-[2.5rem] flex flex-col" style="transition-delay: 100ms">
+                <div id="plan-card-free" class="fade-up pricing-card glass p-8 rounded-[2.5rem] flex flex-col" style="transition-delay: 100ms">
                     <div class="mb-8">
                         <span class="text-xs font-black uppercase tracking-widest text-slate-500 mb-2 block">Starter</span>
                         <h4 class="text-3xl font-black text-slate-900 dark:text-white mb-4">Digital Bharat</h4>
@@ -410,7 +412,7 @@
                 </div>
 
                 <!-- Pro Plan -->
-                <div class="fade-up pricing-card featured glass p-8 rounded-[2.5rem] flex flex-col border-primary" style="transition-delay: 200ms">
+                <div id="plan-card-pro" class="fade-up pricing-card featured glass p-8 rounded-[2.5rem] flex flex-col border-primary" style="transition-delay: 200ms">
                     <div class="absolute -top-5 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] font-black uppercase tracking-[0.2em] px-6 py-2 rounded-full shadow-xl shadow-primary/20">Best Value</div>
                     
                     <div class="mb-8">
@@ -436,7 +438,7 @@
                 </div>
 
                 <!-- Enterprise Plan -->
-                <div class="fade-up pricing-card glass p-8 rounded-[2.5rem] flex flex-col" style="transition-delay: 300ms">
+                <div id="plan-card-enterprise" class="fade-up pricing-card glass p-8 rounded-[2.5rem] flex flex-col" style="transition-delay: 300ms">
                     <div class="mb-8">
                         <span class="text-xs font-black uppercase tracking-widest text-blue-500 mb-2 block">Enterprise</span>
                         <h4 class="text-3xl font-black text-slate-900 dark:text-white mb-4">Empire Elite</h4>

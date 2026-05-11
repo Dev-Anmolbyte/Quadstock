@@ -41,8 +41,9 @@ const employeeSchema = new Schema(
         status: {
             type: String,
             enum: ['active', 'offline', 'break', 'leave', 'absent'],
-            default: 'offline'
+            default: 'active'
         },
+        isBlocked: { type: Boolean, default: false },
         joinedDate: { type: Date, default: Date.now },
         photo: { type: String },
         refreshToken: { type: String },

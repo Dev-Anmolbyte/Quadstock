@@ -71,6 +71,15 @@ export const apiRequest = async (endpoint, options = {}) => {
             }
         }
 
+        // Handle Blocked Account (403)
+        if (response.status === 403) {
+            const data = await response.clone().json();
+            if (data.message && data.message.toLowerCase().includes('blocked')) {
+                forceLogout(true); // pass true to indicate it was a block
+                return;
+            }
+        }
+
         const data = await response.json();
         
         if (!response.ok) {
@@ -85,10 +94,8 @@ export const apiRequest = async (endpoint, options = {}) => {
     }
 };
 
-const forceLogout = () => {
-    sessionStorage.removeItem('currentUser');
-    sessionStorage.removeItem('authToken');
-    sessionStorage.removeItem('refreshToken');
-    sessionStorage.removeItem('currentEmployee');
-    window.location.href = '/landing/landing.html'; 
+const forceLogout = (isBlocked = false) => {
+    sessionStorage.clear();
+    const loginPath = '../Authentication/employee_login.html';
+    window.location.href = isBlocked ? `${loginPath}?error=restricted` : '/landing/landing.html'; 
 };

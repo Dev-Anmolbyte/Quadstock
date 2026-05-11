@@ -37,6 +37,23 @@ class OrderService {
                 await inventory.save();
             }
 
+            // Also update SmartExpiry records (FIFO - reduce from oldest batch first)
+            const { SmartExpiry } = await import("../product/smartExpiry.model.js");
+            let remainingToDeduct = item.quantity;
+            const batches = await SmartExpiry.find({ productId: product._id, storeId, quantity: { $gt: 0 } }).sort({ expiryDate: 1 });
+            
+            for (const batch of batches) {
+                if (remainingToDeduct <= 0) break;
+                if (batch.quantity >= remainingToDeduct) {
+                    batch.quantity -= remainingToDeduct;
+                    remainingToDeduct = 0;
+                } else {
+                    remainingToDeduct -= batch.quantity;
+                    batch.quantity = 0;
+                }
+                await batch.save();
+            }
+
             processedItems.push({
                 productId: item.productId,
                 productType: item.productType,

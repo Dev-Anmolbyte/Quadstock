@@ -7,6 +7,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Initialize Background ---
     initInteractiveBackground('interactive-bg', { orbCount: 3 });
 
+    // --- Check for URL errors (e.g., blocked while working) ---
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('error') === 'restricted') {
+        setTimeout(() => {
+            if (typeof QuadModals !== 'undefined') {
+                QuadModals.alert("Access Blocked", "Your account has been blocked by the owner. Please contact them for details.", "error");
+            } else {
+                alert("Your account has been blocked. Contact the owner.");
+            }
+        }, 500);
+    }
+
     // --- Form Elements ---
     const loginForm = document.getElementById('employee-login-form');
     const togglePasswordBtn = document.getElementById('toggle-password');
@@ -88,7 +100,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     }, 1000);
 
                 } else {
-                    showError(loginBtn, result.message || 'Invalid credentials');
+                    if (response.status === 403) {
+                        if (typeof QuadModals !== 'undefined') {
+                            QuadModals.alert("Access Blocked", result.message || "Your account has been temporarily blocked. Please contact the owner.", "error");
+                        } else {
+                            alert(result.message || "Your account has been blocked. Contact the owner.");
+                        }
+                    } else {
+                        showError(loginBtn, result.message || 'Invalid credentials');
+                    }
                     loginBtn.innerHTML = originalContent;
                     loginBtn.disabled = false;
                 }

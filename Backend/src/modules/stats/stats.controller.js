@@ -11,9 +11,9 @@ const getPublicStats = asyncHandler(async (req, res) => {
 
 const getOwnerStats = asyncHandler(async (req, res) => {
     // Both owner and staff can view stats of their store
-    const { month, year } = req.query;
+    const { month, year, trendsOffset, footfallOffset } = req.query;
     const storeId = req.user.storeId;
-    const data = await statsService.getOwnerStats(storeId, month, year);
+    const data = await statsService.getOwnerStats(storeId, month, year, trendsOffset, footfallOffset);
     return res.status(200).json({
         success: true,
         data

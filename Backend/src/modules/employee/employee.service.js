@@ -72,7 +72,8 @@ class EmployeeService {
             emergencyContact,
             salary,
             photo: photoUrl,
-            status: 'offline', 
+            status: 'active', 
+            isBlocked: false,
             isVerified: true 
         });
 
@@ -115,7 +116,7 @@ class EmployeeService {
 
         const allowedUpdates = [
             "name", "phoneNumber", "aadhaar", "address", 
-            "emergencyContact", "salary", "status", "photo", "role"
+            "emergencyContact", "salary", "status", "photo", "role", "isBlocked"
         ];
         
         Object.keys(updateData).forEach((key) => {

@@ -414,6 +414,18 @@ body {
     color: var(--text-primary);
 }
 
+.batch-number-text {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 850;
+    font-size: 0.95rem;
+    color: #0f172a;
+    letter-spacing: 0.02em;
+}
+
+[data-theme="dark"] .batch-number-text {
+    color: #f8fafc;
+}
+
 /* Buttons in Status Column */
 .action-btn {
     background: none;
@@ -592,14 +604,21 @@ body {
 .form-group textarea {
     width: 100%;
     padding: 0.75rem;
-    border: 1px solid var(--border-color);
+    border: 1px solid #cbd5e1;
     border-radius: 0.5rem;
-    background: var(--bg-body);
+    background: #ffffff;
     color: var(--text-primary);
     outline: none;
     font-size: 0.9rem;
     appearance: auto;
-    /* Ensure browser default controls are visible */
+}
+
+[data-theme="dark"] .form-group input,
+[data-theme="dark"] .form-group select,
+[data-theme="dark"] .form-group textarea {
+    background: #1e293b;
+    border-color: #334155;
+    color: #f1f5f9;
 }
 
 .form-group input:focus,

@@ -116,38 +116,44 @@ document.addEventListener('DOMContentLoaded', () => {
             ring.style.strokeDashoffset = isWorking ? '140' : (isOnBreak ? '210' : '283');
         }
 
-        badge.className = 'status-pill-v2';
+        const card = document.querySelector('.attendance-card-v2');
+        if (card) {
+            if (isWorking) card.classList.add('active-shift');
+            else card.classList.remove('active-shift');
+        }
 
         const endTimeEl = document.getElementById('status-end-time');
         const endTimeContainer = document.getElementById('end-time-container');
         let displayEndTime = '--:--';
 
         if (isWorking) {
-            badge.classList.add('online');
+            badge.className = 'status-pill-v2 online';
             label.textContent = 'Active Duty';
             timeEl.textContent = displayTime;
             desc.textContent = 'You are currently on shift. Crush your goals!';
             
             btnMain.innerHTML = '<i class="fa-solid fa-stop"></i> <span>End Shift</span>';
-            btnMain.style.background = 'var(--accent-rose)';
+            btnMain.className = 'btn-action-primary state-end';
             btnSub.style.display = 'flex';
             btnSub.innerHTML = '<i class="fa-solid fa-mug-hot"></i> <span>Go on Break</span>';
+            btnSub.className = 'btn-action-secondary';
             
             if (endTimeContainer) endTimeContainer.style.display = 'none';
         } else if (isOnBreak) {
-            badge.classList.add('break');
+            badge.className = 'status-pill-v2 break';
             label.textContent = 'On Break';
             timeEl.textContent = displayTime;
             desc.textContent = 'Relax and recharge. You deserve it!';
 
             btnMain.innerHTML = '<i class="fa-solid fa-stop"></i> <span>End Shift</span>';
-            btnMain.style.background = 'var(--accent-rose)';
+            btnMain.className = 'btn-action-primary state-end';
             btnSub.style.display = 'flex';
             btnSub.innerHTML = '<i class="fa-solid fa-play"></i> <span>Resume Duty</span>';
+            btnSub.className = 'btn-action-secondary state-resume';
             
             if (endTimeContainer) endTimeContainer.style.display = 'none';
         } else {
-            badge.classList.add('offline');
+            badge.className = 'status-pill-v2 offline';
             label.textContent = 'Off Duty';
             timeEl.textContent = displayTime;
             
@@ -161,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             btnMain.innerHTML = '<i class="fa-solid fa-play"></i> <span>Start Shift</span>';
-            btnMain.style.background = 'var(--primary)';
+            btnMain.className = 'btn-action-primary';
             btnSub.style.display = 'none';
         }
 
@@ -296,54 +302,6 @@ document.addEventListener('DOMContentLoaded', () => {
         loadAttendance();
         fetchSalesPerformance();
     }, 300000);
-
-    // --- 8. Tab Close / Exit Handling ---
-    // Prevent unload penalty for internal navigation using event delegation
-    document.addEventListener('click', (e) => {
-        const link = e.target.closest('a');
-        if (link && link.href) {
-            window.isInternalNavigation = true;
-        }
-    });
-
-    window.addEventListener('beforeunload', (event) => {
-        if (window.isInternalNavigation) return;
-        
-        const lastSession = dailyRecord.sessions[dailyRecord.sessions.length - 1];
-        const isWorking = lastSession && !lastSession.out;
-
-        if (isWorking) {
-            // Standard way to show a confirmation dialog in modern browsers
-            event.preventDefault();
-            event.returnValue = 'Refreshing or closing the tab will end your shift for today. Are you sure?';
-        }
-    });
-
-    window.addEventListener('pagehide', () => {
-        if (window.isInternalNavigation) return;
-        
-        const lastSession = dailyRecord.sessions[dailyRecord.sessions.length - 1];
-        const isWorking = lastSession && !lastSession.out;
-
-        if (isWorking) {
-            // Use keepalive fetch to ensure the request finishes after the tab is closed
-            fetch(`${API_BASE}/attendance/punch-out`, {
-                method: 'PATCH',
-                headers: HEADERS,
-                body: JSON.stringify({ isBreak: true }),
-                keepalive: true
-            }).catch(err => console.error("Exit punch-out failed:", err));
-            
-            fetch(`${API_BASE}/employees/status`, {
-                method: 'PATCH',
-                headers: HEADERS,
-                body: JSON.stringify({ status: 'break' }),
-                keepalive: true
-            }).catch(err => console.error("Exit status sync failed:", err));
-
-            // Removed sessionStorage.clear() as it triggers on page refresh/HMR, causing unwanted logout
-        }
-    });
 });
 
 

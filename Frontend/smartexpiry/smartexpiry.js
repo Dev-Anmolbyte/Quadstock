@@ -158,10 +158,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? `<span class="days-badge green" style="background: rgba(16, 185, 129, 0.1); color: #10b981; margin-left:0;">-${item.discountType === 'percentage' ? item.discount+'%' : '₹'+item.discount}</span>`
                 : '';
 
-            // high stock info
-            let highStockBadge = stockQty >= highStockThreshold 
+            // high stock info (Exclusive of low stock)
+            const isLowStock = stockQty <= (item.reorderPoint || 10);
+            let highStockBadge = (stockQty >= highStockThreshold && !isLowStock) 
                 ? `<span class="days-badge blue" style="margin-left:0;"><i class="fa-solid fa-arrow-trend-up"></i> Bulk</span>`
                 : '';
+
+            const sellPrice = item.price || 0;
+            let discountedPrice = sellPrice;
+            if (item.discount > 0) {
+                if (item.discountType === 'percentage') {
+                    discountedPrice = sellPrice - (sellPrice * (item.discount / 100));
+                } else {
+                    discountedPrice = sellPrice - item.discount;
+                }
+            }
 
             const el = document.createElement('div');
             el.className = `timeline-item ${statusClass}`;
@@ -176,17 +187,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="item-content">
                     <div class="item-main">
-                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.2rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.1rem;">
                             <span class="item-brand">${item.brand || 'No Brand'}</span>
-                            <span class="days-badge ${item.productType === 'loose' ? 'blue' : 'green'}" style="padding: 2px 8px; font-size: 0.6rem; border-radius: 6px; box-shadow: none;">
+                            <span class="days-badge ${item.productType === 'loose' ? 'blue' : 'green'}" style="padding: 1px 6px; font-size: 0.55rem; border-radius: 4px; box-shadow: none;">
                                 ${item.productType === 'loose' ? 'LOOSE' : 'PACKED'}
                             </span>
                         </div>
                         <h4>${item.name}</h4>
                         <div class="item-meta">
                             <span><i class="fa-solid fa-hashtag"></i> ${item.batchNumber || 'Batch-001'}</span>
-                            <span><i class="fa-solid fa-box"></i> ${stockQty} ${item.unit || 'pcs'}</span>
                             <span class="item-category-tag"><i class="fa-solid fa-folder"></i> ${item.category || 'General'}</span>
+                        </div>
+                    </div>
+                    <div class="item-stock-column">
+                        <span class="stock-label">STOCK</span>
+                        <strong class="stock-value">${stockQty} ${item.unit || 'pcs'}</strong>
+                    </div>
+                    <div class="item-price-column">
+                        <span class="price-label">PRICE</span>
+                        <div class="price-value">
+                            ${item.discount > 0 ? `
+                                <strong class="discounted-price">₹${discountedPrice.toFixed(2)}</strong>
+                                <span class="original-price">₹${sellPrice.toFixed(2)}</span>
+                            ` : `
+                                <strong>₹${sellPrice.toFixed(2)}</strong>
+                            `}
                         </div>
                     </div>
                     <div class="item-expiry-info">
@@ -199,7 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
                     <div class="status-section">
-                        <div style="display:flex; gap:0.5rem; justify-content:flex-end; flex-wrap: wrap;">
+                        <div style="display:flex; gap:0.4rem; justify-content:flex-end; flex-wrap: wrap;">
                            ${discountHtml}
                            ${highStockBadge}
                            <div class="days-badge ${badgeColor}">${dayText}</div>
@@ -313,36 +338,8 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // Return to Vendor
-        const btnReturn = document.querySelector('.btn-return');
-        if (btnReturn) {
-            btnReturn.addEventListener('click', async () => {
-                const id = Array.from(selectedItems)[0];
-                if (!id) return;
 
-                const item = inventory.find(p => p._id === id);
-                const confirmed = await QuadModals.confirm(
-                    "Return to Vendor",
-                    `Are you sure you want to mark ${item?.name} for return? This will remove the batch from active inventory.`,
-                    { isDanger: true, confirmText: 'Process Return', icon: 'fa-truck-ramp-box' }
-                );
-
-                if (confirmed) {
-                    try {
-                        const res = await apiRequest(`/products/${id}`, { method: 'DELETE' });
-                        if (res.success) {
-                            showToast("Product marked for return and removed.", "success");
-                            selectedItems.clear();
-                            fetchInventory();
-                        }
-                    } catch (err) {
-                        showToast("Failed to process return.", "error");
-                    }
-                }
-            });
-        }
-
-        // Dispose / Write-off
+        // Remove from Inventory
         const btnDispose = document.querySelector('.btn-dispose');
         if (btnDispose) {
             btnDispose.addEventListener('click', async () => {
@@ -351,21 +348,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const item = inventory.find(p => p._id === id);
                 const confirmed = await QuadModals.confirm(
-                    "Confirm Disposal",
-                    `You are about to write-off ${item?.name} due to expiry. This action is permanent.`,
-                    { isDanger: true, confirmText: 'Dispose Now', icon: 'fa-trash-can' }
+                    "Remove from Inventory",
+                    `Are you sure you want to remove ${item?.name} from inventory? This action cannot be undone.`,
+                    { isDanger: true, confirmText: 'Remove Now', icon: 'fa-box-archive' }
                 );
 
                 if (confirmed) {
                     try {
                         const res = await apiRequest(`/products/${id}`, { method: 'DELETE' });
                         if (res.success) {
-                            showToast("Product batch disposed successfully.", "success");
+                            showToast("Product removed from inventory successfully.", "success");
                             selectedItems.clear();
                             fetchInventory();
                         }
                     } catch (err) {
-                        showToast("Failed to dispose product.", "error");
+                        showToast("Failed to remove product.", "error");
                     }
                 }
             });
@@ -378,33 +375,36 @@ document.addEventListener('DOMContentLoaded', () => {
     function showDiscountModal() {
         const modal = document.getElementById('action-modal');
         document.getElementById('modal-title').innerHTML = "<i class='fa-solid fa-tags'></i> Apply Discount";
+        const firstId = Array.from(selectedItems)[0];
+        const product = selectedItems.size === 1 ? inventory.find(p => p._id === firstId) : null;
+        
         document.getElementById('modal-body').innerHTML = `
             <p class="modal-subtitle">Apply discount to <strong>${selectedItems.size}</strong> selected items.</p>
             <div class="form-group">
                 <label for="discount-type"><i class="fa-solid fa-percent"></i> Discount Type</label>
                 <div class="input-wrapper">
                     <select id="discount-type">
-                        <option value="percentage">Percentage (%)</option>
-                        <option value="fixed">Fixed Amount (₹)</option>
+                        <option value="percentage" ${product && product.discountType === 'percentage' ? 'selected' : ''}>Percentage (%)</option>
+                        <option value="fixed" ${product && product.discountType === 'fixed' ? 'selected' : ''}>Fixed Amount (₹)</option>
                     </select>
                 </div>
             </div>
             <div class="form-group">
                 <label for="discount-value"><i class="fa-solid fa-indian-rupee-sign"></i> Discount Value</label>
                 <div class="input-wrapper">
-                    <input type="number" id="discount-value" value="0" min="0" placeholder="0.00">
+                    <input type="number" id="discount-value" value="${product ? product.discount : '0'}" min="0" placeholder="0.00" oninput="if(this.value < 0) this.value = 0;">
                 </div>
             </div>
             <div style="margin-bottom: 20px;">
                 <label for="discount-reason" style="display: block; font-size: 0.9rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem;"><i class="fa-solid fa-comment-dots"></i> Selection Reason</label>
                 <div class="input-wrapper">
                     <select id="discount-reason" style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-main); font-weight: 600;">
-                        <option value="Near Expiry Sale">Near Expiry Sale</option>
-                        <option value="Huge Stock Clearance">Huge Stock Clearance</option>
-                        <option value="Bulk Purchase Offer">Bulk Purchase Offer</option>
-                        <option value="Seasonal Discount">Seasonal Discount</option>
-                        <option value="Damaged Packaging Sale">Damaged Packaging Sale</option>
-                        <option value="Special Promotion">Special Promotion</option>
+                        <option value="Near Expiry Sale" ${product && (product.discountReason === 'Near Expiry Sale' || product.reason === 'Near Expiry Sale') ? 'selected' : ''}>Near Expiry Sale</option>
+                        <option value="Huge Stock Clearance" ${product && (product.discountReason === 'Huge Stock Clearance' || product.reason === 'Huge Stock Clearance') ? 'selected' : ''}>Huge Stock Clearance</option>
+                        <option value="Bulk Purchase Offer" ${product && (product.discountReason === 'Bulk Purchase Offer' || product.reason === 'Bulk Purchase Offer') ? 'selected' : ''}>Bulk Purchase Offer</option>
+                        <option value="Seasonal Discount" ${product && (product.discountReason === 'Seasonal Discount' || product.reason === 'Seasonal Discount') ? 'selected' : ''}>Seasonal Discount</option>
+                        <option value="Damaged Packaging Sale" ${product && (product.discountReason === 'Damaged Packaging Sale' || product.reason === 'Damaged Packaging Sale') ? 'selected' : ''}>Damaged Packaging Sale</option>
+                        <option value="Special Promotion" ${product && (product.discountReason === 'Special Promotion' || product.reason === 'Special Promotion') ? 'selected' : ''}>Special Promotion</option>
                     </select>
                 </div>
             </div>
@@ -433,7 +433,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         productIds: Array.from(selectedItems),
                         discount: value,
                         discountType: type,
-                        reason: reason || "Smart Expiry Clearance"
+                        reason: reason || "Smart Expiry Clearance",
+                        discountReason: reason || "Smart Expiry Clearance"
                     })
                 });
 

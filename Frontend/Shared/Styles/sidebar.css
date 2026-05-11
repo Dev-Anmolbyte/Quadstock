@@ -259,9 +259,12 @@
 }
 
 .digital-clock {
-    font-family: monospace;
-    font-size: 1rem;
-    color: var(--text-secondary);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    text-align: right;
+    min-width: 140px;
 }
 
 .theme-toggle-btn, .menu-toggle-btn {

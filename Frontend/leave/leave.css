@@ -276,6 +276,26 @@
     color: white;
 }
 
+.delete-btn {
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--rejected-color);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.delete-btn:hover {
+    background: var(--rejected-color);
+    color: white;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+}
+
 /* Modal Styles */
 .modal-overlay {
     position: fixed;

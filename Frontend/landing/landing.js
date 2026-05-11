@@ -220,22 +220,60 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- 7. Razorpay Integration ---
+    const planOrder = { 'free': 0, 'pro': 1, 'enterprise': 2 };
+
     window.handleSubscription = async (plan, cycle) => {
+        const btn = event?.currentTarget || document.activeElement;
         console.log(`[Subscription] Initiating ${plan} plan for ${cycle} cycle...`);
         
-        const btn = event.currentTarget;
-        const originalHtml = btn.innerHTML;
-        
+        const sessionUser = sessionStorage.getItem('currentUser');
+        const sessionEmployee = sessionStorage.getItem('currentEmployee');
         const token = sessionStorage.getItem('authToken');
+
+        // Rule 3: First time visit / Guest check
         if (!token) {
-            alert("Please login as an owner to subscribe to a plan.");
-            window.location.href = "../Authentication/owner_login.html";
+            if (typeof QuadModals !== 'undefined') {
+                QuadModals.alert("Account Required", "You are viewing our plans as a guest. To subscribe, please create an account or login to your shop first.", "info");
+            } else {
+                alert("Please login as an owner to subscribe to a plan.");
+            }
+            setTimeout(() => {
+                window.location.href = "../Authentication/owner_login.html";
+            }, 3000);
             return;
         }
 
+        // Rule 1: Signed in check (Specifically for Employees)
+        if (sessionEmployee && !sessionUser) {
+             if (typeof QuadModals !== 'undefined') {
+                QuadModals.alert("Owner Access Only", "Subscription management is restricted to Store Owners. Please contact your manager.", "error");
+            } else {
+                alert("Only Store Owners can manage subscriptions.");
+            }
+            return;
+        }
+
+        // Rule 2: No degradation (Upgrade Only)
+        let user = null;
+        try { user = JSON.parse(sessionUser); } catch(e) {}
+        
+        const currentPlan = user?.storeId?.subscriptionPlan || 'free';
+        
+        if (planOrder[plan] < planOrder[currentPlan]) {
+            QuadModals.alert("Invalid Choice", `You are currently on the ${currentPlan.toUpperCase()} plan. Degrading to ${plan.toUpperCase()} is not allowed. You can only upgrade your plan.`, "warning");
+            return;
+        }
+
+        if (planOrder[plan] === planOrder[currentPlan] && currentPlan !== 'free') {
+            QuadModals.alert("Already Active", `You are already on the ${plan.toUpperCase()} plan. If you wish to extend your validity, please visit Settings.`, "info");
+            return;
+        }
+
+        const originalHtml = btn.innerHTML;
+        
         try {
             // Add Loading State
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
             btn.disabled = true;
 
             // 1. Create Order on Backend
@@ -248,9 +286,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const order = orderRes.data;
 
-            // --- NEW: Handle Upgrade Confirmation ---
+            // --- Handle Upgrade Confirmation ---
             if (order.discountApplied > 0) {
-                const confirmed = confirm(`Plan Upgrade detected!\n\nWe've deducted ₹${order.discountApplied.toLocaleString()} from your current plan's remaining days.\n\nYou only pay: ₹${order.adjustedAmount.toLocaleString()}\n\nProceed to payment?`);
+                const confirmed = await QuadModals.confirm("Plan Upgrade", `We've detected an active plan. We will deduct ₹${order.discountApplied.toLocaleString()} (remaining value) from your new total.\n\nFinal Payable: ₹${order.adjustedAmount.toLocaleString()}`, {
+                    confirmText: "Proceed to Payment",
+                    icon: "fa-rocket"
+                });
+                
                 if (!confirmed) {
                     btn.innerHTML = originalHtml;
                     btn.disabled = false;
@@ -259,9 +301,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // 2. Open Razorpay Modal
+            if (typeof Razorpay === 'undefined') {
+                throw new Error("Payment gateway failed to load. Please refresh and try again.");
+            }
+
             const options = {
                 key: "rzp_test_Sgou2ajCjV28E6", 
-                amount: order.amount, // amount in paise from backend
+                amount: order.amount,
                 currency: "INR",
                 name: "QuadStock",
                 description: `${plan.toUpperCase()} Plan - ${cycle.toUpperCase()}`,
@@ -281,26 +327,27 @@ document.addEventListener('DOMContentLoaded', () => {
                         });
 
                         if (verifyRes.success) {
-                            // Update Local Session with new Plan
-                            const user = JSON.parse(sessionStorage.getItem('currentUser'));
+                            // Update Local Session
                             if (user && user.storeId) {
                                 user.storeId.subscriptionPlan = plan;
                                 user.storeId.subscriptionStatus = 'active';
                                 sessionStorage.setItem('currentUser', JSON.stringify(user));
                             }
                             
-                            alert("Congratulations! Your subscription has been upgraded successfully.");
-                            window.location.href = "../Ownerdashboard/dashboard.html";
+                            QuadModals.alert("Upgrade Successful", "Congratulations! Your shop has been upgraded. Please refresh your dashboard to see new features.", "success");
+                            setTimeout(() => {
+                                window.location.href = "../Ownerdashboard/dashboard.html";
+                            }, 2000);
                         } else {
-                            alert("Payment verification failed. Please contact support.");
+                            QuadModals.alert("Verification Failed", "Payment verification failed. Please contact support with Order ID: " + order.id, "error");
                         }
                     } catch (err) {
-                        alert("Error verifying payment: " + err.message);
+                        QuadModals.alert("Error", "Error verifying payment: " + err.message, "error");
                     }
                 },
                 prefill: {
-                    name: JSON.parse(sessionStorage.getItem('currentUser'))?.name || "",
-                    email: JSON.parse(sessionStorage.getItem('currentUser'))?.email || ""
+                    name: user?.name || "",
+                    email: user?.email || ""
                 },
                 theme: {
                     color: "#FF7E36"
@@ -312,7 +359,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (err) {
             console.error("[Subscription Error]", err);
-            alert("Failed to initiate payment: " + err.message);
+            QuadModals.alert("Payment Error", err.message, "error");
         } finally {
             if (btn) {
                 btn.innerHTML = originalHtml;
@@ -321,4 +368,44 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // --- 8. Highlight Active Plan ---
+    function highlightActivePlan() {
+        const sessionUser = sessionStorage.getItem('currentUser');
+        const sessionEmployee = sessionStorage.getItem('currentEmployee');
+        if (!sessionUser || sessionEmployee) return; // Only for owners
+
+        try {
+            const user = JSON.parse(sessionUser);
+            const currentPlan = user?.storeId?.subscriptionPlan || 'free';
+            
+            const activeCard = document.getElementById(`plan-card-${currentPlan.toLowerCase()}`);
+            if (activeCard) {
+                // Add "Current Plan" Badge
+                const badge = document.createElement('div');
+                badge.className = "absolute -top-5 left-1/2 -translate-x-1/2 bg-accent text-white text-[10px] font-black uppercase tracking-[0.2em] px-6 py-2 rounded-full shadow-xl shadow-accent/20 z-10";
+                badge.innerHTML = '<i class="fa-solid fa-circle-check mr-1"></i> Current Plan';
+                activeCard.appendChild(badge);
+                
+                // Style adjustment
+                activeCard.style.borderColor = 'var(--accent, #22C55E)';
+                activeCard.classList.add('ring-4', 'ring-accent/10');
+
+                // Update button text
+                const btn = activeCard.querySelector('button, a.nav-btn');
+                if (btn) {
+                    if (currentPlan === 'free') {
+                        btn.innerHTML = 'Active Plan';
+                    } else {
+                        btn.innerHTML = '<i class="fa-solid fa-check mr-2"></i> Active';
+                    }
+                    btn.classList.replace('btn-primary', 'bg-accent');
+                    btn.style.background = '#22C55E';
+                }
+            }
+        } catch (e) {
+            console.error("[Landing] Failed to highlight active plan:", e);
+        }
+    }
+
+    highlightActivePlan();
 });

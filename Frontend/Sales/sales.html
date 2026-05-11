@@ -86,19 +86,35 @@
                     </div>
                 </section>
 
-                <!-- Right: Cart & Checkout -->
-                <aside class="pos-checkout-sidebar">
-                    <div class="cart-card">
-                        <div class="cart-header">
-                            <div class="cart-title">
-                                <i class="fa-solid fa-shopping-basket"></i>
-                                <h3>Active Cart</h3>
-                            </div>
-                            <div class="cart-actions">
-                                <button id="maximize-cart" class="icon-btn" title="Expand View"><i class="fa-solid fa-expand"></i></button>
-                                <button id="clear-cart" class="icon-btn danger" title="Clear Cart"><i class="fa-solid fa-trash-can"></i></button>
-                            </div>
-                        </div>
+                <!-- Floating Cart Bar -->
+                <div id="cart-floating-bar" class="cart-floating-bar" style="display: none;">
+                    <div class="cart-floating-info">
+                        <i class="fa-solid fa-cart-shopping"></i>
+                        <span id="floating-cart-count">0 Items</span>
+                        <span class="floating-cart-divider">•</span>
+                        <span id="floating-cart-total">₹0.00</span>
+                    </div>
+                    <button id="view-cart-btn" class="view-cart-btn">
+                        View Cart <i class="fa-solid fa-chevron-up"></i>
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Main Cart Modal -->
+    <div id="main-cart-modal" class="modal">
+        <div class="modal-content pos-modal cart-card main-cart-modal-content" style="max-width: 600px; max-height: 90vh;">
+            <div class="cart-header">
+                <div class="cart-title">
+                    <i class="fa-solid fa-shopping-basket"></i>
+                    <h3>Active Cart</h3>
+                </div>
+                <div class="cart-actions">
+                    <button id="close-main-cart" class="icon-btn" title="Close"><i class="fa-solid fa-xmark"></i></button>
+                    <button id="clear-cart" class="icon-btn danger" title="Clear Cart"><i class="fa-solid fa-trash-can"></i></button>
+                </div>
+            </div>
 
                         <div id="cart-items" class="cart-list custom-scrollbar">
                             <div class="empty-cart-state">
@@ -163,10 +179,7 @@
                                 COMPLETE ORDER <i class="fa-solid fa-circle-check"></i>
                             </button>
                         </div>
-                    </div>
-                </aside>
-            </div>
-        </main>
+        </div>
     </div>
 
     <!-- Redesigned Customer Modal -->
@@ -185,7 +198,7 @@
                     <label>Customer Name</label>
                     <div class="input-with-icon">
                         <i class="fa-solid fa-user"></i>
-                        <input type="text" id="customer-name" placeholder="John Doe">
+                        <input type="text" id="customer-name" placeholder="Customer Name">
                     </div>
                 </div>
                 
@@ -193,7 +206,7 @@
                     <label>WhatsApp Number</label>
                     <div class="input-with-icon">
                         <i class="fa-brands fa-whatsapp"></i>
-                        <input type="tel" id="customer-phone" placeholder="10-digit number">
+                        <input type="tel" id="customer-phone" placeholder="10-digit number" maxlength="10" pattern="\d{10}">
                     </div>
                     <p class="input-hint">For digital PDF billing & tracking</p>
                 </div>
@@ -220,13 +233,24 @@
             <div class="modal-header-v2">
                 <div class="header-info">
                     <i class="fa-solid fa-scale-unbalanced"></i>
-                    <h3>Scale Input</h3>
+                    <h3>Scale Input — <span id="loose-modal-name">Item Name</span></h3>
                 </div>
-                <div class="product-tag" id="loose-modal-name">Product Name</div>
             </div>
             
             <div class="modal-body-v2">
+                <div class="product-info-mini">
+                    <div class="info-item">
+                        <span class="info-label">Current Stock</span>
+                        <span class="info-value" id="loose-modal-stock">0 kg</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Unit Price</span>
+                        <span class="info-value" id="loose-modal-price-label">₹0.00/kg</span>
+                    </div>
+                </div>
+
                 <div class="weight-input-container">
+                    <label class="weight-hint">Enter Quantity / Weight</label>
                     <div class="weight-field">
                         <input type="number" id="loose-modal-qty" step="0.001" placeholder="0.000">
                         <span id="loose-modal-unit" class="unit-badge">kg</span>
@@ -234,14 +258,8 @@
                 </div>
 
                 <div class="price-calculation-card">
-                    <div class="calc-row">
-                        <span>Unit Price</span>
-                        <span id="loose-modal-price-label">₹0/kg</span>
-                    </div>
-                    <div class="calc-row total">
-                        <span>Total Cost</span>
-                        <span id="loose-modal-total">₹0.00</span>
-                    </div>
+                    <div class="total-label">Total Payable</div>
+                    <div class="total-value" id="loose-modal-total">₹0.00</div>
                 </div>
             </div>
 
@@ -316,8 +334,115 @@
     <script src="sales.js" type="module"></script>
 
     <!-- Invoice Template (Hidden) -->
-    <div id="invoice-template" style="display: none;">
-        <!-- Template remains the same for functionality -->
+    <div id="invoice-template" style="display: none; width: 210mm; font-family: 'Plus Jakarta Sans', sans-serif; color: #1e293b; background: #fff; padding: 0; line-height: 1.5;">
+        <!-- Header Branding Section -->
+        <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 40px; color: #fff; display: flex; justify-content: space-between; align-items: flex-start;">
+            <div style="flex: 1;">
+                <div id="inv-logo-container" style="display: none; margin-bottom: 15px;">
+                    <img id="inv-logo" src="" style="max-height: 60px; border-radius: 8px;">
+                </div>
+                <h1 id="inv-store-name" style="margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.5px;">QUADSTOCK RETAIL</h1>
+                <p id="inv-store-address" style="margin: 5px 0 0 0; opacity: 0.8; font-size: 13px; max-width: 300px;">123 Business Avenue, Sector 45, Gurugram, Haryana</p>
+                <div style="margin-top: 15px; display: flex; gap: 20px; font-size: 12px; opacity: 0.9;">
+                    <span><i class="fa-solid fa-phone" style="margin-right: 5px;"></i> <span id="inv-store-phone">9876543210</span></span>
+                    <span><i class="fa-solid fa-envelope" style="margin-right: 5px;"></i> <span id="inv-store-email">contact@store.com</span></span>
+                </div>
+                <div style="margin-top: 5px; font-size: 12px; opacity: 0.9;">
+                    <span><i class="fa-solid fa-file-invoice" style="margin-right: 5px;"></i> GSTIN: <span id="inv-gst-number">N/A</span></span>
+                    <span style="margin-left: 20px;"><i class="fa-solid fa-user-tie" style="margin-right: 5px;"></i> Prop: <span id="inv-owner-name">N/A</span></span>
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <div style="background: rgba(255,255,255,0.1); padding: 15px 25px; border-radius: 12px; display: inline-block;">
+                    <span style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; opacity: 0.7;">Invoice Number</span>
+                    <span id="inv-order-id-header" style="font-size: 20px; font-weight: 700; display: block;">#INV-12345</span>
+                </div>
+                <div style="margin-top: 15px; font-size: 13px; opacity: 0.8;">
+                    <span id="inv-date">11 May 2026</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bill Details Bar -->
+        <div style="display: flex; padding: 25px 40px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; justify-content: space-between; align-items: center;">
+            <div style="display: flex; gap: 40px;">
+                <div>
+                    <span style="display: block; font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Billed To</span>
+                    <strong id="inv-customer-name" style="color: #0f172a; font-size: 14px;">WALKING CUSTOMER</strong>
+                    <div id="inv-customer-phone" style="font-size: 12px; color: #475569; margin-top: 2px;">9876543210</div>
+                </div>
+                <div>
+                    <span style="display: block; font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Payment Method</span>
+                    <strong id="inv-payment-method" style="color: #0f172a; font-size: 14px; text-transform: uppercase;">CASH</strong>
+                </div>
+                <div id="inv-due-date-container" style="display: none;">
+                    <span style="display: block; font-size: 10px; color: #ef4444; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Payment Due Date</span>
+                    <strong id="inv-due-date" style="color: #ef4444; font-size: 14px;">18 May 2026</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Invoice Table -->
+        <div style="padding: 40px;">
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+                <thead>
+                    <tr style="background: #f1f5f9;">
+                        <th style="padding: 15px 20px; text-align: left; font-size: 12px; color: #475569; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0;">Item Description</th>
+                        <th style="padding: 15px 20px; text-align: left; font-size: 12px; color: #475569; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0;">Category</th>
+                        <th style="padding: 15px 20px; text-align: right; font-size: 12px; color: #475569; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0;">Price & Qty</th>
+                        <th style="padding: 15px 20px; text-align: right; font-size: 12px; color: #475569; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0;">Total Amount</th>
+                    </tr>
+                </thead>
+                <tbody id="inv-items">
+                    <!-- Items populated via JS -->
+                </tbody>
+            </table>
+
+            <!-- Summary Section -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <!-- QR & Notes -->
+                <div style="flex: 1; max-width: 350px;">
+                    <div id="inv-qr-container" style="display: none; margin-bottom: 20px; background: #f8fafc; padding: 20px; border-radius: 16px; border: 1px solid #e2e8f0;">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <img id="inv-static-qr" src="" style="width: 80px; height: 80px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                            <img id="inv-upi-qr" src="" style="width: 80px; height: 80px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                            <div>
+                                <span style="display: block; font-size: 11px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">SCAN & PAY</span>
+                                <span id="inv-upi-id-label" style="font-size: 10px; color: #64748b; word-break: break-all;">merchant@upi</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="font-size: 11px; color: #64748b;">
+                        <strong style="display: block; color: #0f172a; margin-bottom: 5px; text-transform: uppercase;">Terms & Conditions:</strong>
+                        <div id="inv-terms">1. All sales are final.<br>2. Warranty as per manufacturer.</div>
+                    </div>
+                </div>
+
+                <!-- Totals -->
+                <div style="width: 250px;">
+                    <div style="padding: 10px 0; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; font-size: 14px;">
+                        <span style="color: #64748b;">Subtotal</span>
+                        <span id="inv-subtotal" style="color: #0f172a; font-weight: 600;">₹0.00</span>
+                    </div>
+                    <div id="inv-discount-row" style="padding: 10px 0; border-bottom: 1px solid #f1f5f9; display: none; justify-content: space-between; font-size: 14px; color: #16a34a;">
+                        <span>Extra Discount</span>
+                        <span id="inv-discount">-₹0.00</span>
+                    </div>
+                    <div style="padding: 20px 0; display: flex; justify-content: space-between; align-items: baseline;">
+                        <span style="font-size: 18px; font-weight: 800; color: #0f172a;">Total Due</span>
+                        <span id="inv-total" style="font-size: 24px; font-weight: 800; color: #2563eb;">₹0.00</span>
+                    </div>
+                    <div style="background: #2563eb; height: 4px; border-radius: 2px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="text-align: center; padding: 30px; border-top: 1px solid #f1f5f9; font-size: 12px; color: #94a3b8;">
+            Thank you for shopping with <strong id="inv-footer-store-name">QuadStock Retail</strong>!<br>
+            Powered by QuadStock Premium POS
+        </div>
     </div>
 
 </body>

@@ -110,6 +110,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const inputPP = document.getElementById('purchase-price');
     const inputCP = document.getElementById('cost-price');
     const inputSP = document.getElementById('selling-price');
+    const inputGST = document.getElementById('product-gst');
+    const valFinalSP = document.getElementById('val-final-sp');
+    const finalPriceDisplay = document.getElementById('final-price-display');
     const inputReorder = document.getElementById('reorder-point');
     const inputWeight = document.getElementById('product-weight');
     const inputDesc = document.getElementById('product-desc');
@@ -164,6 +167,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (inputPP) inputPP.addEventListener('input', calculateMargin);
     if (inputCP) inputCP.addEventListener('input', calculateMargin);
     if (inputSP) inputSP.addEventListener('input', calculateMargin);
+    if (inputGST) inputGST.addEventListener('input', calculateMargin);
     if (inputPricePerUnit) {
         inputPricePerUnit.addEventListener('input', () => {
             inputSP.value = inputPricePerUnit.value;
@@ -542,13 +546,26 @@ document.addEventListener('DOMContentLoaded', async () => {
         const pp = parseFloat(inputPP.value) || 0;
         const cp = parseFloat(inputCP.value) || 0;
         const sp = parseFloat(inputSP.value) || 0;
+        const gst = parseFloat(inputGST?.value) || 0;
         const ppu = parseFloat(inputPricePerUnit.value) || 0;
         
         const isLoose = Array.from(inputTypeRadios).find(r => r.checked)?.value === 'loose';
 
         // Use PP as the cost basis (since CP is treated as MRP)
         const effectiveCost = pp;
-        const effectiveSelling = isLoose ? ppu : sp;
+        let baseSelling = isLoose ? ppu : sp;
+        
+        // Calculate Final Price with GST
+        const finalSP = baseSelling + (baseSelling * (gst / 100));
+        
+        if (gst > 0 && finalPriceDisplay && valFinalSP) {
+            finalPriceDisplay.style.display = 'inline-block';
+            valFinalSP.textContent = `₹${finalSP.toFixed(2)}`;
+        } else if (finalPriceDisplay) {
+            finalPriceDisplay.style.display = 'none';
+        }
+
+        const effectiveSelling = finalSP;
 
         if (effectiveSelling > 0) {
             const profit = effectiveSelling - effectiveCost;
@@ -734,6 +751,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             inputMfd.value = item.mfd || '';
             inputExp.value = item.exp || '';
             inputReorder.value = Math.max(0, item.reorderPoint || 10);
+            if (inputGST) inputGST.value = item.gst || 0;
             
             // Loose fields
             inputLooseQty.value = item.stockQuantity || '';
@@ -755,6 +773,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             currentEditId = null;
             modalTitle.textContent = 'Add New Product';
             productForm.reset();
+            if (inputGST) inputGST.value = 0;
             stopCamera();
             previewInterface.style.display = 'none';
             imgPreview.src = '';
@@ -794,8 +813,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         e.preventDefault();
         if (isSaving) return;
 
-        // Data-Level RBAC: Only Owners can modify inventory
-        if (role !== 'owner') {
+        // Data-Level RBAC: Owners and Inventory Managers can modify inventory
+        if (role !== 'owner' && role !== 'inventory_manager') {
             QuadModals.alert("Access Denied", "Your role does not have permission to modify inventory data.", "error");
 
             return;
@@ -806,7 +825,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     async function saveProduct(closeAfterSave = true) {
-        if (role !== 'owner') {
+        if (role !== 'owner' && role !== 'inventory_manager') {
             QuadModals.alert("Access Denied", "Authorization failed for this operation.", "error");
             return;
         }
@@ -815,11 +834,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         const pp = parseFloat(inputPP.value) || 0;
         const cp = parseFloat(inputCP.value) || 0;
         const sp = parseFloat(inputSP.value) || 0;
+        const gst = parseFloat(inputGST?.value) || 0;
         const reorder = parseInt(inputReorder.value) || 0;
         const isLoose = Array.from(inputTypeRadios).find(r => r.checked)?.value === 'loose';
 
-        if (pp < 0 || cp < 0 || sp < 0 || reorder < 0) {
-            QuadModals.alert("Invalid Input", "Prices, and Reorder Point cannot be negative.", "warning");
+        if (pp < 0 || cp < 0 || sp < 0 || reorder < 0 || gst < 0) {
+            QuadModals.alert("Invalid Input", "Prices, GST, and Reorder Point cannot be negative.", "warning");
             return;
         }
 
@@ -881,6 +901,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             color: currentType === 'Clothes' ? inputColor.value : null,
             weight: (currentType === 'Kirana' && !isLoose) ? inputWeight.value : null,
             reorderPoint: parseInt(inputReorder.value) || 10,
+            gst: parseFloat(inputGST?.value) || 0,
             pp: parseFloat(inputPP.value) || 0,
             cp: parseFloat(inputCP.value) || 0,
             price: isLoose ? (parseFloat(inputPricePerUnit.value) || 0) : (parseFloat(inputSP.value) || 0)
@@ -1199,7 +1220,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </td>
                 <td><div class="badge badge-cat">${item.brand || '-'}</div></td>
                 <td>
-                    <div style="font-family: monospace; font-weight: 600;">${item.batchNumber}</div>
+                    <div class="batch-number-text">${item.batchNumber}</div>
                     <div class="text-sm">MFD: ${formatDate(item.mfd)}</div>
                 </td>
                 <td>
@@ -1241,7 +1262,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <td><div class="badge badge-cat">${item.brand || '-'}</div></td>
             <td>
                 ${!item.batchNumber && !item.mfd ? '<div class="text-muted">N/A</div>' : `
-                <div style="font-family: monospace; font-weight: 600;">${item.batchNumber || '-'}</div>
+                <div class="batch-number-text">${item.batchNumber || '-'}</div>
                 <div class="text-sm">MFD: ${formatDate(item.mfd)}</div>
                 `}
             </td>
@@ -1377,7 +1398,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </td>
                 <td><div class="badge badge-cat">${item.brand || ''}</div></td>
                 <td>
-                    <div style="font-family: monospace;">${item.batchNumber}</div>
+                    <div class="batch-number-text">${item.batchNumber}</div>
                     <div class="text-sm">MFD: ${formatDate(item.mfd)}</div>
                 </td>
                 <td>

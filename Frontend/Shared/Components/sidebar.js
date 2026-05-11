@@ -35,11 +35,23 @@
         const user = (window.authContext && window.authContext.user) || JSON.parse(sessionStorage.getItem('user'));
         const userRole = (window.authContext && window.authContext.role) || (user && user.role) || 'staff';
 
-        const NAV_ITEMS = (window.CUSTOM_NAV_ITEMS || DEFAULT_NAV_ITEMS).filter(item => {
+        const NAV_ITEMS = (window.CUSTOM_NAV_ITEMS || DEFAULT_NAV_ITEMS).map(item => {
+            // Dynamically set dashboard link based on role
+            if (item.id === 'dashboard') {
+                item.href = userRole === 'owner' ? '../Ownerdashboard/dashboard.html' : '../StaffDashboard/staff_dashboard.html';
+            }
+            return item;
+        }).filter(item => {
             // If user is staff, hide owner-only pages
             if (userRole === 'staff') {
                 return !['analytics', 'employees', 'inventory', 'smartexpiry', 'udhaar'].includes(item.id);
             }
+            
+            // If user is inventory_manager, hide analytics, employees, and udhaar, but keep inventory and smartexpiry
+            if (userRole === 'inventory_manager') {
+                return !['analytics', 'employees', 'udhaar'].includes(item.id);
+            }
+
             // If user is owner, hide POS Terminal (sales)
             if (item.id === 'sales') return false;
             
@@ -336,33 +348,63 @@
         // ── 7. DIGITAL CLOCK ─────────────────────────────────────────────────────
         var clockEl = document.getElementById('digital-clock');
         if (clockEl) {
-            // Load initial format from localStorage or default
-            let timeFormat = localStorage.getItem('timeFormat') || '12';
+            // Load initial settings
+            const getSettings = () => ({
+                timeFormat: localStorage.getItem('timeFormat') || '12',
+                dateFormat: localStorage.getItem('dateFormat') || 'dd-mm-yyyy',
+                language: localStorage.getItem('language') || 'en'
+            });
+
+            let settings = getSettings();
 
             window.updateClockFormat = function() {
-                timeFormat = localStorage.getItem('timeFormat') || '12';
+                settings = getSettings();
                 updateClock();
             };
 
+            // Listen for storage changes from other tabs or same tab (Settings page)
+            window.addEventListener('storage', () => {
+                settings = getSettings();
+                updateClock();
+            });
+
             function updateClock() {
                 var now = new Date();
-                var DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-                var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                var DAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                var MONTHS_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                
+                // Translated Days/Months if Hindi
+                var DAYS_HI = ['रवि', 'सोम', 'मंगल', 'बुध', 'गुरु', 'शुक्र', 'शनि'];
+                var MONTHS_HI = ['जनवरी', 'फरवरी', 'मार्च', 'अप्रैल', 'मई', 'जून', 'जुलाई', 'अगस्त', 'सितंबर', 'अक्टूबर', 'नवंबर', 'दिसंबर'];
+
+                const isHi = settings.language === 'hi';
+                const dayLabel = isHi ? DAYS_HI[now.getDay()] : DAYS_EN[now.getDay()];
+                const monthLabel = isHi ? MONTHS_HI[now.getMonth()] : MONTHS_EN[now.getMonth()];
+                
                 var h = now.getHours();
                 var m = String(now.getMinutes()).padStart(2, '0');
                 var s = String(now.getSeconds()).padStart(2, '0');
                 
                 let displayTime = '';
-                if (timeFormat === '24') {
-                    displayTime = `<b>${String(h).padStart(2, '0')}:${m}:${s}</b>`;
+                if (settings.timeFormat === '24') {
+                    displayTime = `${String(h).padStart(2, '0')}:${m}:${s}`;
                 } else {
                     var ap = h >= 12 ? 'PM' : 'AM';
                     var h12 = h % 12 || 12;
-                    displayTime = `<b>${h12}:${m}:${s} ${ap}</b>`;
+                    displayTime = `${h12}:${m}:${s} ${ap}`;
+                }
+
+                // Date Formatting
+                let dateStr = '';
+                if (settings.dateFormat === 'mm-dd-yyyy') {
+                    dateStr = `${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}-${now.getFullYear()}`;
+                } else {
+                    dateStr = `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()}`;
                 }
 
                 clockEl.innerHTML =
-                    `<span style="opacity:0.6;font-size:0.85em;margin-right:5px;">${DAYS[now.getDay()]}, ${now.getDate()} ${MONTHS[now.getMonth()]}</span>${displayTime}`;
+                    `<div style="font-size: 1.45rem; font-weight: 800; color: var(--text-main); line-height: 1;">${displayTime}</div>
+                     <div style="font-size: 0.95rem; font-weight: 600; color: var(--text-muted); margin-top: 3px;">${dayLabel}, ${dateStr}</div>`;
             }
 
             updateClock();

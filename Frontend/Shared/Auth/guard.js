@@ -89,8 +89,6 @@
     }
 
     // --- 6. Role-Based Access ---
-    const store = sessionUser?.storeId || sessionEmployee?.storeId;
-    const plan = store?.subscriptionPlan || 'free';
 
     if (isEmployeeLoggedIn) {
         try {
@@ -103,11 +101,22 @@
                 return;
             }
 
-            // Staff cannot access owner-only modules
-            const ownerOnlyModules = ['/analytics/', '/inventory/', '/employees/', '/smartexpiry/', '/udhaar/', '/settings/', '/ownerdashboard/'];
-            if (emp.role === 'staff' && ownerOnlyModules.some(mod => currentPath.includes(mod))) {
-                window.location.href = '../StaffDashboard/staff_dashboard.html';
-                return;
+            // Role-Based Access Control (RBAC)
+            const ownerOnlyModules = ['/analytics/', '/employees/', '/udhaar/', '/settings/', '/ownerdashboard/'];
+            const inventoryModules = ['/inventory/', '/smartexpiry/'];
+
+            if (emp.role === 'staff') {
+                // Staff blocked from both owner-only and inventory-related modules
+                if (ownerOnlyModules.some(mod => currentPath.includes(mod)) || inventoryModules.some(mod => currentPath.includes(mod))) {
+                    window.location.href = '../StaffDashboard/staff_dashboard.html';
+                    return;
+                }
+            } else if (emp.role === 'inventory_manager') {
+                // Inventory Managers can see inventory/smartexpiry but not owner-only administrative modules
+                if (ownerOnlyModules.some(mod => currentPath.includes(mod))) {
+                    window.location.href = '../StaffDashboard/staff_dashboard.html';
+                    return;
+                }
             }
         } catch (e) {
             console.error('RBAC Error:', e);
@@ -119,10 +128,30 @@
 
     // --- 6.1 Subscription Benefit Checks (Feature Guard) ---
     // If user is on FREE plan, block access to Advanced Analytics and Smart Expiry
-    const premiumModules = ['/smartexpiry/']; // Added smart expiry to premium
-    if (plan === 'free' && premiumModules.some(mod => currentPath.includes(mod))) {
-        alert("Smart Expiry Guard is a PRO feature. Please upgrade your plan to access this.");
-        window.location.href = '../Ownerdashboard/dashboard.html';
+    const premiumModules = ['/smartexpiry/', '/analytics/']; // Analytics added to premium
+    
+    // Robust plan detection (handles both populated objects and raw IDs)
+    const storeObj = (sessionUser?.storeId && typeof sessionUser.storeId === 'object') ? sessionUser.storeId : 
+                    ((sessionEmployee?.storeId && typeof sessionEmployee.storeId === 'object') ? sessionEmployee.storeId : null);
+    
+    const activePlan = storeObj?.subscriptionPlan || 'free';
+    const isExpired = storeObj?.subscriptionStatus === 'expired' || (storeObj?.subscriptionExpiry && new Date(storeObj.subscriptionExpiry) < new Date());
+
+    if ((activePlan === 'free' || isExpired) && premiumModules.some(mod => currentPath.includes(mod))) {
+        const msg = isExpired ? "Your subscription has expired. Please renew to access this feature." : "This is a PRO feature. Please upgrade your plan to access Advanced Analytics and Smart Expiry.";
+        
+        if (typeof QuadModals !== 'undefined') {
+            QuadModals.alert("Subscription Required", msg, "info");
+        } else {
+            alert(msg);
+        }
+        
+        // Redirect based on role
+        if (isEmployeeLoggedIn) {
+            window.location.href = '../StaffDashboard/staff_dashboard.html';
+        } else {
+            window.location.href = '../Ownerdashboard/dashboard.html';
+        }
         return;
     }
 
@@ -131,5 +160,37 @@
 
     // Theme assurance
     if (document.body) document.body.setAttribute('data-theme', savedTheme);
+
+    // --- 8. Background Status Check (Instant Logout for Blocked Employees) ---
+    if (isEmployeeLoggedIn) {
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const API_BASE = isLocal ? 'http://localhost:3000/api' : '/api';
+        
+        setInterval(async () => {
+            try {
+                const response = await fetch(`${API_BASE}/employees/status-check`, {
+                    headers: { 'Authorization': `Bearer ${sessionToken}` }
+                });
+                
+                if (response.status === 200) {
+                    const data = await response.json();
+                    if (data.role && data.role !== emp.role) {
+                        // Role changed! Update session and reload
+                        emp.role = data.role;
+                        sessionStorage.setItem('currentEmployee', JSON.stringify(emp));
+                        window.location.reload();
+                    }
+                } else if (response.status === 403) {
+                    const data = await response.json();
+                    if (data.message && data.message.toLowerCase().includes('blocked')) {
+                        sessionStorage.clear();
+                        window.location.href = '../Authentication/employee_login.html?error=restricted';
+                    }
+                }
+            } catch (e) {
+                // Ignore connection errors during background check
+            }
+        }, 30000); // Check every 30 seconds
+    }
 
 })();

@@ -9,13 +9,16 @@ document.addEventListener('DOMContentLoaded', function () {
     const userRole = ctx_auth.role || 'owner';
 
     window.analyticsData = {};
+    let trendsOffset = 0;
+    let footfallOffset = 0;
     let mainTrendsChartInstance = null;
+    let footfallChartInstance = null;
     const formatter = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
 
     // --- Core Data Fetching ---
     async function refreshAnalyticsData() {
         try {
-            const result = await apiRequest('/stats/owner');
+            const result = await apiRequest(`/stats/owner?trendsOffset=${trendsOffset}&footfallOffset=${footfallOffset}`);
             
             if (result.success) {
                 const d = result.data;
@@ -26,8 +29,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 updateKPIs(d);
                 updateMainChart(d);
+                updateFootfallChart(d);
 
                 populateTables(d);
+                updateWeekLabel(d.trendsWeekRange, 'trends');
+                updateWeekLabel(d.footfallWeekRange, 'footfall');
 
                 if (plan === 'free') {
                     applyAnalyticsRestriction();
@@ -37,6 +43,30 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error("Analytics Refresh Error:", err);
         }
     }
+
+    function updateWeekLabel(range, type) {
+        if (!range) return;
+        
+        let labelSelector = type === 'trends' ? '#trends-section .week-label' : '#footfall-section .week-label';
+        const labels = document.querySelectorAll(labelSelector);
+        if (!labels.length) return;
+        
+        let text = "Current Week";
+        if (range.offset !== 0) {
+            const start = new Date(range.start).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+            const end = new Date(range.end).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+            text = `${start} - ${end}`;
+        }
+
+        labels.forEach(el => el.textContent = text);
+    }
+
+    window.changeWeek = function(dir, type = 'trends') {
+        if (type === 'trends') trendsOffset += dir;
+        else footfallOffset += dir;
+        
+        refreshAnalyticsData();
+    };
 
     function applyAnalyticsRestriction() {
         const sellersBody = document.getElementById('best-sellers-summary-body');
@@ -126,6 +156,79 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function updateFootfallChart(d) {
+        const canvas = document.getElementById('footfallChart');
+        if (!canvas || !window.Chart || !d.footfall) return;
+        const ctx = canvas.getContext('2d');
+
+        const footData = d.footfall.hourlyData || new Array(24).fill(0);
+        const labels = Array.from({ length: 24 }, (_, i) => {
+            const h = i % 12 || 12;
+            const ampm = i >= 12 ? 'PM' : 'AM';
+            return `${h}${ampm}`;
+        });
+
+        // Summary Stats
+        document.getElementById('foot-total-visits').textContent = d.footfall.totalVisits || 0;
+        const peakH = d.footfall.peakHour;
+        const peakLabel = labels[peakH] || 'N/A';
+        document.getElementById('foot-peak-hour').textContent = peakLabel;
+
+        if (footfallChartInstance) {
+            footfallChartInstance.destroy();
+        }
+
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        
+        // Color categorization logic
+        const maxVal = Math.max(...footData) || 1;
+        const backgroundColors = footData.map(v => {
+            if (v >= maxVal * 0.7) return '#f43f5e'; // Rush
+            if (v >= maxVal * 0.3) return '#6366f1'; // Mid
+            return isDark ? '#334155' : '#cbd5e1'; // Normal
+        });
+
+        footfallChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Visits',
+                    data: footData,
+                    backgroundColor: backgroundColors,
+                    borderRadius: 6,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { 
+                        beginAtZero: true,
+                        grid: { color: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' },
+                        ticks: { stepSize: 1, precision: 0 }
+                    },
+                    x: { grid: { display: false } }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => {
+                                const v = context.raw;
+                                let type = 'Normal';
+                                if (v >= maxVal * 0.7) type = 'Rush';
+                                else if (v >= maxVal * 0.3) type = 'Mid';
+                                return `${v} visits (${type} hour)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
     function updateMainChart(d) {
         const canvas = document.getElementById('mainTrendsChart');
         if (!canvas || !window.Chart) return;
@@ -212,7 +315,12 @@ document.addEventListener('DOMContentLoaded', function () {
         const sellersBody = document.getElementById('best-sellers-summary-body');
         if (sellersBody) {
             const list = (d.bestSellers || []).slice(0, 5);
-            sellersBody.innerHTML = list.length ? list.map(item => `
+            sellersBody.innerHTML = list.length ? list.map(item => {
+                const growthClass = item.growth >= 0 ? 'text-green' : 'text-red';
+                const growthIcon = item.growth >= 0 ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down';
+                const growthSign = item.growth >= 0 ? '+' : '';
+                
+                return `
                 <tr>
                     <td>
                         <div style="display: flex; align-items: center; gap: 0.75rem;">
@@ -221,55 +329,65 @@ document.addEventListener('DOMContentLoaded', function () {
                         </div>
                     </td>
                     <td>${formatter.format(item.totalValue || 0)}</td>
-                    <td class="text-green"><i class="fa-solid fa-arrow-trend-up"></i> +${Math.floor(Math.random() * 20) + 5}%</td>
+                    <td class="${growthClass}"><i class="fa-solid ${growthIcon}"></i> ${growthSign}${item.growth}%</td>
                 </tr>
-            `).join('') : '<tr><td colspan="3" style="text-align:center; opacity:0.5; padding: 2rem;">No sales data</td></tr>';
+                `;
+            }).join('') : '<tr><td colspan="3" style="text-align:center; opacity:0.5; padding: 2rem;">No sales data for this period</td></tr>';
         }
 
-        // C. Alerts Summary (Categorized Sections & Row Expansion)
-        const alertsBody = document.getElementById('alerts-summary-body');
-        if (alertsBody) {
+        // C. Alerts Grid (Modern Cards)
+        const alertsContainer = document.getElementById('alerts-grid-container');
+        if (alertsContainer) {
             const sections = [
-                { id: 'expired', title: 'Expired Products', data: d.expiredList || [], badge: 'danger', icon: 'fa-calendar-xmark' },
-                { id: 'outOfStock', title: 'Out of Stock', data: d.outOfStockList || [], badge: 'danger', icon: 'fa-box-open' },
-                { id: 'expiring', title: 'Expiring Soon', data: d.expiringSoonList || [], badge: 'warning', icon: 'fa-clock' },
-                { id: 'lowStock', title: 'Low Stock', data: d.lowStockList || [], badge: 'warning', icon: 'fa-triangle-exclamation' },
-                { id: 'highStock', title: 'High Stock (Dead/Idle)', data: d.highStockList || [], badge: 'info', icon: 'fa-circle-info' }
+                { id: 'expired', title: 'Expired', data: d.expiredList || [], badge: 'danger', icon: 'fa-calendar-xmark', color: '#f43f5e' },
+                { id: 'outOfStock', title: 'Stock Out', data: d.outOfStockList || [], badge: 'danger', icon: 'fa-box-open', color: '#ef4444' },
+                { id: 'expiring', title: 'Expiring', data: d.expiringSoonList || [], badge: 'warning', icon: 'fa-clock', color: '#f59e0b' },
+                { id: 'lowStock', title: 'Low Stock', data: d.lowStockList || [], badge: 'warning', icon: 'fa-triangle-exclamation', color: '#fbbf24' },
+                { id: 'highStock', title: 'Overstock', data: d.highStockList || [], badge: 'info', icon: 'fa-circle-info', color: '#3b82f6' }
             ];
 
             let html = '';
+            let totalAlerts = 0;
+
             sections.forEach(sec => {
                 if (sec.data.length > 0) {
-                    html += `
-                        <tr class="alert-section-header">
-                            <td colspan="3"><i class="fa-solid ${sec.icon}"></i> ${sec.title}</td>
-                        </tr>
-                    `;
+                    totalAlerts += sec.data.length;
                     sec.data.forEach(item => {
                         let reason = '';
-                        if (sec.id === 'expired') reason = `Expired ${item.daysPast} days ago`;
-                        else if (sec.id === 'outOfStock') reason = 'Zero units available';
+                        if (sec.id === 'expired') reason = `Past due: ${item.daysPast} days`;
+                        else if (sec.id === 'outOfStock') reason = 'Zero inventory';
                         else if (sec.id === 'expiring') reason = `Expires in ${item.daysLeft} days`;
-                        else if (sec.id === 'lowStock') reason = `${item.quantity} units left`;
-                        else if (sec.id === 'highStock') reason = `${item.quantity} units (Idle Capital)`;
+                        else if (sec.id === 'lowStock') reason = `Only ${item.quantity} units left`;
+                        else if (sec.id === 'highStock') reason = `${item.quantity} units sitting idle`;
 
                         html += `
-                            <tr class="alert-row" onclick="openAlertDetail('${sec.id}', '${item.name}')">
-                                <td>
-                                    <div style="display: flex; align-items: center; gap: 0.75rem;">
-                                        <i class="fa-solid fa-box" style="font-size: 0.7rem; opacity: 0.4;"></i>
+                            <div class="alert-card-modern ${sec.id}" onclick="openAlertDetail('${sec.id}', '${item.name}')">
+                                <div class="alert-card-icon" style="background: ${sec.color}15; color: ${sec.color}">
+                                    <i class="fa-solid ${sec.icon}"></i>
+                                </div>
+                                <div class="alert-card-info">
+                                    <div class="alert-card-top">
                                         <strong>${item.name}</strong>
+                                        <span class="badge ${sec.badge}">${sec.title}</span>
                                     </div>
-                                </td>
-                                <td><span class="badge ${sec.badge}">${item.status || sec.title.split(' ')[0]}</span></td>
-                                <td style="font-size: 0.85rem; color: var(--text-secondary);">${reason}</td>
-                            </tr>
+                                    <p class="alert-card-reason">${reason}</p>
+                                </div>
+                                <div class="alert-card-action">
+                                    <i class="fa-solid fa-chevron-right"></i>
+                                </div>
+                            </div>
                         `;
                     });
                 }
             });
 
-            alertsBody.innerHTML = html || '<tr><td colspan="3" style="text-align:center; opacity:0.5; padding: 2rem;">✅ Inventory is well-balanced!</td></tr>';
+            alertsContainer.innerHTML = html || `
+                <div style="grid-column: 1/-1; text-align:center; padding: 4rem; opacity: 0.6;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">✅</div>
+                    <h3 style="margin-bottom: 0.5rem;">Inventory is Healthy</h3>
+                    <p>No critical alerts for your current stock levels.</p>
+                </div>
+            `;
         }
 
         // New helper for full window enlargement
@@ -366,8 +484,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (type === 'best-sellers') {
             title = 'Best Selling Items';
-            headers = ['Item', 'Quantity', 'Revenue'];
-            rows = (d.bestSellers || []).map(i => [i.name, i.quantity, formatter.format(i.totalValue)]);
+            headers = ['Item', 'Quantity', 'Revenue', 'Growth'];
+            rows = (d.bestSellers || []).map(i => [i.name, i.quantity, formatter.format(i.totalValue), `${i.growth}%`]);
         }
 
         modalTitle.innerText = title;

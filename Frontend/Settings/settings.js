@@ -366,11 +366,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ language, dateFormat, timeFormat })
             });
             if (result.success) {
+                // Update Local Storage for instant UI reflection
+                localStorage.setItem('language', language);
+                localStorage.setItem('dateFormat', dateFormat);
+                localStorage.setItem('timeFormat', timeFormat);
+
+                // Update LocService state
+                if (window.LocService) {
+                    window.LocService.settings.language = language;
+                    window.LocService.settings.dateFormat = dateFormat;
+                    window.LocService.settings.timeFormat = timeFormat;
+                    window.LocService.applyTranslations();
+                }
+
+                // Trigger storage event for sidebar clock to update instantly
+                window.dispatchEvent(new Event('storage'));
+
                 initialState.language = language;
                 initialState.dateFormat = dateFormat;
                 initialState.timeFormat = timeFormat;
+                
                 showModal('success', 'Saved', 'Region & Localization updated.');
-                // Optional: Refresh page to apply formatting everywhere
+                
+                // Optional: Refresh page after a short delay to ensure all modules are fully synced
                 setTimeout(() => window.location.reload(), 1500);
             }
         } catch (err) {

@@ -30,7 +30,7 @@
     
     /* Layout */
     --sidebar-width: 260px;
-    --header-height: 70px;
+    --header-height: 80px;
     --border-radius: 12px;
     --transition-base: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }

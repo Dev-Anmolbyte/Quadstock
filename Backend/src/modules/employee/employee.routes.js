@@ -13,6 +13,10 @@ employeeRouter.route("/")
     .get(getEmployees);
 
 employeeRouter.patch("/status", updateEmployeeStatus);
+employeeRouter.get("/status-check", (req, res) => {
+    // authMiddleware already checked status, so if we are here, they are active
+    res.status(200).json({ success: true, message: "Active", status: req.user.status, role: req.user.role });
+});
 
 employeeRouter.route("/:id")
     .patch(authorizeRoles("owner"), upload.single("photo"), updateEmployee)

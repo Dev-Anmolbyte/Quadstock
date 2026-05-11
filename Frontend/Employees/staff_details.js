@@ -5,6 +5,7 @@
 let CURRENT_EMP = null;
 let API_CONFIG = { base: '', headers: {} };
 let currentViewDate = new Date();
+let editCroppedBlob = null;
 
 function initStaffDetails(apiBase, headers, userRole) {
     API_CONFIG.base = apiBase;
@@ -41,9 +42,38 @@ function initStaffDetails(apiBase, headers, userRole) {
     if (prevMonthBtn) prevMonthBtn.onclick = () => { currentViewDate.setMonth(currentViewDate.getMonth() - 1); renderAttendance(); };
     if (nextMonthBtn) nextMonthBtn.onclick = () => { currentViewDate.setMonth(currentViewDate.getMonth() + 1); renderAttendance(); };
 
+    // Sales month navigation
+    const prevSalesBtn = document.getElementById('prev-month-sales');
+    const nextSalesBtn = document.getElementById('next-month-sales');
+    if (prevSalesBtn) prevSalesBtn.onclick = () => { currentViewDate.setMonth(currentViewDate.getMonth() - 1); renderSales(); };
+    if (nextSalesBtn) nextSalesBtn.onclick = () => { currentViewDate.setMonth(currentViewDate.getMonth() + 1); renderSales(); };
+
+    // Photo Edit Logic
+    const avatarContainer = document.getElementById('detail-header-initial');
+    const editPhotoInput = document.getElementById('edit-emp-photo');
+
+    if (avatarContainer && editPhotoInput) {
+        avatarContainer.onclick = () => editPhotoInput.click();
+        
+        editPhotoInput.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (typeof window.openCropper === 'function') {
+                window.openCropper(file, (blob) => {
+                    editCroppedBlob = blob;
+                    // Update preview
+                    const url = URL.createObjectURL(blob);
+                    avatarContainer.innerHTML = `<img src="${url}" style="width:100%; height:100%; object-fit:cover;">`;
+                });
+            }
+        };
+    }
+
     // Export function to global scope
     window.showStaffDetails = async (employee) => {
         CURRENT_EMP = employee;
+        editCroppedBlob = null; // Reset
         modal.classList.add('active');
         switchTab(0);
         
@@ -67,6 +97,15 @@ function initStaffDetails(apiBase, headers, userRole) {
         document.getElementById('edit-salary').value = employee.salary || 0;
         document.getElementById('edit-address').value = employee.address || '';
 
+        // Add phone number validation for edit form
+        const editPhoneInput = document.getElementById('edit-phone');
+        if (editPhoneInput) {
+            editPhoneInput.oninput = (e) => {
+                let val = e.target.value.replace(/\D/g, '').substring(0, 10);
+                e.target.value = val;
+            };
+        }
+
         // Role restriction for salary
         const salaryGroup = document.getElementById('edit-salary').parentElement;
         if (userRole !== 'owner' && salaryGroup) salaryGroup.style.display = 'none';
@@ -74,13 +113,13 @@ function initStaffDetails(apiBase, headers, userRole) {
         // Load other data
         renderAttendance();
         renderSales();
-        renderLeaves();
 
         // Update Action Section state
         if (roleSelect) roleSelect.value = employee.role;
         if (btnBlock) {
-            const isBlocked = employee.status === 'offline';
+            const isBlocked = employee.isBlocked;
             btnBlock.querySelector('span').textContent = isBlocked ? 'Unblock Access' : 'Block Access';
+            btnBlock.querySelector('i').className = isBlocked ? 'fa-solid fa-lock-open' : 'fa-solid fa-lock';
         }
     };
 
@@ -89,8 +128,6 @@ function initStaffDetails(apiBase, headers, userRole) {
     const roleSelect = document.getElementById('modal-role-select');
     const btnBlock = document.getElementById('btn-block-employee-modal');
     const btnDelete = document.getElementById('btn-delete-employee-modal');
-
-    const btnManageLeave = document.getElementById('btn-manage-leave');
 
     if (btnUpdateRole) {
         btnUpdateRole.onclick = async () => {
@@ -104,27 +141,41 @@ function initStaffDetails(apiBase, headers, userRole) {
                 const result = await res.json();
                 if (result.success) {
                     QuadModals.showToast("Role updated", "success");
+                    CURRENT_EMP.role = newRole;
+                    document.getElementById('edit-role').value = newRole;
+                    document.getElementById('detail-header-role').textContent = newRole;
                     if (window.refreshEmployeeList) window.refreshEmployeeList();
                 }
             } catch (err) { console.error(err); }
         };
     }
 
+    // Sync role selects
+    if (roleSelect && document.getElementById('edit-role')) {
+        roleSelect.addEventListener('change', () => {
+            document.getElementById('edit-role').value = roleSelect.value;
+        });
+        document.getElementById('edit-role').addEventListener('change', () => {
+            roleSelect.value = document.getElementById('edit-role').value;
+        });
+    }
+
     if (btnBlock) {
         btnBlock.onclick = async () => {
-            const isBlocked = CURRENT_EMP.status === 'offline';
-            const newStatus = isBlocked ? 'active' : 'offline';
+            const isCurrentlyBlocked = CURRENT_EMP.isBlocked;
+            const newBlockStatus = !isCurrentlyBlocked;
             try {
                 const res = await fetch(`${API_CONFIG.base}/employees/${CURRENT_EMP._id}`, {
                     method: 'PATCH',
                     headers: API_CONFIG.headers,
-                    body: JSON.stringify({ status: newStatus })
+                    body: JSON.stringify({ isBlocked: newBlockStatus })
                 });
                 const result = await res.json();
                 if (result.success) {
-                    CURRENT_EMP.status = newStatus;
-                    btnBlock.querySelector('span').textContent = newStatus === 'offline' ? 'Unblock Access' : 'Block Access';
-                    QuadModals.showToast(newStatus === 'offline' ? "Access Blocked" : "Access Restored", "info");
+                    CURRENT_EMP.isBlocked = newBlockStatus;
+                    btnBlock.querySelector('span').textContent = newBlockStatus ? 'Unblock Access' : 'Block Access';
+                    btnBlock.querySelector('i').className = newBlockStatus ? 'fa-solid fa-lock-open' : 'fa-solid fa-lock';
+                    QuadModals.showToast(newBlockStatus ? "Access Blocked" : "Access Restored", "info");
                     if (window.refreshEmployeeList) window.refreshEmployeeList();
                 }
             } catch (err) { console.error(err); }
@@ -152,35 +203,50 @@ function initStaffDetails(apiBase, headers, userRole) {
 
 
 
-
-
-    if (btnManageLeave) {
-        btnManageLeave.onclick = () => switchTab(3); // Leaves Tab
-    }
-
     // Save Logic
     if (saveBtn) {
-
         saveBtn.onclick = async () => {
-            const formData = {
-                name: document.getElementById('edit-name').value,
-                phoneNumber: document.getElementById('edit-phone').value,
-                email: document.getElementById('edit-email').value,
-                aadhaar: document.getElementById('edit-aadhaar').value,
-                role: document.getElementById('edit-role').value,
-                salary: document.getElementById('edit-salary').value,
-                address: document.getElementById('edit-address').value,
-            };
+            const salaryVal = document.getElementById('edit-salary').value;
+            const phoneVal = document.getElementById('edit-phone').value;
+
+            if (phoneVal.length !== 10) {
+                QuadModals.alert("Invalid Input", "Phone number must be exactly 10 digits.", "warning");
+                return;
+            }
+
+            if (Number(salaryVal) < 0) {
+                QuadModals.alert("Invalid Input", "Salary cannot be negative.", "warning");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('name', document.getElementById('edit-name').value);
+            formData.append('phoneNumber', phoneVal);
+            formData.append('email', document.getElementById('edit-email').value);
+            formData.append('aadhaar', document.getElementById('edit-aadhaar').value);
+            formData.append('role', document.getElementById('edit-role').value);
+            formData.append('salary', salaryVal);
+            formData.append('address', document.getElementById('edit-address').value);
+
+            if (editCroppedBlob) {
+                formData.append('photo', editCroppedBlob, 'employee_photo.jpg');
+            }
 
             try {
                 const res = await fetch(`${API_CONFIG.base}/employees/${CURRENT_EMP._id}`, {
                     method: 'PATCH',
-                    headers: API_CONFIG.headers,
-                    body: JSON.stringify(formData)
+                    headers: {
+                        'Authorization': API_CONFIG.headers['Authorization']
+                    },
+                    body: formData
                 });
                 const result = await res.json();
                 if (result.success) {
                     QuadModals.showToast("Profile updated", "success");
+                    editCroppedBlob = null;
+                    CURRENT_EMP.role = document.getElementById('edit-role').value;
+                    if (roleSelect) roleSelect.value = CURRENT_EMP.role;
+                    document.getElementById('detail-header-role').textContent = CURRENT_EMP.role;
                     modal.classList.remove('active');
                     if (window.refreshEmployeeList) window.refreshEmployeeList();
                 }
@@ -266,11 +332,18 @@ function selectAttendanceDay(dateStr, record) {
 }
 
 async function renderSales() {
-    const salesContainer = document.querySelector('.detail-section-col:nth-child(3) .section-body');
-    if (!salesContainer) return;
+    const salesContent = document.getElementById('sales-tab-content');
+    const salesMonthLabel = document.getElementById('sales-month-year');
+    if (!salesContent) return;
+
+    const month = currentViewDate.toISOString().slice(0, 7); // YYYY-MM
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    if (salesMonthLabel) salesMonthLabel.textContent = `${monthNames[currentViewDate.getMonth()]} ${currentViewDate.getFullYear()}`;
+
+    salesContent.innerHTML = '<div style="padding: 3rem; text-align: center; opacity: 0.5;"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading Sales...</div>';
 
     try {
-        const res = await fetch(`${API_CONFIG.base}/sales/employee/${CURRENT_EMP._id}`, { headers: API_CONFIG.headers });
+        const res = await fetch(`${API_CONFIG.base}/sales/employee/${CURRENT_EMP._id}?month=${month}`, { headers: API_CONFIG.headers });
         const result = await res.json();
         
         if (result.success) {
@@ -283,20 +356,20 @@ async function renderSales() {
                             <div style="color: var(--text-muted); font-size: 0.75rem;">${new Date(o.createdAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}</div>
                         </div>
                         <div style="text-align: right;">
-                            <div style="font-weight: 700; color: var(--c-green-text);">₹${o.totalAmount.toFixed(2)}</div>
+                            <div style="font-weight: 700; color: var(--c-green-text);">₹${o.totalAmount.toLocaleString()}</div>
                             <div style="color: var(--text-muted); font-size: 0.75rem;">${o.paymentMethod.toUpperCase()}</div>
                         </div>
                     </div>
                 `).join('')
-                : '<p class="empty-detail-msg">No sales records found for this month.</p>';
+                : '<p class="empty-detail-msg" style="padding: 2rem; text-align: center; opacity: 0.6;">No sales records found for this month.</p>';
 
-            salesContainer.innerHTML = `
+            salesContent.innerHTML = `
                 <div class="sales-performance-card" style="padding: 1.5rem; text-align: center; background: var(--bg-soft); border-radius: 16px; margin-bottom: 1.5rem;">
                     <div style="font-size: 2rem; color: var(--primary); margin-bottom: 0.5rem;">
                         <i class="fa-solid fa-indian-rupee-sign"></i>
                     </div>
                     <h3 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.25rem;">₹${data.totalSales.toLocaleString()}</h3>
-                    <p style="color: var(--text-secondary); font-size: 0.85rem;">Total Sales (${data.month})</p>
+                    <p style="color: var(--text-secondary); font-size: 0.85rem;">Total Revenue</p>
                     
                     <div style="margin-top: 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                         <div style="background: var(--bg-card); padding: 0.75rem; border-radius: 12px; border: 1px solid var(--border-soft);">
@@ -305,16 +378,16 @@ async function renderSales() {
                         </div>
                         <div style="background: var(--bg-card); padding: 0.75rem; border-radius: 12px; border: 1px solid var(--border-soft);">
                             <h4 style="font-size: 1.1rem; font-weight: 700;">₹${Math.round(data.totalSales / (data.count || 1)).toLocaleString()}</h4>
-                            <p style="font-size: 0.65rem; color: var(--text-secondary);">Avg. Value</p>
+                            <p style="font-size: 0.65rem; color: var(--text-secondary);">Avg. Order</p>
                         </div>
                     </div>
                 </div>
 
                 <div class="recent-sales-list">
                     <h4 style="margin-bottom: 1rem; font-size: 0.9rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
-                        <i class="fa-solid fa-receipt" style="color: var(--primary);"></i> Recent Sales
+                        <i class="fa-solid fa-receipt" style="color: var(--primary);"></i> Recent Orders
                     </h4>
-                    <div class="sales-records-scroll" style="max-height: 300px; overflow-y: auto;">
+                    <div class="sales-records-scroll" style="max-height: 250px; overflow-y: auto;">
                         ${ordersHtml}
                     </div>
                 </div>
@@ -322,59 +395,9 @@ async function renderSales() {
         }
     } catch (err) {
         console.error("Sales fetch failed", err);
+        salesContent.innerHTML = '<p class="empty-detail-msg">Error loading sales data.</p>';
     }
 }
 
-async function renderLeaves() {
-    const container = document.getElementById('leave-list-container');
-    if (!container) return;
 
-    try {
-        const res = await fetch(`${API_CONFIG.base}/leaves`, { headers: API_CONFIG.headers });
-        const result = await res.json();
-        
-        if (result.success) {
-            // Filter leaves for the current employee
-            const leaves = result.data.filter(l => (l.employeeId?._id || l.employeeId) === CURRENT_EMP._id);
-            
-            if (leaves.length === 0) {
-                container.innerHTML = '<p class="empty-detail-msg">No leave requests found.</p>';
-                return;
-            }
-
-            container.innerHTML = leaves.map(l => `
-                <div class="leave-item">
-                    <div class="leave-item-header">
-                        <span class="leave-dates">${new Date(l.startDate).toLocaleDateString()} - ${new Date(l.endDate).toLocaleDateString()}</span>
-                        <span class="leave-status status-${l.status}">${l.status}</span>
-                    </div>
-                    <p class="leave-reason">${l.reason}</p>
-                    ${l.status === 'pending' ? `
-                        <div class="leave-actions">
-                            <button class="btn-approve-leave" onclick="updateLeaveStatus('${l._id}', 'approved')">Approve</button>
-                            <button class="btn-reject-leave" onclick="updateLeaveStatus('${l._id}', 'rejected')">Reject</button>
-                        </div>
-                    ` : ''}
-                </div>
-            `).join('');
-        }
-    } catch (err) {
-        console.error("Leaves fetch failed", err);
-    }
-}
-
-window.updateLeaveStatus = async (leaveId, status) => {
-    try {
-        const res = await fetch(`${API_CONFIG.base}/leaves/${leaveId}/status`, {
-            method: 'PATCH',
-            headers: API_CONFIG.headers,
-            body: JSON.stringify({ status, adminNote: `Status updated to ${status}` })
-        });
-        const result = await res.json();
-        if (result.success) {
-            QuadModals.showToast(`Leave ${status}`, "info");
-            renderLeaves();
-        }
-    } catch (err) { console.error(err); }
-};
 

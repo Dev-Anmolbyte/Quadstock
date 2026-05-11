@@ -20,6 +20,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 3. Data Handling ---
     let ownerEmployees = [];
+    let cropper = null;
+    let croppedBlob = null;
 
     const grid = document.getElementById('employee-grid');
     const searchInput = document.getElementById('employee-search');
@@ -84,11 +86,16 @@ document.addEventListener('DOMContentLoaded', () => {
             let statusClass = 'status-offline';
             let statusText = (emp.status || 'offline').toLowerCase();
 
-            if (statusText === 'active' || statusText === 'working' || statusText === 'present') statusClass = 'status-active';
-            else if (statusText === 'break') statusClass = 'status-break';
-            else if (statusText === 'holiday' || statusText === 'leave') statusClass = 'status-holiday';
-            else if (statusText === 'absent' || statusText === 'offline') statusClass = 'status-absent';
-            else if (statusText === 'pending') statusClass = 'status-pending';
+            if (emp.isBlocked) {
+                statusClass = 'status-absent';
+                statusText = 'blocked';
+            } else {
+                if (statusText === 'active' || statusText === 'working' || statusText === 'present') statusClass = 'status-active';
+                else if (statusText === 'break') statusClass = 'status-break';
+                else if (statusText === 'holiday' || statusText === 'leave') statusClass = 'status-holiday';
+                else if (statusText === 'absent' || statusText === 'offline') statusClass = 'status-absent';
+                else if (statusText === 'pending') statusClass = 'status-pending';
+            }
 
             const initials = emp.name.split(' ').map(n => n[0]).join('').toUpperCase();
             const avatarHtml = emp.photo
@@ -181,18 +188,85 @@ document.addEventListener('DOMContentLoaded', () => {
     const aadhaarInput = document.getElementById('emp-aadhaar');
     if (aadhaarInput) {
         aadhaarInput.addEventListener('input', (e) => {
-            // 1. Remove all non-digits
-            let val = e.target.value.replace(/\D/g, '');
-            
-            // 2. Limit to 12 digits
-            val = val.substring(0, 12);
-            
-            // 3. Add space every 4 digits using regex
+            let val = e.target.value.replace(/\D/g, '').substring(0, 12);
             const formatted = val.match(/.{1,4}/g)?.join(' ') || val;
-            
             e.target.value = formatted;
         });
     }
+
+    // --- Phone Number Validation ---
+    const phoneInput = document.getElementById('emp-phone');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', (e) => {
+            let val = e.target.value.replace(/\D/g, '').substring(0, 10);
+            e.target.value = val;
+        });
+    }
+
+    // --- Cropper Logic ---
+    const cropperModal = document.getElementById('cropper-modal');
+    const cropperImage = document.getElementById('cropper-image');
+    let currentCropperCallback = null;
+    
+    window.openCropper = (file, callback) => {
+        if (!file) return;
+        currentCropperCallback = callback;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            cropperImage.src = event.target.result;
+            cropperModal.classList.add('active');
+            
+            if (cropper) cropper.destroy();
+            
+            cropper = new Cropper(cropperImage, {
+                aspectRatio: 1,
+                viewMode: 2,
+                dragMode: 'move',
+                background: false,
+                autoCropArea: 1,
+                checkOrientation: false
+            });
+        };
+        reader.readAsDataURL(file);
+    };
+
+    // Listen for New Employee Photo
+    const photoInput = document.getElementById('emp-photo');
+    photoInput?.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        window.openCropper(file, (blob) => {
+            croppedBlob = blob;
+        });
+    });
+
+    // Cropper Controls
+    document.getElementById('crop-rotate-left')?.addEventListener('click', () => cropper?.rotate(-90));
+    document.getElementById('crop-rotate-right')?.addEventListener('click', () => cropper?.rotate(90));
+    document.getElementById('crop-zoom-in')?.addEventListener('click', () => cropper?.zoom(0.1));
+    document.getElementById('crop-zoom-out')?.addEventListener('click', () => cropper?.zoom(-0.1));
+    document.getElementById('crop-reset')?.addEventListener('click', () => cropper?.reset());
+
+    document.getElementById('btn-cancel-crop')?.addEventListener('click', () => {
+        cropperModal.classList.remove('active');
+        if (currentCropperCallback === croppedBlob) {
+             photoInput.value = ''; 
+        }
+        currentCropperCallback = null;
+    });
+
+    document.getElementById('btn-save-crop')?.addEventListener('click', () => {
+        if (!cropper) return;
+        
+        cropper.getCroppedCanvas({
+            width: 500,
+            height: 500
+        }).toBlob((blob) => {
+            if (currentCropperCallback) currentCropperCallback(blob);
+            cropperModal.classList.remove('active');
+            QuadModals.showToast("Image adjusted successfully!", "success");
+        }, 'image/jpeg', 0.9);
+    });
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -206,20 +280,39 @@ document.addEventListener('DOMContentLoaded', () => {
         const originalBtnText = submitBtn.innerHTML;
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
+        
+        const phone = document.getElementById('emp-phone').value;
+        const salary = Number(document.getElementById('emp-salary').value);
+
+        if (phone.length !== 10) {
+            QuadModals.alert("Invalid Input", "Phone number must be exactly 10 digits.", "warning");
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+            return;
+        }
+
+        if (salary < 0) {
+            QuadModals.alert("Invalid Input", "Salary cannot be negative.", "warning");
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+            return;
+        }
 
         const formData = new FormData();
         formData.append('name', document.getElementById('emp-name').value);
         formData.append('email', document.getElementById('emp-email').value);
         formData.append('password', document.getElementById('emp-password').value.trim() || "123456");
-        formData.append('phoneNumber', document.getElementById('emp-phone').value);
+        formData.append('phoneNumber', phone);
         formData.append('aadhaar', document.getElementById('emp-aadhaar').value);
         formData.append('address', document.getElementById('emp-address').value);
         formData.append('emergencyContact', document.getElementById('emp-emergency').value);
         formData.append('role', document.getElementById('emp-role').value);
-        formData.append('salary', Number(document.getElementById('emp-salary').value));
+        formData.append('salary', salary);
 
         const photoInput = document.getElementById('emp-photo');
-        if (photoInput && photoInput.files[0]) {
+        if (croppedBlob) {
+            formData.append('photo', croppedBlob, 'employee_photo.jpg');
+        } else if (photoInput && photoInput.files[0]) {
             formData.append('photo', photoInput.files[0]);
         }
 
@@ -236,6 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (result.success) {
                 QuadModals.showToast("Employee added successfully!", "success");
                 form.reset();
+                croppedBlob = null;
                 modal.classList.remove('active');
                 fetchEmployees();
             } else {

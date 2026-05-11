@@ -25,6 +25,11 @@ export const authMiddleware = asyncHandler(async (req, res, next) => {
             throw new ApiError(401, "Invalid Access Token");
         }
 
+        // Check for blocked status (Employees only)
+        if (user.role !== 'owner' && user.status === 'offline') {
+            throw new ApiError(403, "Your access has been blocked. Please contact the owner.");
+        }
+
         req.user = user;
         next();
     } catch (error) {

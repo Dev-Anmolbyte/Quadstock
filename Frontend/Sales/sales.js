@@ -29,12 +29,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const cartDiscount = document.getElementById('cart-discount');
     const checkoutBtn = document.getElementById('pos-checkout-btn');
     const clearCartBtn = document.getElementById('clear-cart');
-    const maximizeCartBtn = document.getElementById('maximize-cart');
-    const maximizeCartModal = document.getElementById('maximize-cart-modal');
-    const closeMaximizeCart = document.getElementById('close-maximize-cart');
-    const maxCartItemsList = document.getElementById('max-cart-items');
-    const maxCartCount = document.getElementById('max-cart-count');
-    const maxCartTotal = document.getElementById('max-cart-total');
+    const mainCartModal = document.getElementById('main-cart-modal');
+    const closeMainCartBtn = document.getElementById('close-main-cart');
+    const cartFloatingBar = document.getElementById('cart-floating-bar');
+    const floatingCartCount = document.getElementById('floating-cart-count');
+    const floatingCartTotal = document.getElementById('floating-cart-total');
+    const viewCartBtn = document.getElementById('view-cart-btn');
 
     const looseModal = document.getElementById('loose-modal');
     const looseModalName = document.getElementById('loose-modal-name');
@@ -42,6 +42,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const looseModalQty = document.getElementById('loose-modal-qty');
     const looseModalUnit = document.getElementById('loose-modal-unit');
     const looseModalTotal = document.getElementById('loose-modal-total');
+    const looseModalStock = document.getElementById('loose-modal-stock');
     const looseModalAdd = document.getElementById('loose-modal-add');
     const looseModalCancel = document.getElementById('loose-modal-cancel');
 
@@ -65,7 +66,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- Helper: Calculate Effective Price (Smart Expiry Discounts) ---
     function getEffectivePrice(p) {
-        const originalPrice = p.price || p.pricePerUnit || 0;
+        const originalPrice = parseFloat(p.price || p.pricePerUnit || 0);
         let finalPrice = originalPrice;
         let discountInfo = null;
 
@@ -128,27 +129,70 @@ document.addEventListener('DOMContentLoaded', async () => {
             const imgSrc = p.image || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=400';
             const stockQty = p.quantity || p.stockQuantity || 0;
             const cardClass = stockQty <= 0 ? 'out-of-stock' : '';
-            const { finalPrice, discountInfo } = getEffectivePrice(p);
+            const { finalPrice, originalPrice, discountInfo } = getEffectivePrice(p);
+
+            const batch = p.batchNumber || 'N/A';
+            const mfdDate = p.mfd ? new Date(p.mfd).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A';
+            const expDate = p.exp ? new Date(p.exp).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A';
+            
+            // Only show expired state if the item is actually in stock. 
+            // If out of stock, "Out of Stock" takes priority.
+            const isExpired = stockQty > 0 && p.exp && new Date(p.exp) < new Date();
+            const expClass = isExpired ? 'text-danger' : '';
 
             return `
-                <div class="v-product-card ${cardClass}" data-id="${p._id}">
+                <div class="v-product-card ${cardClass} ${isExpired ? 'expired' : ''}" data-id="${p._id}">
                     <div class="v-product-img">
                         <img src="${imgSrc}" alt="${p.name}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=400'">
                         <span class="badge-v2 ${p.productType === 'loose' ? 'badge-loose' : 'badge-packed'}">
                             ${p.productType === 'loose' ? 'LOOSE' : 'PACKED'}
                         </span>
+                        ${isExpired ? `
+                            <span class="badge-expired">EXPIRED</span>
+                        ` : ''}
                         ${discountInfo ? `
-                            <span class="badge-expiry-discount" style="position: absolute; bottom: 8px; left: 8px; background: #ef4444; color: white; font-size: 10px; font-weight: 900; padding: 2px 6px; border-radius: 6px; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3); text-transform: uppercase;">
-                                ${p.discountReason ? p.discountReason.toUpperCase() : 'OFFER'}
-                            </span>
+                            <div class="discount-tag-container">
+                                <span class="badge-expiry-discount">
+                                    ${ (p.discountReason || p.reason || 'OFFER').toUpperCase() }
+                                </span>
+                                <span class="discount-value-badge">
+                                    -${p.discountType === 'percentage' ? p.discount + '%' : '₹' + p.discount}
+                                </span>
+                            </div>
                         ` : ''}
                     </div>
                     <div class="v-product-info">
-                        <div class="v-product-brand" style="font-size: 0.7rem; font-weight: 800; color: var(--pos-primary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">${p.brand || 'No Brand'}</div>
+                        <div class="v-product-brand">${p.brand || 'No Brand'}</div>
                         <h4 class="v-product-name" title="${p.name}">${p.name}</h4>
+                        
+                        <div class="v-product-details-grid">
+                            <div class="detail-row">
+                                <span class="label">BATCH</span>
+                                <span class="value">${batch}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="label">MFD</span>
+                                <span class="value">${mfdDate}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="label">EXP</span>
+                                <span class="value ${expClass}">${expDate}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="label">VOL / WT</span>
+                                <span class="value">${p.size || p.weight || 'N/A'}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="label">STOCK</span>
+                                <span class="value highlight">${stockQty} ${p.unit || 'pcs'}</span>
+                            </div>
+                        </div>
+
                         <div class="v-product-footer">
-                            <div class="v-product-price">₹${finalPrice.toFixed(2)}${p.productType === 'loose' ? `/${p.unit || 'kg'}` : ''}</div>
-                            <div class="v-product-stock">${stockQty} ${p.unit || 'pcs'}</div>
+                            <div class="v-product-price-container">
+                                <div class="v-product-price">₹${finalPrice.toFixed(2)}${p.productType === 'loose' ? `/${p.unit || 'kg'}` : ''}</div>
+                                ${discountInfo ? `<div class="v-product-original-price">₹${originalPrice.toFixed(2)}</div>` : ''}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -174,9 +218,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 // Migration (Safe Extension)
                 inventory.forEach(p => {
-                    if (!p.productType) {
-                        p.productType = "packed";
-                    }
+                    if (!p.productType) p.productType = "packed";
                 });
 
                 // Populate category dropdown
@@ -311,6 +353,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
+        const isExpired = product.exp && new Date(product.exp) < new Date();
+        if (isExpired) {
+            if (canShowToast) {
+                QuadModals.showToast(`${product.name} is expired and cannot be sold`, 'error');
+                toastTimestamps.set(product._id, now);
+            }
+            return;
+        }
+
         if (product.productType === 'loose') {
             activeProduct = product;
             showLooseArea(product);
@@ -344,6 +395,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const { finalPrice } = getEffectivePrice(item);
         looseModalPriceLabel.textContent = `₹${finalPrice.toFixed(2)} / ${unit}`;
         looseModalUnit.textContent = unit;
+        looseModalStock.textContent = `${item.stockQuantity || 0} ${unit}`;
         looseModalQty.value = '';
         looseModalTotal.textContent = '₹0.00';
         
@@ -368,12 +420,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         // Check Stock
-        if (qty > (activeProduct.stockQuantity || 0)) {
-            QuadModals.alert("Stock Error", `Available stock: ${activeProduct.stockQuantity} ${activeProduct.unit}`, "error");
-            return;
+        const maxStock = activeProduct.stockQuantity || 0;
+        let finalQty = qty;
+        if (qty > maxStock) {
+            QuadModals.showToast(`Max stock reached: ${maxStock} ${activeProduct.unit}`, "warning");
+            finalQty = maxStock;
         }
 
-        addToCart(activeProduct, qty);
+        addToCart(activeProduct, finalQty);
         looseModal.classList.remove('show');
         setTimeout(() => { looseModal.style.display = 'none'; }, 300);
         activeProduct = null;
@@ -420,8 +474,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             updateSummary(0);
             checkoutBtn.classList.add('disabled');
             checkoutBtn.disabled = true;
+            cartFloatingBar.style.display = 'none';
+            mainCartModal.classList.remove('show');
             return;
         }
+
+        cartFloatingBar.style.display = 'flex';
+        floatingCartCount.textContent = `${cart.length} Item${cart.length > 1 ? 's' : ''}`;
+
 
         cartItemCount.textContent = cart.length;
 
@@ -430,7 +490,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             return `
                 <div class="cart-item-row">
                     <div class="cart-item-main">
-                        <span class="cart-item-name">${item.name}</span>
+                        <div class="cart-item-details">
+                            <span class="cart-item-name">${item.name}</span>
+                            <div class="cart-item-meta-info">
+                                <span>Batch: ${item.batchNumber || 'N/A'}</span>
+                                <span>Size: ${item.size || item.weight || 'N/A'}</span>
+                                <span class="stock-badge">Stock: ${item.stockQuantity || 0}</span>
+                            </div>
+                        </div>
                         <span class="cart-item-total">₹${itemTotal.toFixed(2)}</span>
                     </div>
                     
@@ -468,8 +535,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
             // Check Stock
             const baseProduct = inventory.find(p => p._id === item._id);
-            if (delta > 0 && newQty > (baseProduct.quantity || 0)) {
-                QuadModals.showToast("No more stock available", "error");
+            const maxStock = baseProduct.quantity || 0;
+            if (delta > 0 && newQty > maxStock) {
+                QuadModals.showToast(`Max stock: ${maxStock}`, "warning");
+                item.cartQty = maxStock;
+                renderCart();
                 return;
             }
             item.cartQty = newQty;
@@ -486,9 +556,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         const baseProduct = inventory.find(p => p._id === item._id);
-        if (newQty > (baseProduct.quantity || 0)) {
-            QuadModals.showToast(`Max stock: ${baseProduct.quantity}`, "error");
-            newQty = baseProduct.quantity;
+        const maxStock = baseProduct.quantity || 0;
+        if (newQty > maxStock) {
+            QuadModals.showToast(`Max stock: ${maxStock}`, "warning");
+            newQty = maxStock;
         }
         
         item.cartQty = newQty;
@@ -551,6 +622,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         cartTotal.textContent = `₹${total.toFixed(2)}`;
+        if (floatingCartTotal) floatingCartTotal.textContent = `₹${total.toFixed(2)}`;
         return total;
     }
 
@@ -559,102 +631,26 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderCart();
     };
 
-    window.maximizeCartModal = maximizeCartModal;
-
-    maximizeCartBtn.onclick = () => {
-        if (cart.length === 0) {
-            QuadModals.showToast("Cart is empty", "info");
-            return;
+    viewCartBtn.onclick = () => {
+        console.log("Opening Cart Modal");
+        if (mainCartModal) {
+            mainCartModal.classList.add('show');
+        } else {
+            console.error("mainCartModal not found");
         }
-        renderMaximizedCart();
-        window.maximizeCartModal.classList.add('show');
     };
 
-    closeMaximizeCart.onclick = () => {
-        window.maximizeCartModal.classList.remove('show');
+    closeMainCartBtn.onclick = () => {
+        mainCartModal.classList.remove('show');
     };
-
-    const maxCheckoutBtn = document.getElementById('max-checkout-btn');
-    
-    maxCheckoutBtn.onclick = () => {
-        window.maximizeCartModal.classList.remove('show');
-        checkoutBtn.click();
-    };
-
-    function renderMaximizedCart() {
-        maxCartCount.textContent = cart.length;
-        const subtotal = cart.reduce((sum, item) => sum + (item.cartQty * item.price), 0);
-        
-        let discountAmount = 0;
-        if (currentDiscount.type === 'flat') {
-            discountAmount = currentDiscount.value;
-        } else if (currentDiscount.type === 'percentage') {
-            discountAmount = subtotal * (currentDiscount.value / 100);
-        }
-        if (discountAmount > subtotal) discountAmount = subtotal;
-        const finalTotal = subtotal - discountAmount;
-        
-        maxCartTotal.textContent = `₹${finalTotal.toFixed(2)}`;
-
-        if (cart.length === 0) {
-            maxCartItemsList.innerHTML = '<div style="text-align:center; padding: 3rem; color: var(--text-secondary);"><i class="fa-solid fa-cart-arrow-down" style="font-size: 3rem; margin-bottom: 1rem;"></i><p>Your cart is empty</p></div>';
-            return;
-        }
-
-        maxCartItemsList.innerHTML = cart.map((item, index) => {
-            const itemTotal = item.cartQty * item.price;
-            const mfdDate = item.mfd ? new Date(item.mfd).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A';
-            const expDate = item.exp ? new Date(item.exp).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A';
-
-            return `
-                <div class="cart-item-row" style="margin-bottom: 1rem; padding: 1.5rem; border-left: 5px solid var(--primary-color); display: flex; justify-content: space-between; align-items: center; background: var(--bg-card); border-radius: 0 16px 16px 0;">
-                    <div style="display: flex; align-items: center; gap: 2rem; flex: 1;">
-                        <span style="font-size: 1.25rem; font-weight: 800; color: var(--text-muted); min-width: 40px;">${index + 1}.</span>
-                        <div style="flex: 1;">
-                            <div style="font-size: 1.2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.25rem;">${item.name}</div>
-                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; font-size: 0.8rem; color: var(--text-secondary);">
-                                <span><i class="fa-solid fa-tag" style="color: var(--primary-color);"></i> <b>Brand:</b> ${item.brand || 'N/A'}</span>
-                                <span><i class="fa-solid fa-hashtag"></i> <b>Batch:</b> ${item.batchNumber || 'N/A'}</span>
-                                <span><i class="fa-solid fa-industry"></i> <b>MFD:</b> ${mfdDate}</span>
-                                <span style="color: ${item.exp && new Date(item.exp) < new Date() ? '#ef4444' : 'inherit'}"><i class="fa-solid fa-calendar-xmark"></i> <b>EXP:</b> ${expDate}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style="display: flex; align-items: center; gap: 3rem;">
-                        <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
-                            <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Adjust Quantity</span>
-                            ${item.productType === 'packed' ? `
-                            <div class="qty-btns" style="transform: scale(1.1);">
-                                <button onclick="changeQty(${index}, -1); renderMaximizedCart();">-</button>
-                                <input type="number" class="qty-val" value="${item.cartQty}" min="1" style="width: 50px; text-align: center;" onchange="updateCartQty(${index}, this.value); renderMaximizedCart();">
-                                <button onclick="changeQty(${index}, 1); renderMaximizedCart();">+</button>
-                            </div>
-                            ` : `
-                            <button onclick="editLooseCartItem(${index}); maximizeCartModal.classList.remove('show');" class="btn-secondary small-btn" style="padding: 0.5rem 1rem;">
-                                Edit: ${item.cartQty} ${item.unit || 'kg'}
-                            </button>
-                            `}
-                        </div>
-
-                        <div style="text-align: right; min-width: 120px;">
-                            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">Item Subtotal</div>
-                            <div style="font-size: 1.35rem; font-weight: 900; color: var(--primary-color);">₹${itemTotal.toFixed(2)}</div>
-                            <div style="font-size: 0.85rem; color: var(--text-secondary);">₹${item.price.toFixed(2)} per ${item.productType === 'loose' ? (item.unit || 'kg') : 'unit'}</div>
-                        </div>
-
-                        <button onclick="removeCartItem(${index}); renderMaximizedCart();" class="btn-clear-cart" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.2);">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </button>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
-
     const customerModal = document.getElementById('customer-modal');
     const customerNameInput = document.getElementById('customer-name');
     const customerPhoneInput = document.getElementById('customer-phone');
+    
+    // Allow only numeric input for phone
+    customerPhoneInput.addEventListener('input', (e) => {
+        e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10);
+    });
 
     checkoutBtn.onclick = () => {
         if (cart.length === 0) {
@@ -663,6 +659,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         if (isProcessing) return;
 
+        mainCartModal.classList.remove('show');
         customerNameInput.value = '';
         customerPhoneInput.value = '';
         customerModal.classList.add('show');
@@ -680,9 +677,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('confirm-customer-btn').onclick = () => {
         const dueDate = document.getElementById('customer-due-date').value;
         
+        const phone = customerPhoneInput.value.trim();
+        if (phone && phone.length !== 10) {
+            QuadModals.showToast("Phone number must be exactly 10 digits", "warning");
+            return;
+        }
+
         // If Udhaar, validation
         if (selectedPaymentMethod === 'udhaar') {
-            if (!customerNameInput.value.trim() || !customerPhoneInput.value.trim()) {
+            if (!customerNameInput.value.trim() || !phone) {
                 QuadModals.showToast("Customer Name and Phone required for Udhaar", "warning");
                 return;
             }
@@ -824,6 +827,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         invStoreAddress.textContent = store.address || 'India';
         invStorePhone.textContent = store.phoneNumber || 'N/A';
         invGstNumber.textContent = store.gstNumber || 'N/A';
+        
+        const invStoreEmail = document.getElementById('inv-store-email');
+        if (invStoreEmail) invStoreEmail.textContent = store.email || 'N/A';
+        
+        const invOwnerName = document.getElementById('inv-owner-name');
+        if (invOwnerName) invOwnerName.textContent = store.ownerId?.name || (freshUser.role === 'owner' ? freshUser.name : 'N/A');
+        
+        const invFooterStoreName = document.getElementById('inv-footer-store-name');
+        if (invFooterStoreName) invFooterStoreName.textContent = storeName.toUpperCase();
+        
+        const invTerms = document.getElementById('inv-terms');
+        if (invTerms) invTerms.innerHTML = (store.storeTerms || '1. All sales are final.<br>2. Warranty as per manufacturer.').replace(/\n/g, '<br>');
 
         // 2. Order, Customer & Date Info
         const orderIdElems = document.querySelectorAll('#inv-order-id');
@@ -860,11 +875,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             staticQrImg.src = store.staticQrUrl;
             staticQrImg.style.display = 'block';
             qrContainer.style.display = 'block';
+            document.getElementById('inv-upi-id-label').textContent = store.upiId || '';
         } else if (store.upiId) {
             const upiUrl = `upi://pay?pa=${store.upiId}&pn=${encodeURIComponent(storeName)}&am=${total.toFixed(2)}&cu=INR`;
             dynamicQrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(upiUrl)}`;
             dynamicQrImg.style.display = 'block';
             qrContainer.style.display = 'block';
+            document.getElementById('inv-upi-id-label').textContent = store.upiId;
         }
 
         // 4. Items List (4 Columns: Item, Description, Price, Total)
@@ -910,9 +927,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 8. Generate PDF
         QuadModals.showToast("Generating Professional Bill...", "info");
         
+        const safeName = (customerName || 'Walking_Customer').replace(/[^a-z0-9]/gi, '_');
         const opt = {
             margin: 0,
-            filename: `Invoice_${orderId}.pdf`,
+            filename: `Bill_${orderId.toString().slice(-8).toUpperCase()}_${safeName}.pdf`,
             image: { type: 'jpeg', quality: 1 },
             html2canvas: { scale: 3, useCORS: true, letterRendering: true },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
@@ -952,8 +970,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Expose to window for inline onclick handlers
-    window.renderMaximizedCart = renderMaximizedCart;
+
     window.changeQty = changeQty;
+    window.updateCartQty = updateCartQty;
     window.removeCartItem = removeCartItem;
     window.editLooseCartItem = editLooseCartItem;
 });
